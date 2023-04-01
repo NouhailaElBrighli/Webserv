@@ -3,7 +3,7 @@
 
 #include "Server.hpp"
 
-namespace WS {
+namespace WSN {
 
 class TestServer : public Server {
 
@@ -24,6 +24,6 @@ class TestServer : public Server {
 
 	virtual void launch();
 };
-} // namespace WS
+} // namespace WSN
 
 #endif // TESTSERVER_HPP

@@ -17,7 +17,7 @@
 typedef struct sockaddr_in t_sockaddr_in;
 typedef struct sockaddr	   t_sockaddr;
 
-namespace WS {
+namespace WSN {
 
 class Socket {
 
@@ -40,6 +40,6 @@ class Socket {
 
 	void test_connection(int item_to_test, const std::string &name);
 };
-} // namespace WS
+} // namespace WSN
 
 #endif // SOCKET_HPP

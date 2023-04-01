@@ -3,7 +3,7 @@
 
 #include "Socket.hpp"
 
-namespace WS {
+namespace WSN {
 
 class ConnectingSocket : public Socket {
 
@@ -26,6 +26,6 @@ class ConnectingSocket : public Socket {
 	// Virtual function from perent class
 	int connect_to_network(int sock, t_sockaddr_in address);
 };
-} // namespace WS
+} // namespace WSN
 
 #endif // CONNECTINGSOCKET_HPP

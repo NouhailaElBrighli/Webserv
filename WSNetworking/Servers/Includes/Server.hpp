@@ -3,7 +3,7 @@
 
 #include "Sockets.hpp"
 
-namespace WS {
+namespace WSN {
 
 class Server {
   private:
@@ -25,6 +25,6 @@ class Server {
 	virtual void launch() = 0;
 };
 
-} // namespace WS
+} // namespace WSN
 
 #endif // SERVER_HPP

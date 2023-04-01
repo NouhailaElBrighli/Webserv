@@ -5,7 +5,7 @@ int main() {
 
 	try {
 		cout << "Binding socket ..." << endl;
-		WS::BindingSocket binding_socket(AF_INET, SOCK_STREAM, 0, 8080, INADDR_ANY);
+		WSN::BindingSocket binding_socket(AF_INET, SOCK_STREAM, 0, 8080, INADDR_ANY);
 		cout << C_GREEN << "Binding socket succeed" << C_RES << endl;
 	} catch (const std::exception &e) {
 		cerr << e.what() << endl;
@@ -13,7 +13,7 @@ int main() {
 
 	try {
 		cout << "Listening socket ..." << endl;
-		WS::ListeningSocket listening_socket(AF_INET, SOCK_STREAM, 0, 8080, INADDR_ANY, 10);
+		WSN::ListeningSocket listening_socket(AF_INET, SOCK_STREAM, 0, 8080, INADDR_ANY, 10);
 		cout << C_GREEN << "Listening socket succeed" << C_RES << endl;
 	} catch (const std::exception &e) {
 		cerr << e.what() << endl;
@@ -21,7 +21,7 @@ int main() {
 
 	try {
 		cout << "Connecting socket ..." << endl;
-		WS::ConnectingSocket connecting_socket(AF_INET, SOCK_STREAM, 0, 8080, INADDR_ANY);
+		WSN::ConnectingSocket connecting_socket(AF_INET, SOCK_STREAM, 0, 8080, INADDR_ANY);
 		cout << C_GREEN << "Connecting socket succeed" << C_RES << endl;
 	} catch (const std::exception &e) {
 		cerr << e.what() << endl;
@@ -30,7 +30,7 @@ int main() {
 	cout << C_CYAN << "Test Server ..." << C_RES << endl;
 
 	cout << "Server ..." << endl;
-	WS::TestServer server(AF_INET, SOCK_STREAM, 0, 8080, INADDR_ANY, 10);
+	WSN::TestServer server(AF_INET, SOCK_STREAM, 0, 8080, INADDR_ANY, 10);
 	cout << C_GREEN << "Server succeed" << C_RES << endl;
 
 	return 0;
