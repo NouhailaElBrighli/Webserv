@@ -3,7 +3,7 @@
 
 #include "Socket.hpp"
 
-namespace AN {
+namespace WS {
 
 class BindingSocket : public Socket {
 
@@ -26,6 +26,6 @@ class BindingSocket : public Socket {
 	// Virtual function from perent class
 	int connect_to_network(int sock, t_sockaddr_in address);
 };
-} // namespace AN
+} // namespace WS
 
 #endif // BINDINGSOCKET_HPP

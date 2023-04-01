@@ -3,7 +3,7 @@
 
 #include "Sockets.hpp"
 
-namespace AN {
+namespace WS {
 
 class Server {
   private:
@@ -25,6 +25,6 @@ class Server {
 	virtual void launch() = 0;
 };
 
-} // namespace AN
+} // namespace WS
 
 #endif // SERVER_HPP

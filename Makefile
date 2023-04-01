@@ -18,18 +18,18 @@ NAME	= $(EXE_DIR)/$(NOM)
 NAME_UP	= $(shell echo $(NOM) | tr '[:lower:]' '[:upper:]')
 
 INCLUDE	= \
-	-I ./ANNetworking/Includes			\
-	-I ./ANNetworking/Servers/Includes	\
-	-I ./ANNetworking/Sockets/Includes	\
+	-I ./WSNetworking/Includes			\
+	-I ./WSNetworking/Servers/Includes	\
+	-I ./WSNetworking/Sockets/Includes	\
 
 SRCS	= \
 	main.cpp											\
-	ANNetworking/Sockets/Sources/BindingSocket.cpp		\
-	ANNetworking/Sockets/Sources/ConnectingSocket.cpp	\
-	ANNetworking/Sockets/Sources/ListeningSocket.cpp	\
-	ANNetworking/Sockets/Sources/Socket.cpp				\
-	ANNetworking/Servers/Sources/Server.cpp				\
-	ANNetworking/Servers/Sources/TestServer.cpp			\
+	WSNetworking/Sockets/Sources/BindingSocket.cpp		\
+	WSNetworking/Sockets/Sources/ConnectingSocket.cpp	\
+	WSNetworking/Sockets/Sources/ListeningSocket.cpp	\
+	WSNetworking/Sockets/Sources/Socket.cpp				\
+	WSNetworking/Servers/Sources/Server.cpp				\
+	WSNetworking/Servers/Sources/TestServer.cpp			\
 
 #***************************************#
 #				FOLDERS					#

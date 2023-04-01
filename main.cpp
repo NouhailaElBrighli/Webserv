@@ -1,25 +1,37 @@
-#include "ANNetworking.hpp"
+#include "WSNetworking.hpp"
 
 int main() {
-	// cout << C_CYAN << "Starting ..." << C_RES << endl;
+	cout << C_CYAN << "Test Sockets ..." << C_RES << endl;
 
-	// cout << "Binding socket ..." << endl;
-	// AN::BindingSocket binding_socket(AF_INET, SOCK_STREAM, 0, 8080, INADDR_ANY);
-	// cout << C_GREEN << "Binding socket done" << C_RES << endl;
+	try {
+		cout << "Binding socket ..." << endl;
+		WS::BindingSocket binding_socket(AF_INET, SOCK_STREAM, 0, 8080, INADDR_ANY);
+		cout << C_GREEN << "Binding socket succeed" << C_RES << endl;
+	} catch (const std::exception &e) {
+		cerr << e.what() << endl;
+	}
 
-	// cout << "Connecting socket ..." << endl;
-	// AN::ConnectingSocket connecting_socket(AF_INET, SOCK_STREAM, 0, 8080, INADDR_ANY);
-	// cout << C_GREEN << "Conntcting socket done" << C_RES << endl;
+	try {
+		cout << "Listening socket ..." << endl;
+		WS::ListeningSocket listening_socket(AF_INET, SOCK_STREAM, 0, 8080, INADDR_ANY, 10);
+		cout << C_GREEN << "Listening socket succeed" << C_RES << endl;
+	} catch (const std::exception &e) {
+		cerr << e.what() << endl;
+	}
 
-	// cout << "Listening socket ..." << endl;
-	// AN::ListeningSocket listening_socket(AF_INET, SOCK_STREAM, 0, 8080, INADDR_ANY, 10);
-	// cout << C_GREEN << "Listening socket done" << C_RES << endl;
+	try {
+		cout << "Connecting socket ..." << endl;
+		WS::ConnectingSocket connecting_socket(AF_INET, SOCK_STREAM, 0, 8080, INADDR_ANY);
+		cout << C_GREEN << "Connecting socket succeed" << C_RES << endl;
+	} catch (const std::exception &e) {
+		cerr << e.what() << endl;
+	}
 
-	cout << C_CYAN << "Test Server" << C_RES << endl;
+	cout << C_CYAN << "Test Server ..." << C_RES << endl;
 
 	cout << "Server ..." << endl;
-	AN::TestServer server(AF_INET, SOCK_STREAM, 0, 8080, INADDR_ANY, 10);
-	cout << C_GREEN << "Server done" << C_RES << endl;
+	WS::TestServer server(AF_INET, SOCK_STREAM, 0, 8080, INADDR_ANY, 10);
+	cout << C_GREEN << "Server succeed" << C_RES << endl;
 
 	return 0;
 }

@@ -3,7 +3,7 @@
 
 #include "Server.hpp"
 
-namespace AN {
+namespace WS {
 
 class TestServer : public Server {
 
@@ -24,6 +24,6 @@ class TestServer : public Server {
 
 	virtual void launch();
 };
-} // namespace AN
+} // namespace WS
 
 #endif // TESTSERVER_HPP

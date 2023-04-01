@@ -17,7 +17,7 @@
 typedef struct sockaddr_in t_sockaddr_in;
 typedef struct sockaddr	   t_sockaddr;
 
-namespace AN {
+namespace WS {
 
 class Socket {
 
@@ -38,8 +38,8 @@ class Socket {
 
 	virtual int connect_to_network(int sock, t_sockaddr_in address) = 0;
 
-	void test_connection(int item_to_test);
+	void test_connection(int item_to_test, const std::string &name);
 };
-} // namespace AN
+} // namespace WS
 
 #endif // SOCKET_HPP

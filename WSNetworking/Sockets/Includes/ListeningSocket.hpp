@@ -3,7 +3,7 @@
 
 #include "BindingSocket.hpp"
 
-namespace AN {
+namespace WS {
 
 class ListeningSocket : public BindingSocket {
 
@@ -24,6 +24,6 @@ class ListeningSocket : public BindingSocket {
 	// Virtual function from perent class
 	int start_listening();
 };
-} // namespace AN
+} // namespace WS
 
 #endif // LSTENINGSOCKET_HPP
