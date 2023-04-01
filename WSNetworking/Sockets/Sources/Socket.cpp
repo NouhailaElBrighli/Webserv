@@ -34,7 +34,7 @@ WSN::Socket::~Socket() {
 	close(sock);
 }
 
-void WSN::Socket::test_connection(int item_to_test, const std::string &name) {
+void WSN::Socket::test_connection(int item_to_test, const string &name) {
 	// Confirme that the socket or connection or binding or listening hes been properly established
 	if (item_to_test < 0) {
 		// std::cout << C_RED << "Test failed !" << C_RES << std::endl;

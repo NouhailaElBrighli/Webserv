@@ -3,7 +3,5 @@
 .idea
 **/*.o
 **/*.out
-**/*.txt
 **/executable
 **/objects
-**/data

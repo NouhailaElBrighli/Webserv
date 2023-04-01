@@ -18,18 +18,21 @@ NAME	= $(EXE_DIR)/$(NOM)
 NAME_UP	= $(shell echo $(NOM) | tr '[:lower:]' '[:upper:]')
 
 INCLUDE	= \
+	-I ./WSNetworking					\
 	-I ./WSNetworking/Includes			\
+	-I ./WSNetworking/Servers			\
 	-I ./WSNetworking/Servers/Includes	\
+	-I ./WSNetworking/Sockets			\
 	-I ./WSNetworking/Sockets/Includes	\
 
 SRCS	= \
 	main.cpp											\
+	WSNetworking/Servers/Sources/Server.cpp				\
+	WSNetworking/Servers/Sources/TestServer.cpp			\
 	WSNetworking/Sockets/Sources/BindingSocket.cpp		\
 	WSNetworking/Sockets/Sources/ConnectingSocket.cpp	\
 	WSNetworking/Sockets/Sources/ListeningSocket.cpp	\
 	WSNetworking/Sockets/Sources/Socket.cpp				\
-	WSNetworking/Servers/Sources/Server.cpp				\
-	WSNetworking/Servers/Sources/TestServer.cpp			\
 
 #***************************************#
 #				FOLDERS					#

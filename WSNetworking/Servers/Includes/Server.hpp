@@ -6,6 +6,7 @@
 namespace WSN {
 
 class Server {
+
   private:
 	ListeningSocket *socket;
 	virtual void	 accepter() = 0;

@@ -22,7 +22,7 @@ void WSN::TestServer::accepter() {
 
 	new_socket = accept(sock, (struct sockaddr *)&address, (socklen_t *)&address);
 	// new_socket = select();
-	read(new_socket, buffer, 3000);
+	read(new_socket, buffer, 1024);
 }
 
 void WSN::TestServer::handle() {
