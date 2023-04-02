@@ -9,6 +9,7 @@ int WSN::ConnectingSocket::get_connection() const {
 void WSN::ConnectingSocket::set_connection(int connection) {
 	this->connection = connection;
 }
+
 // Constructors and copy constructor and copy assignment operator and destructor
 WSN::ConnectingSocket::ConnectingSocket(int domain, int service, int protocol, int port, u_long interface) : Socket(domain, service, protocol, port, interface) {
 	// Establish network connection

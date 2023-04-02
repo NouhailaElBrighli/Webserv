@@ -8,7 +8,7 @@ namespace WSN {
 class TestServer : public Server {
 
   private:
-	char buffer[1024] = {0};
+	char buffer[FILENAME_MAX] = {0};
 	int	 new_socket;
 
 	virtual void accepter();
