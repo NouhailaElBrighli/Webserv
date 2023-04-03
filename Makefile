@@ -5,7 +5,7 @@
 CPP			= c++
 CPPFLAGS	= # -Wall -Wextra -Werror
 CPPFLAGS	+= -std=c++98
-CPPFLAGS	+= -g -fsanitize=address
+CPPFLAGS	+= -g3 -fsanitize=address
 
 CPL = 0
 
@@ -20,19 +20,33 @@ NAME_UP	= $(shell echo $(NOM) | tr '[:lower:]' '[:upper:]')
 INCLUDE	= \
 	-I ./WSNetworking					\
 	-I ./WSNetworking/Includes			\
+	-I ./WSNetworking/Parsers			\
+	-I ./WSNetworking/Parsers/Includes	\
 	-I ./WSNetworking/Servers			\
 	-I ./WSNetworking/Servers/Includes	\
 	-I ./WSNetworking/Sockets			\
 	-I ./WSNetworking/Sockets/Includes	\
 
+# MAIN
 SRCS	= \
 	main.cpp											\
+
+# SERVERS
+SRCS	+= \
 	WSNetworking/Servers/Sources/Server.cpp				\
 	WSNetworking/Servers/Sources/TestServer.cpp			\
+
+# SOCKETS
+SRCS	+= \
 	WSNetworking/Sockets/Sources/BindingSocket.cpp		\
 	WSNetworking/Sockets/Sources/ConnectingSocket.cpp	\
 	WSNetworking/Sockets/Sources/ListeningSocket.cpp	\
 	WSNetworking/Sockets/Sources/Socket.cpp				\
+
+# PARSERS
+SRCS	+= \
+	WSNetworking/Parsers/Sources/RequestParser.cpp	\
+	WSNetworking/Parsers/Sources/Parser.cpp				\
 
 #***************************************#
 #				FOLDERS					#

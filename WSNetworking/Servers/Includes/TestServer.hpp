@@ -13,7 +13,7 @@ class TestServer : public Server {
 
 	virtual void accepter();
 	virtual void handle();
-	virtual void respoder();
+	virtual void responder();
 
   public:
 	// Constructors and copy constructor and copy assignment operator and destructor

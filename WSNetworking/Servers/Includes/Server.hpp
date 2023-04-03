@@ -1,6 +1,7 @@
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
+#include "Parsers.hpp"
 #include "Sockets.hpp"
 
 namespace WSN {
@@ -9,9 +10,9 @@ class Server {
 
   private:
 	ListeningSocket *socket;
-	virtual void	 accepter() = 0;
-	virtual void	 handle()	= 0;
-	virtual void	 respoder() = 0;
+	virtual void	 accepter()	 = 0;
+	virtual void	 handle()	 = 0;
+	virtual void	 responder() = 0;
 
   public:
 	// Getters
