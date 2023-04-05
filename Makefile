@@ -1,15 +1,4 @@
 #***************************************#
-#				COMPILER				#
-#***************************************#
-
-CPP			= c++
-CPPFLAGS	= # -Wall -Wextra -Werror
-CPPFLAGS	+= -std=c++98
-CPPFLAGS	+= -g3 -fsanitize=address
-
-CPL = 0
-
-#***************************************#
 #				FILES					#
 #***************************************#
 
@@ -52,56 +41,42 @@ SRCS	+= \
 #				FOLDERS					#
 #***************************************#
 
-OBJ_DIR	= objects
 DEP_DIR = dependencies
 EXE_DIR	= executable
-DIRS	= $(OBJ_DIR) $(DEP_DIR) $(EXE_DIR)
+OBJ_DIR	= objects
+DIRS	= $(DEP_DIR) $(EXE_DIR) $(OBJ_DIR)
 MKDIR	= mkdir -p $(DIRS)
 
 #***************************************#
-#				COLORS					#
+#				CPP						#
 #***************************************#
 
-C_RES		= \033[0m
+CPP			= c++
+CPPFLAGS	= # -Wall -Wextra -Werror
+CPPFLAGS	+= -std=c++98
+CPPFLAGS	+= -g3 -fsanitize=address
 
-C_RED		= \033[1;31m
-C_GREEN		= \033[1;32m
-C_YELLOW	= \033[1;33m
-C_BLUE		= \033[1;34m
-C_MAGENTA	= \033[1;35m
-C_CYAN		= \033[1;36m
+COMP_CPP	= $(CPP) $(DEPFLAGS) $(CPPFLAGS) $(INCLUDE)
 
 #***************************************#
-#				MESSAGES				#
+#				DEP						#
 #***************************************#
 
-.SILENT :
+DEP_FILES	= $(addprefix $(DEP_DIR)/, $(SRCS:.cpp=.d))
 
-T_COMP_S	= printf "$(C_YELLOW)➔ COMPILING $(NAME_UP) ... ⚙️ $(C_RES)"
-T_COMP_E	= printf "$(C_GREEN)... ${NAME_UP} COMPILED ✔$(C_RES)\n"
+DEPFLAGS	= -MT $@ -MMD -MP -MF $(DEP_DIR)/$*.d
 
-T_DIR_S		= printf "$(C_YELLOW)➔ CREATING ${NAME_UP} DIRECTORIES ... 📂$(C_RES)"
-T_DIR_E		= printf "$(C_GREEN)... ${NAME_UP} DIRECTORIES CREATED ✔$(C_RES)\n"
+#***************************************#
+#				OBJ						#
+#***************************************#
 
-T_O_RMV_S	= printf "$(C_MAGENTA)➔ REMOVING $(NAME_UP) OBJECTS ... 🗑 $(C_RES)"
-T_O_RMV_E	= printf "$(C_RED)... ${NAME_UP} OBJECTS REMOVED ✔$(C_RES)\n"
-
-T_E_RMV_S	= printf "$(C_MAGENTA)➔ REMOVING $(NAME_UP) EXECUTABLE ... 🗑️ $(C_RES)"
-T_E_RMV_E	= printf "$(C_RED)... ${NAME_UP} EXECUTABLE REMOVED ✔$(C_RES)\n"
-
-T_RUN_S		= printf "$(C_CYAN)➔ RUN ${NAME_UP} ... 🚀$(C_RES)\n"
-T_RUN_E		= printf "$(C_BLUE)... ${NAME_UP} FINISHED ✔$(C_RES)\n"
+OBJ_FILES	= $(addprefix $(OBJ_DIR)/, $(SRCS:.cpp=.o))
 
 #***************************************#
 #				COMPILE					#
 #***************************************#
 
-OBJ_FILES	= $(addprefix $(OBJ_DIR)/, $(SRCS:.cpp=.o))
-DEP_FILES	= $(addprefix $(DEP_DIR)/, $(SRCS:.cpp=.d))
-
-DEPFLAGS	= -MT $@ -MMD -MP -MF $(DEP_DIR)/$*.d
-
-COMP_CPP	= $(CPP) $(DEPFLAGS) $(CPPFLAGS) $(INCLUDE)
+CPL = 0
 
 $(OBJ_DIR)/%.o : %.cpp
 	@if [ $(CPL) -eq 0 ]; then \
@@ -148,3 +123,37 @@ run : re
 	$(T_RUN_E)
 
 .PHONY : all clean fclean re run
+
+#***************************************#
+#				COLORS					#
+#***************************************#
+
+C_RES		= \033[0m
+
+C_RED		= \033[1;31m
+C_GREEN		= \033[1;32m
+C_YELLOW	= \033[1;33m
+C_BLUE		= \033[1;34m
+C_MAGENTA	= \033[1;35m
+C_CYAN		= \033[1;36m
+
+#***************************************#
+#				MESSAGES				#
+#***************************************#
+
+.SILENT :
+
+T_COMP_S	= printf "$(C_YELLOW)➔ COMPILING $(NAME_UP) ... ⚙️ $(C_RES)"
+T_COMP_E	= printf "$(C_GREEN)... ${NAME_UP} COMPILED ✔$(C_RES)\n"
+
+T_DIR_S		= printf "$(C_YELLOW)➔ CREATING ${NAME_UP} DIRECTORIES ... 📂$(C_RES)"
+T_DIR_E		= printf "$(C_GREEN)... ${NAME_UP} DIRECTORIES CREATED ✔$(C_RES)\n"
+
+T_O_RMV_S	= printf "$(C_MAGENTA)➔ REMOVING $(NAME_UP) OBJECTS ... 🗑 $(C_RES)"
+T_O_RMV_E	= printf "$(C_RED)... ${NAME_UP} OBJECTS REMOVED ✔$(C_RES)\n"
+
+T_E_RMV_S	= printf "$(C_MAGENTA)➔ REMOVING $(NAME_UP) EXECUTABLE ... 🗑️ $(C_RES)"
+T_E_RMV_E	= printf "$(C_RED)... ${NAME_UP} EXECUTABLE REMOVED ✔$(C_RES)\n"
+
+T_RUN_S		= printf "$(C_CYAN)➔ RUN ${NAME_UP} ... 🚀$(C_RES)\n"
+T_RUN_E		= printf "$(C_BLUE)... ${NAME_UP} FINISHED ✔$(C_RES)\n"
