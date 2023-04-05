@@ -54,7 +54,7 @@ void WSN::RequestParser::parse_first_line() {
 		line = this->data.substr(0, pos);
 		this->data.erase(0, pos + 2);
 		if (line.empty()) {
-			throw ParseError();
+			throw WSN::Parser::InputError();
 		}
 		if ((pos = line.find(" ")) != string::npos) {
 			key				   = "Request-Type";

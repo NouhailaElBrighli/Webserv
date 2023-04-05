@@ -31,6 +31,11 @@ INCLUDE	= \
 SRCS	= \
 	main.cpp											\
 
+# PARSERS
+SRCS	+= \
+	WSNetworking/Parsers/Sources/Parser.cpp				\
+	WSNetworking/Parsers/Sources/RequestParser.cpp		\
+
 # SERVERS
 SRCS	+= \
 	WSNetworking/Servers/Sources/Server.cpp				\
@@ -43,18 +48,14 @@ SRCS	+= \
 	WSNetworking/Sockets/Sources/ListeningSocket.cpp	\
 	WSNetworking/Sockets/Sources/Socket.cpp				\
 
-# PARSERS
-SRCS	+= \
-	WSNetworking/Parsers/Sources/RequestParser.cpp	\
-	WSNetworking/Parsers/Sources/Parser.cpp				\
-
 #***************************************#
 #				FOLDERS					#
 #***************************************#
 
 OBJ_DIR	= objects
+DEP_DIR	= dependencies
 EXE_DIR	= executable
-DIRS	= $(OBJ_DIR) $(EXE_DIR)
+DIRS	= $(OBJ_DIR) $(DEP_DIR) $(EXE_DIR)
 MKDIR	= mkdir -p $(DIRS)
 
 #***************************************#
@@ -97,8 +98,8 @@ T_RUN_E		= printf "$(C_BLUE)... ${NAME_UP} FINISHED ✔$(C_RES)\n"
 
 DEPFLAGS	= -MMD -MF $(@:.o=.d)
 
-OBJ			= $(addprefix $(OBJ_DIR)/, $(SRCS:.cpp=.o))
-DEPS		= $(OBJ:.o=.d)
+OBJ_FILES	= $(addprefix $(OBJ_DIR)/, $(SRCS:.cpp=.o))
+DEPFILES	:= $(SRCS:%.c=$(DEP_DIR)/%.d)
 
 $(OBJ_DIR)/%.o : %.cpp
 	@if [ $(CPL) -eq 0 ]; then \
@@ -106,7 +107,7 @@ $(OBJ_DIR)/%.o : %.cpp
 		$(eval CPL = 1) \
 	fi
 	mkdir -p $(dir $@)
-	$(CPP) $(CPPFLAGS) $(INCLUDE)  -c $< $(DEPFLAGS) -o $@
+	$(CPP) $(DEPFLAGS) $(CPPFLAGS) $(INCLUDE)  -c $< -o $@
 
 #***************************************#
 #				MAKING					#
@@ -121,19 +122,17 @@ $(DIRS) :
 	$(MKDIR)
 	$(T_DIR_E)
 
-$(NAME) : $(OBJ)
-	$(CPP) $(CPPFLAGS) $(INCLUDE) $(OBJ) -o $(NAME)
+$(NAME) : $(OBJ_FILES)
+	$(CPP) $(DEPFLAGS) $(CPPFLAGS) $(INCLUDE) $(OBJ_FILES) -o $(NAME)
 	$(T_COMP_E)
 
 clean :
 	$(T_O_RMV_S)
-	rm -f $(OBJ)
 	rm -rf $(OBJ_DIR)
 	$(T_O_RMV_E)
 
 fclean : clean
 	$(T_E_RMV_S)
-	rm -f $(NAME)
 	rm -rf $(EXE_DIR)
 	$(T_E_RMV_E)
 

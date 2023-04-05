@@ -17,10 +17,10 @@ WSN::TestServer::~TestServer() {
 }
 
 void WSN::TestServer::accepter() {
-	struct sockaddr_in address = get_socket()->get_address();
-	int				   sock	   = get_socket()->get_sock();
+	t_sockaddr_in address = get_socket()->get_address();
+	int			  sock	  = get_socket()->get_sock();
 
-	new_socket = accept(sock, (struct sockaddr *)&address, (socklen_t *)&address);
+	new_socket = accept(sock, (t_sockaddr *)&address, (socklen_t *)&address);
 	// int select(int nfds, fd_set *restrict readfds, fd_set *restrict writefds, fd_set *restrict errorfds, struct timeval *restrict timeout);
 	// new_socket = select(sock + 1, &buffer, NULL, NULL, NULL);
 	read(new_socket, buffer, FILENAME_MAX);

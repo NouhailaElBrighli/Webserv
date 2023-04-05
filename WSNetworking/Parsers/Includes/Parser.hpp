@@ -12,6 +12,7 @@ class Parser {
 
   public:
 	// Getters
+	const string &get_data() const;
 
 	// Constructors and copy constructor and copy assignment operator and destructor
 	Parser(string &data);
