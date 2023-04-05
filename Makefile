@@ -56,7 +56,7 @@ CPPFLAGS	= # -Wall -Wextra -Werror
 CPPFLAGS	+= -std=c++98
 CPPFLAGS	+= -g3 -fsanitize=address
 
-COMP_CPP	= $(CPP) $(DEPFLAGS) $(CPPFLAGS) $(INCLUDE)
+COMPILE		= $(CPP) $(DEPFLAGS) $(CPPFLAGS) $(INCLUDE)
 
 #***************************************#
 #				DEP						#
@@ -76,16 +76,16 @@ OBJ_FILES	= $(addprefix $(OBJ_DIR)/, $(SRCS:.cpp=.o))
 #				COMPILE					#
 #***************************************#
 
-CPL = 0
+BOOLEAN = 0
 
 $(OBJ_DIR)/%.o : %.cpp
-	@if [ $(CPL) -eq 0 ]; then \
+	@if [ $(BOOLEAN) -eq 0 ]; then \
 		$(T_COMP_S); \
-		$(eval CPL = 1) \
+		$(eval BOOLEAN = 1) \
 	fi
 	mkdir -p $(dir $@)
 	mkdir -p $(dir $(DEP_DIR)/$*.d)
-	$(COMP_CPP) -c $< -o $@
+	$(COMPILE) -c $< -o $@
 
 #***************************************#
 #				MAKING					#
@@ -101,7 +101,7 @@ $(DIRS) :
 	$(T_DIR_E)
 
 $(NAME) : $(OBJ_FILES)
-	$(COMP_CPP) $(OBJ_FILES) -o $(NAME)
+	$(COMPILE) $(OBJ_FILES) -o $(NAME)
 	$(T_COMP_E)
 
 clean :
