@@ -99,7 +99,7 @@ T_RUN_E		= printf "$(C_BLUE)... ${NAME_UP} FINISHED ✔$(C_RES)\n"
 OBJ_FILES	= $(addprefix $(OBJ_DIR)/, $(SRCS:.cpp=.o))
 DEP_FILES	= $(addprefix $(DEP_DIR)/, $(SRCS:.cpp=.d))
 
-DEPFLAGS = -MT $@ -MMD -MP -MF $(DEP_DIR)/$*.d
+DEPFLAGS	= -MT $@ -MMD -MP -MF $(DEP_DIR)/$*.d
 
 COMP_CPP	= $(CPP) $(DEPFLAGS) $(CPPFLAGS) $(INCLUDE)
 
