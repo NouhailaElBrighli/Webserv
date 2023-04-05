@@ -2,6 +2,7 @@
 .vscode
 .idea
 **/*.o
+**/*.d
 **/*.out
 **/executable
 **/objects

@@ -53,7 +53,7 @@ SRCS	+= \
 #***************************************#
 
 OBJ_DIR	= objects
-DEP_DIR	= dependencies
+DEP_DIR = dependencies
 EXE_DIR	= executable
 DIRS	= $(OBJ_DIR) $(DEP_DIR) $(EXE_DIR)
 MKDIR	= mkdir -p $(DIRS)
@@ -93,13 +93,15 @@ T_RUN_S		= printf "$(C_CYAN)➔ RUN ${NAME_UP} ... 🚀$(C_RES)\n"
 T_RUN_E		= printf "$(C_BLUE)... ${NAME_UP} FINISHED ✔$(C_RES)\n"
 
 #***************************************#
-#				MAKING OBJS				#
+#				COMPILE					#
 #***************************************#
 
-DEPFLAGS	= -MMD -MF $(@:.o=.d)
-
 OBJ_FILES	= $(addprefix $(OBJ_DIR)/, $(SRCS:.cpp=.o))
-DEPFILES	:= $(SRCS:%.c=$(DEP_DIR)/%.d)
+DEP_FILES	= $(addprefix $(DEP_DIR)/, $(SRCS:.cpp=.d))
+
+DEPFLAGS = -MT $@ -MMD -MP -MF $(DEP_DIR)/$*.d
+
+COMP_CPP	= $(CPP) $(DEPFLAGS) $(CPPFLAGS) $(INCLUDE)
 
 $(OBJ_DIR)/%.o : %.cpp
 	@if [ $(CPL) -eq 0 ]; then \
@@ -107,13 +109,14 @@ $(OBJ_DIR)/%.o : %.cpp
 		$(eval CPL = 1) \
 	fi
 	mkdir -p $(dir $@)
-	$(CPP) $(DEPFLAGS) $(CPPFLAGS) $(INCLUDE)  -c $< -o $@
+	mkdir -p $(dir $(DEP_DIR)/$*.d)
+	$(COMP_CPP) -c $< -o $@
 
 #***************************************#
 #				MAKING					#
 #***************************************#
 
--include $(DEPS)
+-include $(DEP_FILES)
 
 all : $(DIRS) $(NAME)
 
@@ -123,11 +126,12 @@ $(DIRS) :
 	$(T_DIR_E)
 
 $(NAME) : $(OBJ_FILES)
-	$(CPP) $(DEPFLAGS) $(CPPFLAGS) $(INCLUDE) $(OBJ_FILES) -o $(NAME)
+	$(COMP_CPP) $(OBJ_FILES) -o $(NAME)
 	$(T_COMP_E)
 
 clean :
 	$(T_O_RMV_S)
+	rm -rf $(DEP_DIR)
 	rm -rf $(OBJ_DIR)
 	$(T_O_RMV_E)
 
