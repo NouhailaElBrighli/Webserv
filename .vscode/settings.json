@@ -1,0 +1,15 @@
+{
+	"files.associations": {
+		"cstdio": "cpp",
+		"algorithm": "cpp",
+		"complex": "cpp",
+		"new": "cpp",
+		"string": "cpp",
+		"iosfwd": "cpp",
+		"__functional_03": "cpp",
+		"functional": "cpp",
+		"locale": "cpp"
+	},
+	"C_Cpp.default.configurationProvider": "ms-vscode.makefile-tools",
+	"C_Cpp.errorSquiggles": "disabled",
+}
