@@ -122,6 +122,11 @@ run : re
 	./$(NAME)
 	$(T_RUN_E)
 
+start :
+	$(T_RUN_S)
+	./$(NAME)
+	$(T_RUN_E)
+
 .PHONY : all clean fclean re run
 
 #***************************************#

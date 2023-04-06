@@ -16,6 +16,8 @@
 #include <map>
 #include <string>
 
+#define MAXLINE 4096
+
 #define C_RES "\033[0m"
 #define C_RED "\033[1;31m"
 #define C_GREEN "\033[1;32m"

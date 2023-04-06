@@ -23,7 +23,8 @@ void WSN::TestServer::accepter() {
 	new_socket = accept(sock, (t_sockaddr *)&address, (socklen_t *)&address);
 	// int select(int nfds, fd_set *restrict readfds, fd_set *restrict writefds, fd_set *restrict errorfds, struct timeval *restrict timeout);
 	// new_socket = select(sock + 1, &buffer, NULL, NULL, NULL);
-	read(new_socket, buffer, FILENAME_MAX);
+	std::memset(buffer, 0, MAXLINE);
+	read(new_socket, buffer, MAXLINE);
 }
 
 void WSN::TestServer::handle() {
@@ -33,18 +34,21 @@ void WSN::TestServer::handle() {
 	try {
 		WSN::RequestParser requestParser(request);
 
-		for (map<string, string>::const_iterator it = requestParser.get_request().begin(); it != requestParser.get_request().end(); it++) {
-			cout << it->first << " : " << it->second << endl;
-		}
+		// for (map<string, string>::const_iterator it = requestParser.get_request().begin(); it != requestParser.get_request().end(); it++) {
+		// 	cout << it->first << " : " << it->second << endl;
+		// }
 	} catch (const std::exception &e) {
 		cout << "-------------------------------------------- ParseError: " << e.what() << endl;
 	}
 }
 
 void WSN::TestServer::responder() {
-	char hello[18] = "Hello from server";
-	write(new_socket, hello, strlen(hello));
-	// send(new_socket, hello, strlen(hello), 0);
+	char hello[40] = "HTTP/1.0 200OK\r\n\r\nHello from server";
+	// write(new_socket, hello, strlen(hello));
+	send(new_socket, hello, strlen(hello), 0);
+	// string hello = "HTTP/1.0 200OK\r\n\r\nHello from server";
+	// // write(new_socket, hello, strlen(hello));
+	// send(new_socket, hello, hello.length(), 0);
 	cout << "Hello message sent" << endl;
 	close(new_socket);
 }
