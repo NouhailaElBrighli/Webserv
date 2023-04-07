@@ -28,9 +28,9 @@ int main() {
 	// }
 
 	try {
-		cout << C_CYAN << "Test Server ..." << C_RES << endl;
-		WSN::TestServer test_server(AF_INET, SOCK_STREAM, 0, 8080, INADDR_ANY, 10);
-		cout << C_GREEN << "Test server succeed" << C_RES << endl;
+		cout << C_CYAN << "Test Main Server ..." << C_RES << endl;
+		WSN::MainServer test_server(AF_INET, SOCK_STREAM, 0, 18000, INADDR_ANY, 10);
+		cout << C_GREEN << "Test main server succeed" << C_RES << endl;
 	} catch (const std::exception &e) {
 		cerr << e.what() << endl;
 	}

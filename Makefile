@@ -1,3 +1,5 @@
+.SILENT :
+
 #***************************************#
 #				FILES					#
 #***************************************#
@@ -28,7 +30,7 @@ SRCS	+= \
 # SERVERS
 SRCS	+= \
 	WSNetworking/Servers/Sources/Server.cpp				\
-	WSNetworking/Servers/Sources/TestServer.cpp			\
+	WSNetworking/Servers/Sources/MainServer.cpp			\
 
 # SOCKETS
 SRCS	+= \
@@ -56,7 +58,7 @@ CPPFLAGS	= # -Wall -Wextra -Werror
 CPPFLAGS	+= -std=c++98
 CPPFLAGS	+= -g3 -fsanitize=address
 
-COMPILE		= $(CPP) $(DEPFLAGS) $(CPPFLAGS) $(INCLUDE)
+COMPILE		= $(CPP) $(CPPFLAGS) $(DEPFLAGS) $(INCLUDE)
 
 #***************************************#
 #				DEP						#
@@ -64,7 +66,8 @@ COMPILE		= $(CPP) $(DEPFLAGS) $(CPPFLAGS) $(INCLUDE)
 
 DEP_FILES	= $(addprefix $(DEP_DIR)/, $(SRCS:.cpp=.d))
 
-DEPFLAGS	= -MT $@ -MMD -MP -MF $(DEP_DIR)/$*.d
+# DEPFLAGS	= -MT $@ -MMD -MP -MF $(DEP_DIR)/$*.d
+DEPFLAGS	= -MMD -MP -MF $(DEP_DIR)/$*.d
 
 #***************************************#
 #				OBJ						#
@@ -79,10 +82,10 @@ OBJ_FILES	= $(addprefix $(OBJ_DIR)/, $(SRCS:.cpp=.o))
 BOOLEAN = 0
 
 $(OBJ_DIR)/%.o : %.cpp
-	@if [ $(BOOLEAN) -eq 0 ]; then \
-		$(T_COMP_S); \
-		$(eval BOOLEAN = 1) \
-	fi
+	 if [ $(BOOLEAN) -eq 0 ]; then \
+	 	$(M_COMP_S); \
+	 	$(eval BOOLEAN = 1) \
+	 fi
 	mkdir -p $(dir $@)
 	mkdir -p $(dir $(DEP_DIR)/$*.d)
 	$(COMPILE) -c $< -o $@
@@ -91,74 +94,101 @@ $(OBJ_DIR)/%.o : %.cpp
 #				MAKING					#
 #***************************************#
 
--include $(DEP_FILES)
-
 all : $(DIRS) $(NAME)
 
+-include $(DEP_FILES)
+
 $(DIRS) :
-	$(T_DIR_S)
+	$(M_DIR_S)
 	$(MKDIR)
-	$(T_DIR_E)
+	$(M_DIR_E)
 
 $(NAME) : $(OBJ_FILES)
 	$(COMPILE) $(OBJ_FILES) -o $(NAME)
-	$(T_COMP_E)
+	$(M_COMP_E)
 
-clean :
-	$(T_O_RMV_S)
-	rm -rf $(DEP_DIR)
-	rm -rf $(OBJ_DIR)
-	$(T_O_RMV_E)
+clean:
+	$(M_D_RMV_S)
+	if [ -d $(DEP_DIR) ]; then \
+		$(RM) -rf $(DEP_DIR);\
+		$(M_D_RMV_E);\
+	else \
+		$(M_D_RMV_F);\
+	fi
+	$(M_O_RMV_S)
+	if [ -d $(OBJ_DIR) ]; then \
+		$(RM) -rf $(OBJ_DIR);\
+		$(M_O_RMV_E);\
+	else \
+		$(M_O_RMV_F);\
+	fi
 
 fclean : clean
-	$(T_E_RMV_S)
-	rm -rf $(EXE_DIR)
-	$(T_E_RMV_E)
+	$(M_E_RMV_S)
+	if [ -f $(NAME) ]; then \
+		$(RM) -f $(NAME);\
+		$(M_E_RMV_E);\
+	else \
+		$(M_E_RMV_F);\
+	fi
 
 re : fclean all
 
-run : re
-	$(T_RUN_S)
-	./$(NAME)
-	$(T_RUN_E)
+run : re start
 
 start :
-	$(T_RUN_S)
+	$(M_RUN_S)
 	./$(NAME)
-	$(T_RUN_E)
+	$(M_RUN_E)
 
-.PHONY : all clean fclean re run
+.PHONY : all clean fclean re run start
 
 #***************************************#
 #				COLORS					#
 #***************************************#
 
-C_RES		= \033[0m
+C_RESET		= \033[0m
 
+C_BLACK		= \033[1;30m
 C_RED		= \033[1;31m
 C_GREEN		= \033[1;32m
 C_YELLOW	= \033[1;33m
 C_BLUE		= \033[1;34m
-C_MAGENTA	= \033[1;35m
+C_PURPLE	= \033[1;35m
 C_CYAN		= \033[1;36m
+C_WHITE		= \033[1;37m
+C_GRAY		= \033[1;90m
+
+L_RED		= \033[1;91m
+L_GREEN		= \033[1;92m
+L_YELLOW	= \033[1;93m
+L_BLUE		= \033[1;94m
+L_PURPLE	= \033[1;95m
+L_CYAN		= \033[1;96m
+B_WHITE		= \033[1;97m
+
 
 #***************************************#
 #				MESSAGES				#
 #***************************************#
 
-.SILENT :
+M_COMP_S	= printf "$(C_YELLOW)➔ COMPILING $(NAME_UP) ... ⚙️ $(C_RESET)"
+M_COMP_E	= printf "$(C_GREEN)... ${NAME_UP} COMPILED ✔$(C_RESET)\n"
 
-T_COMP_S	= printf "$(C_YELLOW)➔ COMPILING $(NAME_UP) ... ⚙️ $(C_RES)"
-T_COMP_E	= printf "$(C_GREEN)... ${NAME_UP} COMPILED ✔$(C_RES)\n"
+M_DIR_S		= printf "$(C_YELLOW)➔ CREATING ${NAME_UP} DIRECTORIES ... 📂$(C_RESET)"
+M_DIR_E		= printf "$(C_GREEN)... ${NAME_UP} DIRECTORIES CREATED ✔$(C_RESET)\n"
 
-T_DIR_S		= printf "$(C_YELLOW)➔ CREATING ${NAME_UP} DIRECTORIES ... 📂$(C_RES)"
-T_DIR_E		= printf "$(C_GREEN)... ${NAME_UP} DIRECTORIES CREATED ✔$(C_RES)\n"
+M_D_RMV_S	= printf "$(C_PURPLE)➔ REMOVING $(NAME_UP) DEPENDENCIES ... 🗑️ $(C_RESET)"
+M_D_RMV_E	= printf "$(C_RED)... ${NAME_UP} DEPENDENCIES REMOVED ✔$(C_RESET)\n"
+M_D_RMV_F	= printf "$(C_BLUE)... ${NAME_UP} DEPENDENCIES NOT FOUND ✗$(C_RESET)\n"
 
-T_O_RMV_S	= printf "$(C_MAGENTA)➔ REMOVING $(NAME_UP) OBJECTS ... 🗑 $(C_RES)"
-T_O_RMV_E	= printf "$(C_RED)... ${NAME_UP} OBJECTS REMOVED ✔$(C_RES)\n"
+M_E_RMV_S	= printf "$(C_PURPLE)➔ REMOVING $(NAME_UP) EXECUTABLE ... 🗑️ $(C_RESET)"
+M_E_RMV_E	= printf "$(C_RED)... ${NAME_UP} EXECUTABLE REMOVED ✔$(C_RESET)\n"
+M_E_RMV_F	= printf "$(L_BLUE)... ${NAME_UP} EXECUTABLE NOT FOUND ✗$(C_RESET)\n"
 
-T_E_RMV_S	= printf "$(C_MAGENTA)➔ REMOVING $(NAME_UP) EXECUTABLE ... 🗑️ $(C_RES)"
-T_E_RMV_E	= printf "$(C_RED)... ${NAME_UP} EXECUTABLE REMOVED ✔$(C_RES)\n"
+M_O_RMV_S	= printf "$(C_PURPLE)➔ REMOVING $(NAME_UP) OBJECTS ... 🗑 $(C_RESET)"
+M_O_RMV_E	= printf "$(C_RED)... ${NAME_UP} OBJECTS REMOVED ✔$(C_RESET)\n"
+M_O_RMV_F	= printf "$(L_BLUE)... ${NAME_UP} OBJECTS NOT FOUND ✗$(C_RESET)\n"
 
-T_RUN_S		= printf "$(C_CYAN)➔ RUN ${NAME_UP} ... 🚀$(C_RES)\n"
-T_RUN_E		= printf "$(C_BLUE)... ${NAME_UP} FINISHED ✔$(C_RES)\n"
+M_RUN_S		= printf "$(C_CYAN)➔ RUN ${NAME_UP} ... 🚀$(C_RESET)\n"
+M_RUN_E		= printf "$(C_BLUE)... ${NAME_UP} FINISHED ✔$(C_RESET)\n"

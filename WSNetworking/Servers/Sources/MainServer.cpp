@@ -1,33 +1,37 @@
-#include "TestServer.hpp"
+#include "MainServer.hpp"
 
 // Constructors and copy constructor and copy assignment operator and destructor
-WSN::TestServer::TestServer(int domain, int service, int protocol, int port, u_long interface, int backlog) : Server(domain, service, protocol, port, interface, backlog) {
+WSN::MainServer::MainServer(int domain, int service, int protocol, int port, u_long interface, int backlog) : Server(domain, service, protocol, port, interface, backlog) {
 	launch();
 }
 
-WSN::TestServer::TestServer(const TestServer &test_server) : Server(test_server) {
+WSN::MainServer::MainServer(const MainServer &main_server) : Server(main_server) {
 }
 
-WSN::TestServer &WSN::TestServer::operator=(const TestServer &test_server) {
-	Server::operator=(test_server);
+WSN::MainServer &WSN::MainServer::operator=(const MainServer &main_server) {
+	Server::operator=(main_server);
 	return *this;
 }
 
-WSN::TestServer::~TestServer() {
+WSN::MainServer::~MainServer() {
 }
 
-void WSN::TestServer::accepter() {
+void WSN::MainServer::accepter() {
 	t_sockaddr_in address = get_socket()->get_address();
 	int			  sock	  = get_socket()->get_sock();
+	char		  client_address[MAXLINE + 1];
 
 	new_socket = accept(sock, (t_sockaddr *)&address, (socklen_t *)&address);
 	// int select(int nfds, fd_set *restrict readfds, fd_set *restrict writefds, fd_set *restrict errorfds, struct timeval *restrict timeout);
 	// new_socket = select(sock + 1, &buffer, NULL, NULL, NULL);
+
+	inet_ntop(AF_INET, &address, client_address, MAXLINE);
+	cout << "Client connection : " << client_address << endl;
 	std::memset(buffer, 0, MAXLINE);
 	read(new_socket, buffer, MAXLINE);
 }
 
-void WSN::TestServer::handle() {
+void WSN::MainServer::handle() {
 	string request(buffer);
 	cout << request << endl;
 	// cout << buffer;
@@ -42,18 +46,15 @@ void WSN::TestServer::handle() {
 	}
 }
 
-void WSN::TestServer::responder() {
-	char hello[40] = "HTTP/1.0 200OK\r\n\r\nHello from server";
+void WSN::MainServer::responder() {
+	string hello = "HTTP/1.0 200OK\r\n\r\nHello From Server";
 	// write(new_socket, hello, strlen(hello));
-	send(new_socket, hello, strlen(hello), 0);
-	// string hello = "HTTP/1.0 200OK\r\n\r\nHello from server";
-	// // write(new_socket, hello, strlen(hello));
-	// send(new_socket, hello, hello.length(), 0);
+	send(new_socket, hello.c_str(), hello.length(), 0);
 	cout << "Hello message sent" << endl;
 	close(new_socket);
 }
 
-void WSN::TestServer::launch() {
+void WSN::MainServer::launch() {
 	while (true) {
 		cout << "-------------------------------------------- Waiting for connection..." << endl;
 		cout << "-------------------------------------------- accepter" << endl;
