@@ -66,8 +66,7 @@ COMPILE		= $(CPP) $(CPPFLAGS) $(DEPFLAGS) $(INCLUDE)
 
 DEP_FILES	= $(addprefix $(DEP_DIR)/, $(SRCS:.cpp=.d))
 
-# DEPFLAGS	= -MT $@ -MMD -MP -MF $(DEP_DIR)/$*.d
-DEPFLAGS	= -MMD -MP -MF $(DEP_DIR)/$*.d
+DEPFLAGS	= -MT $@ -MMD -MP -MF $(DEP_DIR)/$*.d
 
 #***************************************#
 #				OBJ						#
