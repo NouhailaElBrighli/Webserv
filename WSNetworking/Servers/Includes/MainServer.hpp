@@ -8,8 +8,10 @@ namespace WSN {
 class MainServer : public Server {
 
   private:
-	char buffer[MAXLINE + 1];
-	int	 new_socket;
+	t_sockaddr_in address;
+	int			  socket;
+	char		  buffer[MAXLINE + 1];
+	int			  accept_socket;
 
 	virtual void accepter();
 	virtual void handle();
@@ -20,7 +22,7 @@ class MainServer : public Server {
 	MainServer(int domain, int service, int protocol, int port, u_long interface, int backlog);
 	MainServer(const MainServer &main_server);
 	MainServer &operator=(const MainServer &main_server);
-	~MainServer();
+	virtual ~MainServer();
 
 	virtual void launch();
 };

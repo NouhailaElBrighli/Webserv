@@ -21,10 +21,10 @@ class ConnectingSocket : public Socket {
 	ConnectingSocket(int domain, int service, int protocol, int port, u_long interface);
 	ConnectingSocket(const ConnectingSocket &socket);
 	ConnectingSocket &operator=(const ConnectingSocket &socket);
-	~ConnectingSocket();
+	virtual ~ConnectingSocket();
 
 	// Virtual function from perent class
-	int connect_to_network(int sock, t_sockaddr_in address);
+	virtual int connect_to_network(int socket, t_sockaddr_in address);
 };
 } // namespace WSN
 

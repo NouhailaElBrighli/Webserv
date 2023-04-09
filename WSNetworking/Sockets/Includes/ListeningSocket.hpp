@@ -12,6 +12,9 @@ class ListeningSocket : public BindingSocket {
 	int listening;
 
   public:
+	// Getters
+	int get_listening() const;
+
 	// Setters
 	void set_listening(int listening);
 
@@ -19,7 +22,7 @@ class ListeningSocket : public BindingSocket {
 	ListeningSocket(int domain, int service, int protocol, int port, u_long interface, int backlog);
 	ListeningSocket(const ListeningSocket &socket);
 	ListeningSocket &operator=(const ListeningSocket &socket);
-	~ListeningSocket();
+	virtual ~ListeningSocket();
 
 	// Virtual function from perent class
 	int start_listening();

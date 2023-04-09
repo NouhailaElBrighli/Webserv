@@ -21,10 +21,10 @@ class BindingSocket : public Socket {
 	BindingSocket(int domain, int service, int protocol, int port, u_long interface);
 	BindingSocket(const BindingSocket &socket);
 	BindingSocket &operator=(const BindingSocket &socket);
-	~BindingSocket();
+	virtual ~BindingSocket();
 
 	// Virtual function from perent class
-	int connect_to_network(int sock, t_sockaddr_in address);
+	virtual int connect_to_network(int socket, t_sockaddr_in address);
 };
 } // namespace WSN
 

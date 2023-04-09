@@ -9,12 +9,12 @@ class Socket {
 
   private:
 	t_sockaddr_in address;
-	int			  sock;
+	int			  r_socket;
 
   public:
 	// Getters
 	t_sockaddr_in get_address() const;
-	int			  get_sock() const;
+	int			  get_socket() const;
 
 	// Constructors and copy constructor and copy assignment operator and destructor
 	Socket(int domain, int service, int protocol, int port, u_long interface);
@@ -22,7 +22,7 @@ class Socket {
 	Socket &operator=(const Socket &socket);
 	virtual ~Socket();
 
-	virtual int connect_to_network(int sock, t_sockaddr_in address) = 0;
+	virtual int connect_to_network(int socket, t_sockaddr_in address) = 0;
 
 	void test_connection(int item_to_test, const string &name);
 };

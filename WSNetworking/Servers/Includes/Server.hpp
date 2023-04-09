@@ -9,14 +9,14 @@ namespace WSN {
 class Server {
 
   private:
-	ListeningSocket *socket;
+	ListeningSocket *listen_socket;
 	virtual void	 accepter()	 = 0;
 	virtual void	 handle()	 = 0;
 	virtual void	 responder() = 0;
 
   public:
 	// Getters
-	ListeningSocket *get_socket() const;
+	ListeningSocket *get_listen_socket() const;
 
 	// Constructors and copy constructor and copy assignment operator and destructor
 	Server(int domain, int service, int protocol, int port, u_long interface, int backlog);

@@ -114,6 +114,7 @@ clean:
 	else \
 		$(M_D_RMV_F);\
 	fi
+
 	$(M_O_RMV_S)
 	if [ -d $(OBJ_DIR) ]; then \
 		$(RM) -rf $(OBJ_DIR);\
@@ -124,8 +125,8 @@ clean:
 
 fclean : clean
 	$(M_E_RMV_S)
-	if [ -f $(NAME) ]; then \
-		$(RM) -f $(NAME);\
+	if [ -d $(EXE_DIR) ]; then \
+		$(RM) -rf $(EXE_DIR);\
 		$(M_E_RMV_E);\
 	else \
 		$(M_E_RMV_F);\
