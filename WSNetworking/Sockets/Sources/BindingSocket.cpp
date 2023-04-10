@@ -14,7 +14,7 @@ void WSN::BindingSocket::set_binding(int binding) {
 WSN::BindingSocket::BindingSocket(int domain, int service, int protocol, int port, u_long interface) : Socket(domain, service, protocol, port, interface) {
 	// Establish network connection
 	this->binding = connect_to_network(get_socket(), get_address());
-	test_connection(binding, "Binding");
+	test_connection(this->binding, "Binding");
 }
 
 WSN::BindingSocket::BindingSocket(const BindingSocket &socket) : Socket(socket), binding(socket.binding) {

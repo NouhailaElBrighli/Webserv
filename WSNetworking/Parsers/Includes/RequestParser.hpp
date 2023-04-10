@@ -10,6 +10,8 @@ class RequestParser : public Parser {
   private:
 	// the first line splited to three parts : the `Request-Type`, the `Document-Path`, and the `Protocol-Version`
 	map<string, string> request;
+	// Methods
+	void run();
 
   public:
 	// Getters
@@ -17,15 +19,25 @@ class RequestParser : public Parser {
 	const string			  &get_request(string key);
 
 	// Constructors and copy constructor and copy assignment operator and destructor
+	RequestParser();
 	RequestParser(string &data);
 	RequestParser(const RequestParser &requestParser);
 	RequestParser &operator=(const RequestParser &requestParser);
 	~RequestParser();
 
+	// Operator []
+	const string &operator[](string key);
+
 	// Methods
+	void run(string &data);
+
+  private:
 	void parse_first_line();
 	void parse_rest();
 };
+
+// Operator <<
+std::ostream &operator<<(std::ostream &out, const RequestParser &requestParser);
 
 } // namespace WSN
 

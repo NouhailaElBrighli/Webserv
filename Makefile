@@ -134,14 +134,12 @@ fclean : clean
 
 re : fclean all
 
-run : re start
-
-start :
+run : all
 	$(M_RUN_S)
 	./$(NAME)
 	$(M_RUN_E)
 
-.PHONY : all clean fclean re run start
+.PHONY : all clean fclean re run
 
 #***************************************#
 #				COLORS					#

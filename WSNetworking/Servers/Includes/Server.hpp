@@ -10,9 +10,9 @@ class Server {
 
   private:
 	ListeningSocket *listen_socket;
-	virtual void	 accepter()	 = 0;
-	virtual void	 handle()	 = 0;
-	virtual void	 responder() = 0;
+	virtual void	 accepter()					  = 0;
+	virtual void	 handle(int client_socket)	  = 0;
+	virtual void	 responder(int client_socket) = 0;
 
   public:
 	// Getters

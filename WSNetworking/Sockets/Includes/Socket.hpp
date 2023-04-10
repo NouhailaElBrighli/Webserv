@@ -9,7 +9,7 @@ class Socket {
 
   private:
 	t_sockaddr_in address;
-	int			  r_socket;
+	int			  socket_v;
 
   public:
 	// Getters

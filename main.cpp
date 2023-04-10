@@ -33,7 +33,8 @@ int main() {
 		cout << C_GREEN << "Test main server succeed" << C_RES << endl;
 	} catch (const std::exception &e) {
 		cerr << e.what() << endl;
+		return EXIT_FAILURE;
 	}
 
-	return 0;
+	return EXIT_SUCCESS;
 }

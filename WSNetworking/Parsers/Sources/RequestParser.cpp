@@ -27,9 +27,11 @@ const string &WSN::RequestParser::get_request(string key) {
 }
 
 // Constructors and copy constructor and copy assignment operator and destructor
+WSN::RequestParser::RequestParser() : Parser() {
+}
+
 WSN::RequestParser::RequestParser(string &data) : Parser(data) {
-	this->parse_first_line();
-	this->parse_rest();
+	this->run();
 }
 
 WSN::RequestParser::RequestParser(const RequestParser &requestParser) : Parser(requestParser) {
@@ -43,7 +45,25 @@ WSN::RequestParser &WSN::RequestParser::operator=(const RequestParser &requestPa
 WSN::RequestParser::~RequestParser() {
 }
 
+// Operators
+const string &WSN::RequestParser::operator[](string key) {
+	return this->get_request(key);
+}
+
 // Methods
+void WSN::RequestParser::run() {
+	this->parse_first_line();
+	this->parse_rest();
+}
+
+void WSN::RequestParser::run(string &data) {
+	this->request.clear();
+	this->data.clear();
+	this->set_data(data);
+	this->parse_first_line();
+	this->parse_rest();
+}
+
 void WSN::RequestParser::parse_first_line() {
 	string line;
 	string key;
@@ -94,4 +114,16 @@ void WSN::RequestParser::parse_rest() {
 			this->request[key] = value;
 		}
 	}
+}
+
+// Operators <<
+std::ostream &WSN::operator<<(std::ostream &out, const WSN::RequestParser &requestParser) {
+	out << "RequestParser {" << endl;
+	out << "	request: {" << endl;
+	for (map<string, string>::const_iterator it = requestParser.get_request().begin(); it != requestParser.get_request().end(); it++) {
+		cout << "		" << it->first << " : " << it->second << endl;
+	}
+	out << "	}" << endl;
+	out << "}" << endl;
+	return out;
 }

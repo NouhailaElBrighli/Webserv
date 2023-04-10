@@ -6,7 +6,7 @@ t_sockaddr_in WSN::Socket::get_address() const {
 }
 
 int WSN::Socket::get_socket() const {
-	return this->r_socket;
+	return this->socket_v;
 }
 
 // Constructors and copy constructor and copy assignment operator and destructor
@@ -15,23 +15,23 @@ WSN::Socket::Socket(int domain, int service, int protocol, int port, u_long inte
 	this->address.sin_port		  = htons(port);
 	this->address.sin_addr.s_addr = htonl(interface);
 	// Establish socket
-	this->r_socket = socket(domain, service, protocol);
-	test_connection(this->r_socket, "Socket");
+	this->socket_v = socket(domain, service, protocol);
+	test_connection(this->socket_v, "Socket");
 }
 
 WSN::Socket::Socket(const Socket &socket) {
 	this->address  = socket.get_address();
-	this->r_socket = socket.get_socket();
+	this->socket_v = socket.get_socket();
 }
 
 WSN::Socket &WSN::Socket::operator=(const Socket &socket) {
 	this->address  = socket.get_address();
-	this->r_socket = socket.get_socket();
+	this->socket_v = socket.get_socket();
 	return *this;
 }
 
 WSN::Socket::~Socket() {
-	close(this->r_socket);
+	close(this->socket_v);
 }
 
 void WSN::Socket::test_connection(int item_to_test, const string &name) {

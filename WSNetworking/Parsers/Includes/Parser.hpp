@@ -14,7 +14,11 @@ class Parser {
 	// Getters
 	const string &get_data() const;
 
+	// Setters
+	void set_data(string &data);
+
 	// Constructors and copy constructor and copy assignment operator and destructor
+	Parser();
 	Parser(string &data);
 	Parser(const Parser &parser);
 	Parser &operator=(const Parser &parser);
