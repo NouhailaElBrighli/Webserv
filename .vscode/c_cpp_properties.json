@@ -2,13 +2,8 @@
     "configurations": [
         {
             "name": "Linux",
-            "osx": {
-                "macFrameworkPath": []
-            },
-            "linux": {
-                "compilerPath": "/usr/bin/clang",
-                "intelliSenseMode": "clang-x64"
-            },
+            "compilerPath": "/usr/bin/clang",
+            "intelliSenseMode": "clang-x64",
             "includePath": [
                 "${workspaceFolder}/**",
                 "${workspaceFolder}/WSNetworking",
@@ -27,17 +22,11 @@
         },
         {
             "name": "Mac",
-            "osx": {
-                "macFrameworkPath": [
-                    "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks"
-                ],
-                "compilerPath": "/usr/bin/clang",
-                "intelliSenseMode": "clang-x64"
-            },
-            "linux": {
-                "compilerPath": "",
-                "intelliSenseMode": ""
-            },
+            "macFrameworkPath": [
+                "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks"
+            ],
+            "compilerPath": "/usr/bin/clang",
+            "intelliSenseMode": "clang-x64",
             "includePath": [
                 "${workspaceFolder}/**",
                 "${workspaceFolder}/WSNetworking",
