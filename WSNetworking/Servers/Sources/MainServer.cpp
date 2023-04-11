@@ -45,10 +45,10 @@ void WSN::MainServer::handle(int client_socket) {
 	// cout << buffer;
 	try {
 		this->request_parser.run(request);
-		print_line("Request Parser:");
+		print_line("Request Parser");
 		cout << this->request_parser << endl;
 	} catch (const std::exception &e) {
-		print_line("Parse Error:");
+		print_line("Parse Error");
 		cout << e.what() << endl;
 	}
 }
@@ -91,7 +91,6 @@ void WSN::MainServer::launch() {
 					// handle the client's request
 					handle(i);
 					responder(i);
-
 					if (this->request_parser["Connection"] != "keep-alive") {
 						FD_CLR(i, &current_sockets);
 						print_line("Closing connection");

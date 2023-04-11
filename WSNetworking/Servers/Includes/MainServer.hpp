@@ -11,8 +11,8 @@ class MainServer : public Server {
 	RequestParser request_parser;
 	t_sockaddr_in address;
 	int			  socket;
-	char		  buffer[MAXLINE + 1];
 	int			  accept_socket;
+	char		  buffer[MAXLINE + 1];
 
 	virtual void accepter();
 	virtual void handle(int client_socket);

@@ -1,7 +1,10 @@
-.DS_Store
-.idea
+**/.git
+**/.DS_Store
+**/Thumbs.db
+**/.idea
 **/*.o
 **/*.d
 **/*.out
+**/dependecies
 **/executable
 **/objects

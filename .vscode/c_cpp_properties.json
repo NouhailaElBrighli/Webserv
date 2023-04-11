@@ -3,11 +3,11 @@
         {
             "name": "Linux",
             "osx": {
-                "macFrameworkPath": [],
+                "macFrameworkPath": []
             },
             "linux": {
                 "compilerPath": "/usr/bin/clang",
-                "intelliSenseMode": "clang-x64",
+                "intelliSenseMode": "clang-x64"
             },
             "includePath": [
                 "${workspaceFolder}/**",
@@ -32,11 +32,11 @@
                     "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks"
                 ],
                 "compilerPath": "/usr/bin/clang",
-                "intelliSenseMode": "clang-x64",
+                "intelliSenseMode": "clang-x64"
             },
             "linux": {
                 "compilerPath": "",
-                "intelliSenseMode": "",
+                "intelliSenseMode": ""
             },
             "includePath": [
                 "${workspaceFolder}/**",
