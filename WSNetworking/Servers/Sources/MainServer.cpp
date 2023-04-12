@@ -51,7 +51,8 @@ void WSN::MainServer::handle(int client_socket) {
 	// }
 
 	try {
-		this->clients[client_socket] = MainClient(client_socket);
+		WSN::MainClient client(client_socket);
+		this->clients[client_socket] = client;
 	} catch (const std::exception &e) {
 		cout << e.what() << endl;
 	}
@@ -87,7 +88,7 @@ void WSN::MainServer::launch() {
 		// check if the listening socket is ready
 		for (size_t i = 1; i <= max_socket; i++) {
 			if (FD_ISSET(i, &ready_sockets)) {
-				if (find(this->socket.begin(), this->socket.end(), i) != this->socket.end()) {
+				if (std::find(this->socket.begin(), this->socket.end(), i) != this->socket.end()) {
 					// accept the new connection
 					accepter(i);
 					if (this->accept_socket > max_socket)

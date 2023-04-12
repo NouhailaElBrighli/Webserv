@@ -12,6 +12,7 @@
 #include <cstdlib>
 #include <cstring>
 
+#include <algorithm>
 #include <exception>
 #include <iostream>
 #include <iterator>

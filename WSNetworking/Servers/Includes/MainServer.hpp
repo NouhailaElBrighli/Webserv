@@ -9,7 +9,7 @@ class MainServer : public Server {
 
   private:
 	// map of all the clients
-	map<int, MainClient> clients;
+	map<int, WSN::MainClient> clients;
 	// RequestParser		 request_parser;
 	t_sockaddr_in address;
 	vector<int>	  socket;
