@@ -1,14 +1,12 @@
 #include "MainServer.hpp"
 
-// print the line with the step where we are
-void print_line(string str) {
-	cout << "-------------------------------------------- " << str << endl;
-}
-
 // Constructors and copy constructor and copy assignment operator and destructor
-WSN::MainServer::MainServer(int domain, int service, int protocol, int port, u_long interface, int backlog) : Server(domain, service, protocol, port, interface, backlog) {
-	this->address = get_listen_socket()->get_address();
-	this->socket  = get_listen_socket()->get_socket();
+WSN::MainServer::MainServer(int domain, int service, int protocol, vector<int> port, u_long interface, int backlog) : Server(domain, service, protocol, port, interface, backlog) {
+	this->address = get_listen_socket(0).get_address();
+
+	// fill the socket vector with the socket of each listening socket
+	for (size_t i = 0; i < get_listen_socket().size(); i++)
+		this->socket.push_back(get_listen_socket(i).get_socket());
 	launch();
 }
 
@@ -25,11 +23,11 @@ WSN::MainServer &WSN::MainServer::operator=(const MainServer &main_server) {
 WSN::MainServer::~MainServer() {
 }
 
-void WSN::MainServer::accepter() {
+void WSN::MainServer::accepter(int accept_socket) {
 	print_line("accepter");
 	char client_address[MAXLINE + 1];
 
-	accept_socket = accept(this->socket, (t_sockaddr *)&this->address, (socklen_t *)&this->address);
+	accept_socket = accept(this->socket[accept_socket], (t_sockaddr *)&this->address, (socklen_t *)&this->address);
 
 	inet_ntop(AF_INET, &address, client_address, MAXLINE);
 	cout << "Client connection : " << client_address << endl;
@@ -37,18 +35,24 @@ void WSN::MainServer::accepter() {
 
 void WSN::MainServer::handle(int client_socket) {
 	print_line("handle");
-	std::memset(buffer, 0, MAXLINE);
-	read(client_socket, buffer, MAXLINE);
+	// std::memset(buffer, 0, MAXLINE);
+	// read(client_socket, buffer, MAXLINE);
 
-	string request(buffer);
-	cout << request << endl;
-	// cout << buffer;
+	// string request(buffer);
+	// cout << request << endl;
+	// // cout << buffer;
+	// try {
+	// 	this->request_parser.run(request);
+	// 	print_line("Request Parser");
+	// 	cout << this->request_parser << endl;
+	// } catch (const std::exception &e) {
+	// 	print_line("Parse Error");
+	// 	cout << e.what() << endl;
+	// }
+
 	try {
-		this->request_parser.run(request);
-		print_line("Request Parser");
-		cout << this->request_parser << endl;
+		this->clients[client_socket] = MainClient(client_socket);
 	} catch (const std::exception &e) {
-		print_line("Parse Error");
 		cout << e.what() << endl;
 	}
 }
@@ -66,8 +70,10 @@ void WSN::MainServer::launch() {
 	int	   max_socket;
 
 	FD_ZERO(&current_sockets);
-	FD_SET(this->socket, &current_sockets);
-	max_socket = this->socket;
+	for (size_t i = 0; i < this->socket.size(); i++)
+		FD_SET(this->socket[i], &current_sockets);
+	// get the biggest socket number
+	max_socket = this->socket[this->socket.size() - 1];
 	while (true) {
 		print_line("Waiting for connection...");
 
@@ -81,9 +87,9 @@ void WSN::MainServer::launch() {
 		// check if the listening socket is ready
 		for (size_t i = 1; i <= max_socket; i++) {
 			if (FD_ISSET(i, &ready_sockets)) {
-				if (i == this->socket) {
+				if (find(this->socket.begin(), this->socket.end(), i) != this->socket.end()) {
 					// accept the new connection
-					accepter();
+					accepter(i);
 					if (this->accept_socket > max_socket)
 						max_socket = this->accept_socket;
 					FD_SET(this->accept_socket, &current_sockets);
@@ -91,10 +97,12 @@ void WSN::MainServer::launch() {
 					// handle the client's request
 					handle(i);
 					responder(i);
-					if (this->request_parser["Connection"] != "keep-alive") {
+					if (this->clients[i].get_request("Connection") != "keep-alive") {
 						FD_CLR(i, &current_sockets);
+						// Destroy the client
 						print_line("Closing connection");
 					}
+					clients.erase(i);
 					print_line("Done");
 				}
 			}

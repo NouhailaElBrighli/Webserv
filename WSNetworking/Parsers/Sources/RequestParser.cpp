@@ -47,7 +47,7 @@ WSN::RequestParser::~RequestParser() {
 
 // Operators
 const string &WSN::RequestParser::operator[](string key) {
-	return this->get_request(key);
+	return this->request[key];
 }
 
 // Methods

@@ -10,6 +10,8 @@ NAME_UP	= $(shell echo $(NOM) | tr '[:lower:]' '[:upper:]')
 
 INCLUDE	= \
 	-I ./WSNetworking					\
+	-I ./WSNetworking/Clients			\
+	-I ./WSNetworking/Clients/Includes	\
 	-I ./WSNetworking/Includes			\
 	-I ./WSNetworking/Parsers			\
 	-I ./WSNetworking/Parsers/Includes	\
@@ -21,6 +23,11 @@ INCLUDE	= \
 # MAIN
 SRCS	= \
 	main.cpp											\
+
+# CLIENTS
+SRCS	+= \
+	WSNetworking/Clients/Sources/Client.cpp				\
+	WSNetworking/Clients/Sources/MainClient.cpp			\
 
 # PARSERS
 SRCS	+= \

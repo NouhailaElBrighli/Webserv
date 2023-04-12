@@ -17,6 +17,7 @@
 #include <iterator>
 #include <map>
 #include <string>
+#include <vector>
 
 #define MAXLINE 4096
 
@@ -34,5 +35,11 @@ using std::cout;
 using std::endl;
 using std::map;
 using std::string;
+using std::vector;
+
+// print the line with the step where we are
+void print_line(string str) {
+	cout << C_CYAN << "-------------------------------------------- " << str << C_RES << endl;
+}
 
 #endif // HEADER_HPP

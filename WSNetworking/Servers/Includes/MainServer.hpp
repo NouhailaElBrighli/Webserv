@@ -8,19 +8,21 @@ namespace WSN {
 class MainServer : public Server {
 
   private:
-	RequestParser request_parser;
+	// map of all the clients
+	map<int, MainClient> clients;
+	// RequestParser		 request_parser;
 	t_sockaddr_in address;
-	int			  socket;
+	vector<int>	  socket;
 	int			  accept_socket;
-	char		  buffer[MAXLINE + 1];
+	// char				 buffer[MAXLINE + 1];
 
-	virtual void accepter();
+	virtual void accepter(int accept_socket);
 	virtual void handle(int client_socket);
 	virtual void responder(int client_socket);
 
   public:
 	// Constructors and copy constructor and  copy assignment operator and destructor
-	MainServer(int domain, int service, int protocol, int port, u_long interface, int backlog);
+	MainServer(int domain, int service, int protocol, vector<int> port, u_long interface, int backlog);
 	MainServer(const MainServer &main_server);
 	MainServer &operator=(const MainServer &main_server);
 	virtual ~MainServer();
