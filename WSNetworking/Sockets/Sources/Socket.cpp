@@ -16,6 +16,7 @@ WSN::Socket::Socket(int domain, int service, int protocol, int port, u_long inte
 	this->address.sin_addr.s_addr = htonl(interface);
 	// Establish socket
 	this->socket_v = socket(domain, service, protocol);
+	cout << "this->socket_v = " << this->socket_v << endl;
 	test_connection(this->socket_v, "Socket");
 }
 

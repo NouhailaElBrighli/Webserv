@@ -33,8 +33,8 @@ int main() {
 		vector<int> port;
 
 		port.push_back(8080);
-		port.push_back(8081);
-		port.push_back(8082);
+		port.push_back(18000);
+		port.push_back(66);
 
 		WSN::MainServer test_server(AF_INET, SOCK_STREAM, 0, port, INADDR_ANY, 10);
 		cout << C_GREEN << "Test main server succeed" << C_RES << endl;

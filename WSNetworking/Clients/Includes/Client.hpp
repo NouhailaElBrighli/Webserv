@@ -18,6 +18,7 @@ class Client {
 	const string			  &get_request(string key);
 
 	// Constructors and copy constructor and copy assignment operator and destructor
+	Client() = default; // Default constructor declaration
 	Client(int client_socket);
 	Client(const Client &client);
 	Client &operator=(const Client &client);
