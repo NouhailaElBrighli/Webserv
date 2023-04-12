@@ -28,6 +28,10 @@
 #define C_CYAN "\033[1;36m"
 #define C_YELLOW "\033[1;33m"
 
+// print the line with the step where we are
+// and it must be declared in header file
+#define print_line(str) cout << C_CYAN << "--------------------------------" << str << C_RES << endl;
+
 typedef struct sockaddr_in t_sockaddr_in;
 typedef struct sockaddr	   t_sockaddr;
 
@@ -37,10 +41,5 @@ using std::endl;
 using std::map;
 using std::string;
 using std::vector;
-
-// print the line with the step where we are
-void print_line(string str) {
-	cout << C_CYAN << "-------------------------------------------- " << str << C_RES << endl;
-}
 
 #endif // HEADER_HPP

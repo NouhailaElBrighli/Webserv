@@ -7,7 +7,7 @@
 namespace WSN {
 
 class Client {
-  private:
+  protected:
 	RequestParser request_parser;
 	int			  client_socket;
 	char		  buffer[MAXLINE + 1];

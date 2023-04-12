@@ -52,7 +52,7 @@ void WSN::MainServer::handle(int client_socket) {
 
 	try {
 		WSN::MainClient client(client_socket);
-		this->clients[client_socket] = client;
+		// this->clients[client_socket] = client;
 	} catch (const std::exception &e) {
 		cout << e.what() << endl;
 	}
@@ -73,8 +73,8 @@ void WSN::MainServer::launch() {
 	FD_ZERO(&current_sockets);
 	for (size_t i = 0; i < this->socket.size(); i++)
 		FD_SET(this->socket[i], &current_sockets);
-	// get the biggest socket number
-	max_socket = this->socket[this->socket.size() - 1];
+	// get the biggest number from the vector
+	max_socket = *std::max_element(this->socket.begin(), this->socket.end());
 	while (true) {
 		print_line("Waiting for connection...");
 
@@ -98,11 +98,11 @@ void WSN::MainServer::launch() {
 					// handle the client's request
 					handle(i);
 					responder(i);
-					if (this->clients[i].get_request("Connection") != "keep-alive") {
-						FD_CLR(i, &current_sockets);
-						// Destroy the client
-						print_line("Closing connection");
-					}
+					// if (this->clients[i].get_request("Connection") != "keep-alive") {
+					FD_CLR(i, &current_sockets);
+					// Destroy the client
+					print_line("Closing connection");
+					// }
 					clients.erase(i);
 					print_line("Done");
 				}

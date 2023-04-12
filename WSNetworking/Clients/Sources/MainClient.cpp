@@ -17,7 +17,7 @@ WSN::MainClient::~MainClient() {
 }
 
 // Methods
-void WSN::Client::handle(int client_socket) {
+void WSN::MainClient::handle(int client_socket) {
 	int	   n;
 	string data;
 
