@@ -1,16 +1,12 @@
 #include "MainClient.hpp"
 
 // Constructors and copy constructor and copy assignment operator and destructor
+
+WSN::MainClient::MainClient() : WSN::Client() {
+}
+
 WSN::MainClient::MainClient(int client_socket) : WSN::Client(client_socket) {
 	this->handle(client_socket);
-}
-
-WSN::MainClient::MainClient(const WSN::MainClient &mainClient) : WSN::Client(mainClient) {
-}
-
-WSN::MainClient &WSN::MainClient::operator=(const WSN::MainClient &mainClient) {
-	WSN::Client::operator=(mainClient);
-	return *this;
 }
 
 WSN::MainClient::~MainClient() {
@@ -35,9 +31,9 @@ void WSN::MainClient::handle(int client_socket) {
 	}
 	cout << data << endl;
 	try {
-		this->request_parser.run(data);
+		this->request_parser->run(data);
 		print_line("Request Parser");
-		cout << this->request_parser << endl;
+		cout << *this->request_parser << endl;
 	} catch (const std::exception &e) {
 		print_line("Parse Error");
 		throw WSN::RequestParser::ParseError();

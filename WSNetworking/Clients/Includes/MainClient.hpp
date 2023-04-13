@@ -7,12 +7,13 @@ namespace WSN {
 
 class MainClient : public Client {
 
+	MainClient(const MainClient &);
+	MainClient &operator=(const MainClient &);
+
   public:
 	// Constructors and copy constructor and copy assignment operator and destructor
-	MainClient() = default; // Default constructor declaration
+	MainClient();
 	MainClient(int client_socket);
-	MainClient(const MainClient &mainClient);
-	MainClient &operator=(const MainClient &mainClient);
 	virtual ~MainClient();
 
 	virtual void handle(int client_socket);

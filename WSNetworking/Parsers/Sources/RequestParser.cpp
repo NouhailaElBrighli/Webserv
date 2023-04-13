@@ -34,20 +34,16 @@ WSN::RequestParser::RequestParser(string &data) : Parser(data) {
 	this->run();
 }
 
-WSN::RequestParser::RequestParser(const RequestParser &requestParser) : Parser(requestParser) {
+WSN::RequestParser::RequestParser(const RequestParser &requestParser) : Parser(requestParser), request(requestParser.request) {
 }
 
 WSN::RequestParser &WSN::RequestParser::operator=(const RequestParser &requestParser) {
 	Parser::operator=(requestParser);
+	this->request = requestParser.request;
 	return *this;
 }
 
 WSN::RequestParser::~RequestParser() {
-}
-
-// Operators
-const string &WSN::RequestParser::operator[](string key) {
-	return this->request[key];
 }
 
 // Methods

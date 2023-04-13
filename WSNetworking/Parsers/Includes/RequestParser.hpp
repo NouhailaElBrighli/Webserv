@@ -25,9 +25,6 @@ class RequestParser : public Parser {
 	RequestParser &operator=(const RequestParser &requestParser);
 	~RequestParser();
 
-	// Operator []
-	const string &operator[](string key);
-
 	// Methods
 	void run(string &data);
 

@@ -9,7 +9,7 @@ class MainServer : public Server {
 
   private:
 	// map of all the clients
-	map<int, MainClient> clients;
+	map<int, MainClient *> clients;
 	// RequestParser		 request_parser;
 	t_sockaddr_in address;
 	vector<int>	  socket;
@@ -21,6 +21,9 @@ class MainServer : public Server {
 	virtual void responder(int client_socket);
 
   public:
+	// Getters
+	string get_request(int client_socket, string key);
+
 	// Constructors and copy constructor and  copy assignment operator and destructor
 	MainServer(int domain, int service, int protocol, vector<int> port, u_long interface, int backlog);
 	MainServer(const MainServer &main_server);

@@ -18,6 +18,7 @@ WSN::BindingSocket::BindingSocket(int domain, int service, int protocol, int por
 }
 
 WSN::BindingSocket::BindingSocket(const BindingSocket &socket) : Socket(socket), binding(socket.binding) {
+	this->binding = socket.binding;
 }
 
 WSN::BindingSocket &WSN::BindingSocket::operator=(const BindingSocket &socket) {

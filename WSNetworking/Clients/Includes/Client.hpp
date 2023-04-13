@@ -8,9 +8,12 @@ namespace WSN {
 
 class Client {
   protected:
-	RequestParser request_parser;
-	int			  client_socket;
-	char		  buffer[MAXLINE + 1];
+	RequestParser *request_parser;
+	int			   client_socket;
+	char		   buffer[MAXLINE + 1];
+
+	Client(const Client &client);
+	Client &operator=(const Client &client);
 
   public:
 	// Getters
@@ -18,10 +21,8 @@ class Client {
 	const string			  &get_request(string key);
 
 	// Constructors and copy constructor and copy assignment operator and destructor
-	Client() = default; // Default constructor declaration
+	Client();
 	Client(int client_socket);
-	Client(const Client &client);
-	Client &operator=(const Client &client);
 	virtual ~Client();
 
 	virtual void handle(int client_socket) = 0;

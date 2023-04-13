@@ -18,10 +18,13 @@ WSN::ListeningSocket::ListeningSocket(int domain, int service, int protocol, int
 }
 
 WSN::ListeningSocket::ListeningSocket(const ListeningSocket &socket) : BindingSocket(socket), backlog(socket.backlog) {
+	set_listening(socket.get_listening());
+	this->backlog = socket.backlog;
 }
 
 WSN::ListeningSocket &WSN::ListeningSocket::operator=(const ListeningSocket &socket) {
 	BindingSocket::operator=(socket);
+	set_listening(socket.get_listening());
 	this->backlog = socket.backlog;
 	return *this;
 }

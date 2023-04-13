@@ -12,12 +12,16 @@ int WSN::Socket::get_socket() const {
 // Constructors and copy constructor and copy assignment operator and destructor
 WSN::Socket::Socket(int domain, int service, int protocol, int port, u_long interface) {
 	this->address.sin_family	  = domain;
-	this->address.sin_port		  = htons(port);
-	this->address.sin_addr.s_addr = htonl(interface);
+	this->address.sin_port		  = htons(port);	  // htons() converts the unsigned short integer hostshort from host byte order to network byte order.
+	this->address.sin_addr.s_addr = htonl(interface); // htonl() converts the unsigned long integer hostlong from host byte order to network byte order.
+
 	// Establish socket
 	this->socket_v = socket(domain, service, protocol);
-	cout << "this->socket_v = " << this->socket_v << endl;
 	test_connection(this->socket_v, "Socket");
+
+	int reuse = 1;
+
+	test_connection(setsockopt(this->socket_v, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)), "setsockopt");
 }
 
 WSN::Socket::Socket(const Socket &socket) {
@@ -32,7 +36,6 @@ WSN::Socket &WSN::Socket::operator=(const Socket &socket) {
 }
 
 WSN::Socket::~Socket() {
-	close(this->socket_v);
 }
 
 void WSN::Socket::test_connection(int item_to_test, const string &name) {

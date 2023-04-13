@@ -27,7 +27,6 @@ WSN::ConnectingSocket &WSN::ConnectingSocket::operator=(const ConnectingSocket &
 }
 
 WSN::ConnectingSocket::~ConnectingSocket() {
-	close(this->connection);
 }
 
 // Definition of the virtual function from the parent class
