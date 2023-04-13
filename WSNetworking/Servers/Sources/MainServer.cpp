@@ -30,9 +30,12 @@ WSN::MainServer::~MainServer() {
 
 void WSN::MainServer::accepter(int accept_socket) {
 	print_line("accepter");
-	char client_address[MAXLINE + 1];
 
-	this->accept_socket = accept(accept_socket, (t_sockaddr *)&address, (socklen_t *)&address);
+	char	  client_address[MAXLINE + 1];
+	socklen_t addrlen = sizeof(address);
+
+	this->accept_socket = accept(accept_socket, (t_sockaddr *)&address, &addrlen);
+	cout << "Accept socket : " << this->accept_socket << endl;
 
 	inet_ntop(AF_INET, &address, client_address, MAXLINE);
 	cout << "Client connection : " << client_address << endl;
@@ -40,12 +43,9 @@ void WSN::MainServer::accepter(int accept_socket) {
 
 void WSN::MainServer::handle(int client_socket) {
 	print_line("handle");
-	try {
-		WSN::MainClient *mainClient	 = new WSN::MainClient(client_socket);
-		this->clients[client_socket] = mainClient;
-	} catch (const std::exception &e) {
-		cout << e.what() << endl;
-	}
+
+	WSN::MainClient *mainClient	 = new WSN::MainClient(client_socket);
+	this->clients[client_socket] = mainClient;
 }
 
 void WSN::MainServer::responder(int client_socket) {
@@ -65,7 +65,7 @@ void WSN::MainServer::launch() {
 	FD_ZERO(&current_sockets);
 	for (size_t i = 0; i < this->socket.size(); i++)
 		FD_SET(this->socket[i], &current_sockets);
-	// get the biggest number from the vector
+
 	max_socket = *std::max_element(this->socket.begin(), this->socket.end());
 	while (true) {
 		print_line("Waiting for connection...");
@@ -81,15 +81,22 @@ void WSN::MainServer::launch() {
 		for (int i = 1; i <= max_socket; i++) {
 			if (FD_ISSET(i, &ready_sockets)) {
 				if (std::find(this->socket.begin(), this->socket.end(), i) != this->socket.end()) {
-					// accept the new connection
+
 					accepter(i);
 					if (this->accept_socket > max_socket)
 						max_socket = this->accept_socket;
+					if (this->accept_socket < 0)
+						continue;
 					FD_SET(this->accept_socket, &current_sockets);
+
 				} else {
-					// handle the client's request
-					handle(i);
-					responder(i);
+					try {
+						// handle the client's request
+						handle(i);
+						responder(i);
+					} catch (const std::exception &e) {
+						cerr << e.what() << endl;
+					}
 					// if (this->clients[i].get_request("Connection") != "keep-alive")
 					FD_CLR(i, &current_sockets);
 					// Destroy the client

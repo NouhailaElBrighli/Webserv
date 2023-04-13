@@ -34,10 +34,9 @@ int main() {
 
 		port.push_back(8080);
 		port.push_back(18000);
-		port.push_back(66);
-		port.push_back(6786);
+		port.push_back(8888);
 
-		WSN::MainServer test_server(AF_INET, SOCK_STREAM, 0, port, INADDR_ANY, 10);
+		WSN::MainServer main_server(AF_INET, SOCK_STREAM, 0, port, INADDR_ANY, 10);
 		cout << C_GREEN << "Test main server succeed" << C_RES << endl;
 	} catch (const std::exception &e) {
 		cerr << e.what() << endl;
