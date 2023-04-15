@@ -1,5 +1,5 @@
-#ifndef HEADER_HPP
-#define HEADER_HPP
+#ifndef INCLUDE_HPP
+#define INCLUDE_HPP
 
 #include <netinet/in.h>
 #include <sys/select.h>
@@ -29,7 +29,6 @@
 #define C_YELLOW "\033[1;33m"
 
 // print the line with the step where we are
-// and it must be declared in header file
 #define print_line(str) cout << C_CYAN << "--------------------------------" << str << C_RES << endl;
 
 typedef struct sockaddr_in t_sockaddr_in;
@@ -42,4 +41,4 @@ using std::map;
 using std::string;
 using std::vector;
 
-#endif // HEADER_HPP
+#endif // INCLUDE_HPP

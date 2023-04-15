@@ -11,16 +11,16 @@ NAME_UP		= $(shell echo $(NOM) | tr '[:lower:]' '[:upper:]')
 MAIN_DIR	= WSNetworking
 
 INCLUDE		= \
-	-I $(MAIN_DIR)					\
-	-I $(MAIN_DIR)/Clients			\
-	-I $(MAIN_DIR)/Clients/Includes	\
-	-I $(MAIN_DIR)/Includes			\
-	-I $(MAIN_DIR)/Parsers			\
-	-I $(MAIN_DIR)/Parsers/Includes	\
-	-I $(MAIN_DIR)/Servers			\
-	-I $(MAIN_DIR)/Servers/Includes	\
-	-I $(MAIN_DIR)/Sockets			\
-	-I $(MAIN_DIR)/Sockets/Includes	\
+	-I $(MAIN_DIR)						\
+	-I $(MAIN_DIR)/Clients/Headers		\
+	-I $(MAIN_DIR)/Clients/Include		\
+	-I $(MAIN_DIR)/Includes				\
+	-I $(MAIN_DIR)/Parsers/Headers		\
+	-I $(MAIN_DIR)/Parsers/Include		\
+	-I $(MAIN_DIR)/Servers/Headers		\
+	-I $(MAIN_DIR)/Servers/Include		\
+	-I $(MAIN_DIR)/Sockets/Headers		\
+	-I $(MAIN_DIR)/Sockets/Include		\
 
 # MAIN
 SRCS	= \
