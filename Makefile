@@ -4,21 +4,23 @@
 #				FILES					#
 #***************************************#
 
-NOM		= webserv
-NAME	= $(EXE_DIR)/$(NOM)
-NAME_UP	= $(shell echo $(NOM) | tr '[:lower:]' '[:upper:]')
+NOM			= webserv
+NAME		= $(EXE_DIR)/$(NOM)
+NAME_UP		= $(shell echo $(NOM) | tr '[:lower:]' '[:upper:]')
 
-INCLUDE	= \
-	-I ./WSNetworking					\
-	-I ./WSNetworking/Clients			\
-	-I ./WSNetworking/Clients/Includes	\
-	-I ./WSNetworking/Includes			\
-	-I ./WSNetworking/Parsers			\
-	-I ./WSNetworking/Parsers/Includes	\
-	-I ./WSNetworking/Servers			\
-	-I ./WSNetworking/Servers/Includes	\
-	-I ./WSNetworking/Sockets			\
-	-I ./WSNetworking/Sockets/Includes	\
+MAIN_DIR	= WSNetworking
+
+INCLUDE		= \
+	-I $(MAIN_DIR)					\
+	-I $(MAIN_DIR)/Clients			\
+	-I $(MAIN_DIR)/Clients/Includes	\
+	-I $(MAIN_DIR)/Includes			\
+	-I $(MAIN_DIR)/Parsers			\
+	-I $(MAIN_DIR)/Parsers/Includes	\
+	-I $(MAIN_DIR)/Servers			\
+	-I $(MAIN_DIR)/Servers/Includes	\
+	-I $(MAIN_DIR)/Sockets			\
+	-I $(MAIN_DIR)/Sockets/Includes	\
 
 # MAIN
 SRCS	= \
@@ -26,25 +28,25 @@ SRCS	= \
 
 # CLIENTS
 SRCS	+= \
-	WSNetworking/Clients/Sources/Client.cpp				\
-	WSNetworking/Clients/Sources/MainClient.cpp			\
+	$(MAIN_DIR)/Clients/Sources/Client.cpp				\
+	$(MAIN_DIR)/Clients/Sources/MainClient.cpp			\
 
 # PARSERS
 SRCS	+= \
-	WSNetworking/Parsers/Sources/Parser.cpp				\
-	WSNetworking/Parsers/Sources/RequestParser.cpp		\
+	$(MAIN_DIR)/Parsers/Sources/Parser.cpp				\
+	$(MAIN_DIR)/Parsers/Sources/RequestParser.cpp		\
 
 # SERVERS
 SRCS	+= \
-	WSNetworking/Servers/Sources/Server.cpp				\
-	WSNetworking/Servers/Sources/MainServer.cpp			\
+	$(MAIN_DIR)/Servers/Sources/Server.cpp				\
+	$(MAIN_DIR)/Servers/Sources/MainServer.cpp			\
 
 # SOCKETS
 SRCS	+= \
-	WSNetworking/Sockets/Sources/BindingSocket.cpp		\
-	WSNetworking/Sockets/Sources/ConnectingSocket.cpp	\
-	WSNetworking/Sockets/Sources/ListeningSocket.cpp	\
-	WSNetworking/Sockets/Sources/Socket.cpp				\
+	$(MAIN_DIR)/Sockets/Sources/BindingSocket.cpp		\
+	$(MAIN_DIR)/Sockets/Sources/ConnectingSocket.cpp	\
+	$(MAIN_DIR)/Sockets/Sources/ListeningSocket.cpp		\
+	$(MAIN_DIR)/Sockets/Sources/Socket.cpp				\
 
 #***************************************#
 #				FOLDERS					#
@@ -154,7 +156,6 @@ run : all
 
 C_RESET		= \033[0m
 
-C_BLACK		= \033[1;30m
 C_RED		= \033[1;31m
 C_GREEN		= \033[1;32m
 C_YELLOW	= \033[1;33m
@@ -162,7 +163,6 @@ C_BLUE		= \033[1;34m
 C_PURPLE	= \033[1;35m
 C_CYAN		= \033[1;36m
 C_WHITE		= \033[1;37m
-C_GRAY		= \033[1;90m
 
 L_RED		= \033[1;91m
 L_GREEN		= \033[1;92m
@@ -183,7 +183,7 @@ M_COMP_E	= printf "$(C_GREEN)... ${NAME_UP} COMPILED ✔$(C_RESET)\n"
 M_DIR_S		= printf "$(C_YELLOW)➔ CREATING ${NAME_UP} DIRECTORIES ... 📂$(C_RESET)"
 M_DIR_E		= printf "$(C_GREEN)... ${NAME_UP} DIRECTORIES CREATED ✔$(C_RESET)\n"
 
-M_D_RMV_S	= printf "$(C_PURPLE)➔ REMOVING $(NAME_UP) DEPENDENCIES ... 🗑️ $(C_RESET)"
+M_D_RMV_S	= printf "$(C_PURPLE)➔ REMOVING $(NAME_UP) DEPENDENCIES ... 🗑️️ $(C_RESET)"
 M_D_RMV_E	= printf "$(C_RED)... ${NAME_UP} DEPENDENCIES REMOVED ✔$(C_RESET)\n"
 M_D_RMV_F	= printf "$(C_BLUE)... ${NAME_UP} DEPENDENCIES NOT FOUND ✗$(C_RESET)\n"
 
@@ -191,7 +191,7 @@ M_E_RMV_S	= printf "$(C_PURPLE)➔ REMOVING $(NAME_UP) EXECUTABLE ... 🗑️ $(
 M_E_RMV_E	= printf "$(C_RED)... ${NAME_UP} EXECUTABLE REMOVED ✔$(C_RESET)\n"
 M_E_RMV_F	= printf "$(L_BLUE)... ${NAME_UP} EXECUTABLE NOT FOUND ✗$(C_RESET)\n"
 
-M_O_RMV_S	= printf "$(C_PURPLE)➔ REMOVING $(NAME_UP) OBJECTS ... 🗑 $(C_RESET)"
+M_O_RMV_S	= printf "$(C_PURPLE)➔ REMOVING $(NAME_UP) OBJECTS ... 🗑️ $(C_RESET)"
 M_O_RMV_E	= printf "$(C_RED)... ${NAME_UP} OBJECTS REMOVED ✔$(C_RESET)\n"
 M_O_RMV_F	= printf "$(L_BLUE)... ${NAME_UP} OBJECTS NOT FOUND ✗$(C_RESET)\n"
 
