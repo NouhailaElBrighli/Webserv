@@ -179,23 +179,23 @@ B_WHITE		= \033[1;97m
 #				MESSAGES				#
 #***************************************#
 
-M_COMP_S	= printf "$(C_YELLOW)➔ COMPILING $(NAME_UP) ... ⚙️ $(C_RESET)"
+M_COMP_S	= printf "$(C_YELLOW)➔  COMPILING $(NAME_UP) ... ⚙️ $(C_RESET)"
 M_COMP_E	= printf "$(C_GREEN)... ${NAME_UP} COMPILED ✔$(C_RESET)\n"
 
-M_DIR_S		= printf "$(C_YELLOW)➔ CREATING ${NAME_UP} DIRECTORIES ... 📂$(C_RESET)"
+M_DIR_S		= printf "$(C_YELLOW)➔  CREATING ${NAME_UP} DIRECTORIES ... 📂$(C_RESET)"
 M_DIR_E		= printf "$(C_GREEN)... ${NAME_UP} DIRECTORIES CREATED ✔$(C_RESET)\n"
 
-M_D_RMV_S	= printf "$(C_PURPLE)➔ REMOVING $(NAME_UP) DEPENDENCIES ... 🗑️️ $(C_RESET)"
+M_D_RMV_S	= printf "$(C_PURPLE)➔  REMOVING $(NAME_UP) DEPENDENCIES ... 🗑️️ $(C_RESET)"
 M_D_RMV_E	= printf "$(C_RED)... ${NAME_UP} DEPENDENCIES REMOVED ✔$(C_RESET)\n"
 M_D_RMV_F	= printf "$(C_BLUE)... ${NAME_UP} DEPENDENCIES NOT FOUND ✗$(C_RESET)\n"
 
-M_E_RMV_S	= printf "$(C_PURPLE)➔ REMOVING $(NAME_UP) EXECUTABLE ... 🗑️ $(C_RESET)"
+M_E_RMV_S	= printf "$(C_PURPLE)➔  REMOVING $(NAME_UP) EXECUTABLE ... 🗑️ $(C_RESET)"
 M_E_RMV_E	= printf "$(C_RED)... ${NAME_UP} EXECUTABLE REMOVED ✔$(C_RESET)\n"
 M_E_RMV_F	= printf "$(L_BLUE)... ${NAME_UP} EXECUTABLE NOT FOUND ✗$(C_RESET)\n"
 
-M_O_RMV_S	= printf "$(C_PURPLE)➔ REMOVING $(NAME_UP) OBJECTS ... 🗑️ $(C_RESET)"
+M_O_RMV_S	= printf "$(C_PURPLE)➔  REMOVING $(NAME_UP) OBJECTS ... 🗑️ $(C_RESET)"
 M_O_RMV_E	= printf "$(C_RED)... ${NAME_UP} OBJECTS REMOVED ✔$(C_RESET)\n"
 M_O_RMV_F	= printf "$(L_BLUE)... ${NAME_UP} OBJECTS NOT FOUND ✗$(C_RESET)\n"
 
-M_RUN_S		= printf "$(C_CYAN)➔ RUN ${NAME_UP} ... 🚀$(C_RESET)\n"
+M_RUN_S		= printf "$(C_CYAN)➔  RUN ${NAME_UP} ... 🚀$(C_RESET)\n"
 M_RUN_E		= printf "$(C_BLUE)... ${NAME_UP} FINISHED ✔$(C_RESET)\n"
