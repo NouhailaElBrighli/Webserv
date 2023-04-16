@@ -10,20 +10,22 @@ class MainServer : public Server {
   private:
 	// map of all the clients
 	map<int, MainClient *> clients;
-	// RequestParser		 request_parser;
-	t_sockaddr_in address;
-	vector<int>	  socket;
-	int			  accept_socket;
-	// char				 buffer[MAXLINE + 1];
+	t_sockaddr_in		   address;
+	vector<int>			   socket;
+	int					   accept_socket, max_socket;
+	fd_set				   current_sockets, ready_sockets;
+
+	// Getters
+	string get_request(int client_socket, string key);
 
 	virtual void accepter(int accept_socket);
 	virtual void handle(int client_socket);
 	virtual void responder(int client_socket);
 
-  public:
-	// Getters
-	string get_request(int client_socket, string key);
+	void init();
+	void destroy_client(int i);
 
+  public:
 	// Constructors and copy constructor and  copy assignment operator and destructor
 	MainServer(int domain, int service, int protocol, vector<int> port, u_long interface, int backlog);
 	MainServer(const MainServer &main_server);

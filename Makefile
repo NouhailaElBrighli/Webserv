@@ -14,6 +14,8 @@ INCLUDE		= \
 	-I $(MAIN_DIR)						\
 	-I $(MAIN_DIR)/Clients/Headers		\
 	-I $(MAIN_DIR)/Clients/Include		\
+	-I $(MAIN_DIR)/Exceptions/Headers	\
+	-I $(MAIN_DIR)/Exceptions/Include	\
 	-I $(MAIN_DIR)/Includes				\
 	-I $(MAIN_DIR)/Parsers/Headers		\
 	-I $(MAIN_DIR)/Parsers/Include		\

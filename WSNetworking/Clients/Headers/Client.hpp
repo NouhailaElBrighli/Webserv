@@ -1,6 +1,7 @@
 #ifndef CLIENT_HPP
 #define CLIENT_HPP
 
+#include "Exceptions.hpp"
 #include "Include.hpp"
 #include "RequestParser.hpp"
 

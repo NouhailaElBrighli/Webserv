@@ -12,6 +12,7 @@ WSN::MainServer::MainServer(int domain, int service, int protocol, vector<int> p
 	// fill the socket vector with the socket of each listening socket
 	for (size_t i = 0; i < get_listen_socket().size(); i++)
 		this->socket.push_back(get_listen_socket(i).get_socket());
+
 	launch();
 }
 
@@ -58,36 +59,46 @@ void WSN::MainServer::responder(int client_socket) {
 	send(client_socket, hello.c_str(), hello.length(), 0);
 }
 
-void WSN::MainServer::launch() {
-	fd_set current_sockets, ready_sockets;
-	int	   max_socket;
-
-	FD_ZERO(&current_sockets);
+void WSN::MainServer::init() {
+	FD_ZERO(&this->current_sockets);
 	for (size_t i = 0; i < this->socket.size(); i++)
-		FD_SET(this->socket[i], &current_sockets);
+		FD_SET(this->socket[i], &this->current_sockets);
 
-	max_socket = *std::max_element(this->socket.begin(), this->socket.end());
+	this->max_socket = *std::max_element(this->socket.begin(), this->socket.end());
+}
+
+void WSN::MainServer::destroy_client(int i) {
+	// if (this->clients[i].get_request("Connection") != "keep-alive")
+	FD_CLR(i, &this->current_sockets);
+	// Destroy the client
+	delete this->clients[i];
+	this->clients.erase(i);
+	close(i);
+}
+
+void WSN::MainServer::launch() {
+	init();
 	while (true) {
 		print_line("Waiting for connection...");
 
 		// because select() will modify the set, we need to reset it each time
-		ready_sockets = current_sockets;
+		this->ready_sockets = this->current_sockets;
 
 		// select() will block until there is activity on one of the sockets
-		if (select(max_socket + 1, &ready_sockets, NULL, NULL, NULL) < 0)
+		if (select(this->max_socket + 1, &this->ready_sockets, NULL, NULL, NULL) < 0)
 			throw std::runtime_error("select() failed");
 
 		// check if the listening socket is ready
-		for (int i = 1; i <= max_socket; i++) {
-			if (FD_ISSET(i, &ready_sockets)) {
+		for (int i = 1; i <= this->max_socket; i++) {
+			if (FD_ISSET(i, &this->ready_sockets)) {
 				if (std::find(this->socket.begin(), this->socket.end(), i) != this->socket.end()) {
 
 					accepter(i);
-					if (this->accept_socket > max_socket)
-						max_socket = this->accept_socket;
+					if (this->accept_socket > this->max_socket)
+						this->max_socket = this->accept_socket;
 					if (this->accept_socket < 0)
 						continue;
-					FD_SET(this->accept_socket, &current_sockets);
+					FD_SET(this->accept_socket, &this->current_sockets);
 
 				} else {
 					try {
@@ -97,13 +108,7 @@ void WSN::MainServer::launch() {
 					} catch (const std::exception &e) {
 						cerr << e.what() << endl;
 					}
-					// if (this->clients[i].get_request("Connection") != "keep-alive")
-					FD_CLR(i, &current_sockets);
-					// Destroy the client
-					delete this->clients[i];
-					this->clients.erase(i);
-					close(i);
-					print_line("Closing connection ... Done");
+					destroy_client(i);
 				}
 			}
 		}

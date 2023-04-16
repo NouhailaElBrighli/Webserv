@@ -2,6 +2,7 @@
 #define SERVER_HPP
 
 #include "Clients.hpp"
+#include "Exceptions.hpp"
 #include "Include.hpp"
 #include "Parsers.hpp"
 #include "Sockets.hpp"
@@ -11,7 +12,6 @@ namespace WSN {
 class Server {
 
   private:
-	// ListeningSocket *listen_socket;
 	vector<ListeningSocket> listen_socket;
 	virtual void			accepter(int accept_socket)	 = 0;
 	virtual void			handle(int client_socket)	 = 0;
