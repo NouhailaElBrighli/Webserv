@@ -31,7 +31,7 @@ WSN::RequestParser::RequestParser() : Parser() {
 }
 
 WSN::RequestParser::RequestParser(string &data) : Parser(data) {
-	this->run();
+	this->parse();
 }
 
 WSN::RequestParser::RequestParser(const RequestParser &requestParser) : Parser(requestParser), request(requestParser.request) {
@@ -47,17 +47,53 @@ WSN::RequestParser::~RequestParser() {
 }
 
 // Methods
-void WSN::RequestParser::run() {
-	this->parse_first_line();
-	this->parse_rest();
-}
-
 void WSN::RequestParser::run(string &data) {
 	this->request.clear();
 	this->data.clear();
 	this->set_data(data);
+	this->parse();
+}
+
+void WSN::RequestParser::parse() {
+	this->is_data_valid();
 	this->parse_first_line();
+	this->is_first_line_valid();
 	this->parse_rest();
+}
+
+void WSN::RequestParser::is_data_valid() {
+	cout << endl
+		 << C_GREEN << "data.length() : " << data.length() << C_RES << endl
+		 << endl;
+	if (data.empty()) {
+		print_error("Bad Request");
+		throw WSN::Error::BadRequest400();
+	}
+	if (data.length() > MAXLINE) {
+		print_error("Request Entity Too Large");
+		throw WSN::Error::RequestEntityTooLarge413();
+	}
+}
+
+void WSN::RequestParser::is_first_line_valid() {
+	string allowed_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;=%";
+
+	if (this->request.size() != 3) {
+		print_error("Not Implemented");
+		throw WSN::Error::NotImplemented501();
+	}
+	if (this->request["Request-Type"] != "GET" && this->request["Request-Type"] != "POST" && this->request["Request-Type"] != "DELETE") {
+		print_error("Bad Request");
+		throw WSN::Error::BadRequest400();
+	}
+	if (this->request["Request-URI"].find_first_not_of(allowed_chars) != string::npos) {
+		print_error("Bad Request");
+		throw WSN::Error::BadRequest400();
+	}
+	if (this->request["Request-URI"].length() > 2048) {
+		print_error("Request URI Too Long");
+		throw WSN::Error::RequestURITooLong414();
+	}
 }
 
 void WSN::RequestParser::parse_first_line() {
@@ -67,7 +103,7 @@ void WSN::RequestParser::parse_first_line() {
 	size_t pos;
 
 	if ((pos = this->data.find("\r")) != string::npos) {
-		line = this->data.substr(0, pos);
+		line = this->data.substr(0, pos + 2);
 		this->data.erase(0, pos + 2);
 		if (line.empty()) {
 			throw WSN::Parser::InputError();
@@ -79,7 +115,7 @@ void WSN::RequestParser::parse_first_line() {
 			line.erase(0, pos + 1);
 		}
 		if ((pos = line.find(" ")) != string::npos) {
-			key				   = "Document-Path";
+			key				   = "Request-URI";
 			value			   = line.substr(0, pos);
 			this->request[key] = value;
 			line.erase(0, pos + 1);

@@ -52,11 +52,19 @@ void WSN::MainServer::handle(int client_socket) {
 void WSN::MainServer::responder(int client_socket) {
 	print_line("responder");
 
-	string hello = "HTTP/1.0 200OK\r\n\r\n";
-	hello += "Hello From Server\nYou are Host : ";
-	hello += this->get_request(client_socket, "Host") + "\n";
-	// write(client_socket, hello, strlen(hello));
-	send(client_socket, hello.c_str(), hello.length(), 0);
+	if (this->clients[client_socket]->get_status() == WSN::Accurate::OK200().what()) {
+		string hello = "HTTP/1.0 200OK\r\n\r\n";
+		hello += "Hello From Server\nYou are Host : ";
+		hello += this->get_request(client_socket, "Host") + "\n";
+		// write(client_socket, hello, strlen(hello));
+		send(client_socket, hello.c_str(), hello.length(), 0);
+	} else {
+		string error = "HTTP/1.0 ";
+		error += this->clients[client_socket]->get_status();
+		error += "\r\n\r\n";
+		// write(client_socket, error, strlen(error));
+		send(client_socket, error.c_str(), error.length(), 0);
+	}
 }
 
 void WSN::MainServer::init() {

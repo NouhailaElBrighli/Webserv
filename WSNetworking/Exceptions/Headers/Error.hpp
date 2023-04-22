@@ -14,7 +14,7 @@ class Error {
 	class NoContent204 : public std::exception {
 	  public:
 		virtual const char *what() const throw() {
-			return "No content";
+			return "204No content";
 		}
 	};
 
@@ -22,7 +22,7 @@ class Error {
 	class MovedPermanently301 : public std::exception {
 	  public:
 		virtual const char *what() const throw() {
-			return "Moved permanently";
+			return "301Moved permanently";
 		}
 	};
 
@@ -30,56 +30,56 @@ class Error {
 	class BadRequest400 : public std::exception {
 	  public:
 		virtual const char *what() const throw() {
-			return "Bad request";
+			return "400Bad request";
 		}
 	};
 
 	class Unauthorized401 : public std::exception {
 	  public:
 		virtual const char *what() const throw() {
-			return "Unauthorized";
+			return "401Unauthorized";
 		}
 	};
 
 	class Forbidden403 : public std::exception {
 	  public:
 		virtual const char *what() const throw() {
-			return "Forbidden";
+			return "403Forbidden";
 		}
 	};
 
 	class NotFound404 : public std::exception {
 	  public:
 		virtual const char *what() const throw() {
-			return "Not found";
+			return "404Not found";
 		}
 	};
 
 	class MethodNotAllowed405 : public std::exception {
 	  public:
 		virtual const char *what() const throw() {
-			return "Method not allowed";
+			return "405Method not allowed";
 		}
 	};
 
 	class Conflict409 : public std::exception {
 	  public:
 		virtual const char *what() const throw() {
-			return "Conflict";
+			return "409Conflict";
 		}
 	};
 
 	class RequestEntityTooLarge413 : public std::exception {
 	  public:
 		virtual const char *what() const throw() {
-			return "Request entity too large";
+			return "413Request Entity Too Large";
 		}
 	};
 
 	class RequestURITooLong414 : public std::exception {
 	  public:
 		virtual const char *what() const throw() {
-			return "Request-URI too long";
+			return "414Request-URI too long";
 		}
 	};
 
@@ -87,14 +87,14 @@ class Error {
 	class InternalServerError500 : public std::exception {
 	  public:
 		virtual const char *what() const throw() {
-			return "Internal server error";
+			return "500Internal server error";
 		}
 	};
 
 	class NotImplemented501 : public std::exception {
 	  public:
 		virtual const char *what() const throw() {
-			return "Not implemented";
+			return "501Not implemented";
 		}
 	};
 };

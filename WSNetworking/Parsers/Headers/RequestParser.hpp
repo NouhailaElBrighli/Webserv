@@ -8,10 +8,8 @@ namespace WSN {
 class RequestParser : public Parser {
 
   private:
-	// the first line splited to three parts : the `Request-Type`, the `Document-Path`, and the `Protocol-Version`
+	// the first line splited to three parts : the `Request-Type`, the `Request-URI`, and the `Protocol-Version`
 	map<string, string> request;
-	// Methods
-	void run();
 
   public:
 	// Getters
@@ -29,6 +27,10 @@ class RequestParser : public Parser {
 	void run(string &data);
 
   private:
+	// Methods
+	void parse();
+	void is_data_valid();
+	void is_first_line_valid();
 	void parse_first_line();
 	void parse_rest();
 };

@@ -10,6 +10,7 @@ namespace WSN {
 class Client {
   protected:
 	RequestParser *request_parser;
+	string		   status;
 	int			   client_socket;
 	char		   buffer[MAXLINE + 1];
 
@@ -20,6 +21,8 @@ class Client {
 	// Getters
 	const map<string, string> &get_request() const;
 	const string			  &get_request(string key);
+
+	const string &get_status() const;
 
 	// Constructors and copy constructor and copy assignment operator and destructor
 	Client();

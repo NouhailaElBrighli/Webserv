@@ -14,21 +14,21 @@ class Accurate {
 	class OK200 : public std::exception {
 	  public:
 		virtual const char *what() const throw() {
-			return "OK";
+			return "200OK";
 		}
 	};
 
 	class Created201 : public std::exception {
 	  public:
 		virtual const char *what() const throw() {
-			return "Created";
+			return "201Created";
 		}
 	};
 
 	class Accepted202 : public std::exception {
 	  public:
 		virtual const char *what() const throw() {
-			return "Accepted";
+			return "202Accepted";
 		}
 	};
 };
