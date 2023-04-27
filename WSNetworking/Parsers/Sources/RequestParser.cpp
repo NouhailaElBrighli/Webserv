@@ -18,6 +18,10 @@
 // Accept-Language: en,fr;q=0.9,ar;q=0.8
 
 // Getters
+const string &WSN::RequestParser::get_data() const {
+	return this->data;
+}
+
 const map<string, string> &WSN::RequestParser::get_request() const {
 	return this->request;
 }
@@ -26,19 +30,24 @@ const string &WSN::RequestParser::get_request(string key) {
 	return this->request[key];
 }
 
-// Constructors and copy constructor and copy assignment operator and destructor
-WSN::RequestParser::RequestParser() : Parser() {
+// Setters
+void WSN::RequestParser::set_data(string &data) {
+	this->data = data;
 }
 
-WSN::RequestParser::RequestParser(string &data) : Parser(data) {
+// Constructors and copy constructor and copy assignment operator and destructor
+WSN::RequestParser::RequestParser() {
+}
+
+WSN::RequestParser::RequestParser(string &data) : data(data) {
 	this->parse();
 }
 
-WSN::RequestParser::RequestParser(const RequestParser &requestParser) : Parser(requestParser), request(requestParser.request) {
+WSN::RequestParser::RequestParser(const RequestParser &requestParser) : data(requestParser.data), request(requestParser.request) {
 }
 
 WSN::RequestParser &WSN::RequestParser::operator=(const RequestParser &requestParser) {
-	Parser::operator=(requestParser);
+	this->data	  = requestParser.data;
 	this->request = requestParser.request;
 	return *this;
 }
@@ -58,42 +67,34 @@ void WSN::RequestParser::parse() {
 	this->is_data_valid();
 	this->parse_first_line();
 	this->is_first_line_valid();
-	this->parse_rest();
+	this->parse_rest_lines();
 }
 
 void WSN::RequestParser::is_data_valid() {
 	cout << endl
 		 << C_GREEN << "data.length() : " << data.length() << C_RES << endl
 		 << endl;
-	if (data.empty()) {
-		print_error("Bad Request");
+	if (data.empty())
 		throw WSN::Error::BadRequest400();
-	}
-	if (data.length() > MAXLINE) {
-		print_error("Request Entity Too Large");
+
+	if (data.length() > MAXLINE)
 		throw WSN::Error::RequestEntityTooLarge413();
-	}
 }
 
 void WSN::RequestParser::is_first_line_valid() {
 	string allowed_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;=%";
 
-	if (this->request.size() != 3) {
-		print_error("Not Implemented");
+	if (this->request.size() != 3)
 		throw WSN::Error::NotImplemented501();
-	}
-	if (this->request["Request-Type"] != "GET" && this->request["Request-Type"] != "POST" && this->request["Request-Type"] != "DELETE") {
-		print_error("Bad Request");
+
+	if (this->request["Request-Type"] != "GET" && this->request["Request-Type"] != "POST" && this->request["Request-Type"] != "DELETE")
 		throw WSN::Error::BadRequest400();
-	}
-	if (this->request["Request-URI"].find_first_not_of(allowed_chars) != string::npos) {
-		print_error("Bad Request");
+
+	if (this->request["Request-URI"].find_first_not_of(allowed_chars) != string::npos)
 		throw WSN::Error::BadRequest400();
-	}
-	if (this->request["Request-URI"].length() > 2048) {
-		print_error("Request URI Too Long");
+
+	if (this->request["Request-URI"].length() > 2048)
 		throw WSN::Error::RequestURITooLong414();
-	}
 }
 
 void WSN::RequestParser::parse_first_line() {
@@ -105,9 +106,9 @@ void WSN::RequestParser::parse_first_line() {
 	if ((pos = this->data.find("\r")) != string::npos) {
 		line = this->data.substr(0, pos + 2);
 		this->data.erase(0, pos + 2);
-		if (line.empty()) {
-			throw WSN::Parser::InputError();
-		}
+		if (line.empty())
+			throw WSN::Error::BadRequest400();
+
 		if ((pos = line.find(" ")) != string::npos) {
 			key				   = "Request-Type";
 			value			   = line.substr(0, pos);
@@ -128,7 +129,7 @@ void WSN::RequestParser::parse_first_line() {
 	}
 }
 
-void WSN::RequestParser::parse_rest() {
+void WSN::RequestParser::parse_rest_lines() {
 	string line;
 	string key;
 	string value;

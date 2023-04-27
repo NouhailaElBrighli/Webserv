@@ -18,14 +18,6 @@ class Error {
 		}
 	};
 
-	// 3xx
-	class MovedPermanently301 : public std::exception {
-	  public:
-		virtual const char *what() const throw() {
-			return "301Moved permanently";
-		}
-	};
-
 	// 4xx
 	class BadRequest400 : public std::exception {
 	  public:

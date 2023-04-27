@@ -1,26 +1,38 @@
 #include "MainServer.hpp"
 
 // Getters
+WSN::ListeningSocket WSN::MainServer::get_listen_socket(int index) const {
+	return listen_socket[index];
+}
+
+vector<WSN::ListeningSocket> WSN::MainServer::get_listen_socket() const {
+	return listen_socket;
+}
+
 string WSN::MainServer::get_request(int client_socket, string key) {
 	return this->clients[client_socket]->get_request(key);
 }
 
 // Constructors and copy constructor and copy assignment operator and destructor
-WSN::MainServer::MainServer(int domain, int service, int protocol, vector<int> port, u_long interface, int backlog) : Server(domain, service, protocol, port, interface, backlog) {
+WSN::MainServer::MainServer(int domain, int service, int protocol, vector<int> port, u_long interface, int backlog) {
+	// Create a listening socket for each port
+	for (size_t i = 0; i < port.size(); i++)
+		listen_socket.push_back(ListeningSocket(domain, service, protocol, port[i], interface, backlog));
+
 	this->address = get_listen_socket(0).get_address();
 
 	// fill the socket vector with the socket of each listening socket
 	for (size_t i = 0; i < get_listen_socket().size(); i++)
 		this->socket.push_back(get_listen_socket(i).get_socket());
 
-	launch();
+	this->launch();
 }
 
-WSN::MainServer::MainServer(const MainServer &main_server) : Server(main_server), address(main_server.address), socket(main_server.socket) {
+WSN::MainServer::MainServer(const MainServer &main_server) : listen_socket(main_server.listen_socket), address(main_server.address), socket(main_server.socket) {
 }
 
 WSN::MainServer &WSN::MainServer::operator=(const MainServer &main_server) {
-	Server::operator=(main_server);
+	listen_socket = main_server.listen_socket;
 	this->address = main_server.address;
 	this->socket  = main_server.socket;
 	return *this;

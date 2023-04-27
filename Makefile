@@ -30,17 +30,14 @@ SRCS	= \
 
 # CLIENTS
 SRCS	+= \
-	$(MAIN_DIR)/Clients/Sources/Client.cpp				\
 	$(MAIN_DIR)/Clients/Sources/MainClient.cpp			\
 
 # PARSERS
 SRCS	+= \
-	$(MAIN_DIR)/Parsers/Sources/Parser.cpp				\
 	$(MAIN_DIR)/Parsers/Sources/RequestParser.cpp		\
 
 # SERVERS
 SRCS	+= \
-	$(MAIN_DIR)/Servers/Sources/Server.cpp				\
 	$(MAIN_DIR)/Servers/Sources/MainServer.cpp			\
 
 # SOCKETS
@@ -92,10 +89,10 @@ OBJ_FILES	= $(addprefix $(OBJ_DIR)/, $(SRCS:.cpp=.o))
 BOOLEAN = 0
 
 $(OBJ_DIR)/%.o : %.cpp
-	 if [ $(BOOLEAN) -eq 0 ]; then \
-	 	$(M_COMP_S); \
-	 	$(eval BOOLEAN = 1) \
-	 fi
+	if [ $(BOOLEAN) -eq 0 ]; then \
+		$(M_COMP_S); \
+		$(eval BOOLEAN = 1) \
+	fi
 	mkdir -p $(dir $@)
 	mkdir -p $(dir $(DEP_DIR)/$*.d)
 	$(COMPILE) -c $< -o $@
