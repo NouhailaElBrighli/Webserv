@@ -19,11 +19,6 @@ class MainServer {
 	int						accept_socket, max_socket;
 	fd_set					current_sockets, ready_sockets;
 
-	// Getters
-	ListeningSocket			get_listen_socket(int index) const;
-	vector<ListeningSocket> get_listen_socket() const;
-	string					get_request(int client_socket, string key);
-
 	void accepter(int accept_socket);
 	void handle(int client_socket);
 	void responder(int client_socket);
@@ -33,7 +28,12 @@ class MainServer {
 	void destroy_client(int i);
 
   public:
-	// Constructors and copy constructor and  copy assignment operator and destructor
+	// Getters
+	ListeningSocket			get_listen_socket(int index) const;
+	vector<ListeningSocket> get_listen_socket() const;
+	string					get_request(int client_socket, string key);
+
+	// Constructors and copy constructor and copy assignment operator and destructor
 	MainServer(int domain, int service, int protocol, vector<int> port, u_long interface, int backlog);
 	MainServer(const MainServer &main_server);
 	MainServer &operator=(const MainServer &main_server);
