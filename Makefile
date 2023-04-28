@@ -1,8 +1,8 @@
 .SILENT :
 
-#***************************************#
-#				FILES					#
-#***************************************#
+# *************************************************************************** #
+#                                    FILES                                    #
+# *************************************************************************** #
 
 NOM			= webserv
 NAME		= $(EXE_DIR)/$(NOM)
@@ -10,46 +10,56 @@ NAME_UP		= $(shell echo $(NOM) | tr '[:lower:]' '[:upper:]')
 
 MAIN_DIR	= WSNetworking
 
-INCLUDE		= \
-	-I $(MAIN_DIR)						\
-	-I $(MAIN_DIR)/Clients/Headers		\
-	-I $(MAIN_DIR)/Clients/Include		\
-	-I $(MAIN_DIR)/Exceptions/Headers	\
-	-I $(MAIN_DIR)/Exceptions/Include	\
-	-I $(MAIN_DIR)/Includes				\
-	-I $(MAIN_DIR)/Parsers/Headers		\
-	-I $(MAIN_DIR)/Parsers/Include		\
-	-I $(MAIN_DIR)/Servers/Headers		\
-	-I $(MAIN_DIR)/Servers/Include		\
-	-I $(MAIN_DIR)/Sockets/Headers		\
-	-I $(MAIN_DIR)/Sockets/Include		\
+# *************WSNETWORKING************* #
 
-# MAIN
-SRCS	= \
-	main.cpp											\
+INCLUDE		= -I $(MAIN_DIR)/Includes
+SRCS		= $(MAIN_DIR)/Sources/main.cpp
 
-# CLIENTS
-SRCS	+= \
-	$(MAIN_DIR)/Clients/Sources/MainClient.cpp			\
+# ***************CLIENTS**************** #
 
-# PARSERS
-SRCS	+= \
-	$(MAIN_DIR)/Parsers/Sources/RequestParser.cpp		\
+INCLUDE		+= \
+	-I $(MAIN_DIR)/Clients/Headers						\
+	-I $(MAIN_DIR)/Clients/Include
+SRCS		+= \
+	$(MAIN_DIR)/Clients/Sources/MainClient.cpp
 
-# SERVERS
-SRCS	+= \
-	$(MAIN_DIR)/Servers/Sources/MainServer.cpp			\
+# **************EXCEPTIONS************** #
 
-# SOCKETS
-SRCS	+= \
+INCLUDE		+= \
+	-I $(MAIN_DIR)/Exceptions/Headers					\
+	-I $(MAIN_DIR)/Exceptions/Include
+
+# ***************PARSERS**************** #
+
+INCLUDE		+= \
+	-I $(MAIN_DIR)/Parsers/Headers						\
+	-I $(MAIN_DIR)/Parsers/Include
+SRCS		+= \
+	$(MAIN_DIR)/Parsers/Sources/RequestParser.cpp
+
+# ***************SERVERS**************** #
+
+INCLUDE		+= \
+	-I $(MAIN_DIR)/Servers/Headers						\
+	-I $(MAIN_DIR)/Servers/Include
+SRCS		+= \
+	$(MAIN_DIR)/Servers/Sources/MainServer.cpp
+
+# ***************SOCKETS**************** #
+
+INCLUDE		+= \
+	-I $(MAIN_DIR)/Sockets/Headers						\
+	-I $(MAIN_DIR)/Sockets/Include
+
+SRCS		+= \
 	$(MAIN_DIR)/Sockets/Sources/BindingSocket.cpp		\
 	$(MAIN_DIR)/Sockets/Sources/ConnectingSocket.cpp	\
 	$(MAIN_DIR)/Sockets/Sources/ListeningSocket.cpp		\
-	$(MAIN_DIR)/Sockets/Sources/Socket.cpp				\
+	$(MAIN_DIR)/Sockets/Sources/Socket.cpp
 
-#***************************************#
-#				FOLDERS					#
-#***************************************#
+# *************************************************************************** # 
+#                                   FOLDERS                                   #
+# *************************************************************************** #
 
 DEP_DIR = dependencies
 EXE_DIR	= executable
@@ -57,9 +67,9 @@ OBJ_DIR	= objects
 DIRS	= $(DEP_DIR) $(EXE_DIR) $(OBJ_DIR)
 MKDIR	= mkdir -p $(DIRS)
 
-#***************************************#
-#				CPP						#
-#***************************************#
+# *************************************************************************** #
+#                                     CPP                                     #
+# *************************************************************************** #
 
 CPP			= c++
 CPPFLAGS	= -Wall -Wextra -Werror
@@ -68,23 +78,23 @@ CPPFLAGS	+= -g3 -fsanitize=address
 
 COMPILE		= $(CPP) $(CPPFLAGS) $(DEPFLAGS) $(INCLUDE)
 
-#***************************************#
-#				DEP						#
-#***************************************#
+# *************************************************************************** #
+#                                     DEP                                     #
+# *************************************************************************** #
 
 DEP_FILES	= $(addprefix $(DEP_DIR)/, $(SRCS:.cpp=.d))
 
 DEPFLAGS	= -MT $@ -MMD -MP -MF $(DEP_DIR)/$*.d
 
-#***************************************#
-#				OBJ						#
-#***************************************#
+# *************************************************************************** #
+#                                     OBJ                                     #
+# *************************************************************************** #
 
 OBJ_FILES	= $(addprefix $(OBJ_DIR)/, $(SRCS:.cpp=.o))
 
-#***************************************#
-#				COMPILE					#
-#***************************************#
+# *************************************************************************** # 
+#                                   COMPILE                                   #
+# *************************************************************************** #
 
 BOOLEAN = 0
 
@@ -97,9 +107,9 @@ $(OBJ_DIR)/%.o : %.cpp
 	mkdir -p $(dir $(DEP_DIR)/$*.d)
 	$(COMPILE) -c $< -o $@
 
-#***************************************#
-#				MAKING					#
-#***************************************#
+# **************************************************************************** # 
+#                                    MAKING                                    #
+# **************************************************************************** #
 
 all : $(DIRS) $(NAME)
 
@@ -149,9 +159,9 @@ run : all
 
 .PHONY : all clean fclean re run
 
-#***************************************#
-#				COLORS					#
-#***************************************#
+# **************************************************************************** # 
+#                                    COLORS                                    #
+# **************************************************************************** #
 
 C_RESET		= \033[0m
 
@@ -171,10 +181,9 @@ L_PURPLE	= \033[1;95m
 L_CYAN		= \033[1;96m
 B_WHITE		= \033[1;97m
 
-
-#***************************************#
-#				MESSAGES				#
-#***************************************#
+# **************************************************************************** # 
+#                                   MESSAGES                                   #
+# **************************************************************************** #
 
 M_COMP_S	= printf "$(C_YELLOW)➔  COMPILING $(NAME_UP) ... ⚙️ $(C_RESET)"
 M_COMP_E	= printf "$(C_GREEN)... ${NAME_UP} COMPILED ✔$(C_RESET)\n"

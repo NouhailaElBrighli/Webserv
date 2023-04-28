@@ -53,12 +53,14 @@ void WSN::MainClient::handle(int client_socket) {
 	cout << data << endl;
 
 	this->request_parser->run(data);
+	// delete this->request_parser;
+	// this->request_parser = new RequestParser(data);
 
 	print_line("Request Parser");
 	cout << *this->request_parser << endl;
 
 	get_matched_location_for_request_uri();
-	// is_method_allowded_in_location();//! TODO: Unable when parsing of ConfigFile is ready
+	// is_method_allowded_in_location(); //! TODO: Unable when parsing of ConfigFile is ready
 
 	// if (this->get_request("Request-Type") == "GET") {
 	// 	this->parse_get();
