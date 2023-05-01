@@ -11,7 +11,8 @@ class MainClient {
 
   private:
 	RequestParser *request_parser;
-	string		   status;
+	bool		   status;
+	string		   msg_status;
 	int			   client_socket;
 	char		   buffer[MAXLINE + 1];
 
@@ -23,7 +24,8 @@ class MainClient {
 	const map<string, string> &get_request() const;
 	const string			  &get_request(string key);
 
-	const string &get_status() const;
+	const bool	 &get_status() const;
+	const string &get_msg_status() const;
 
 	// Constructors and copy constructor and copy assignment operator and destructor
 	MainClient();

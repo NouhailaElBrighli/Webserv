@@ -9,9 +9,10 @@ namespace WSN {
 class RequestParser {
 
   private:
+	string data;
 	// the first line splited to three parts : the `Request-Type`, the `Request-URI`, and the `Protocol-Version`
-	string				data;
 	map<string, string> request;
+	// parse body data : could be a json or a form data or a binary data
 
   public:
 	// Getters
@@ -30,11 +31,12 @@ class RequestParser {
 	~RequestParser();
 
 	// Methods
-	void run(string &data);
+	void run_head(string &data);
+	void run_body(string &data);
 
   private:
 	// Methods
-	void parse();
+	void parse_head();
 	void is_data_valid();
 	void is_first_line_valid();
 	void parse_first_line();

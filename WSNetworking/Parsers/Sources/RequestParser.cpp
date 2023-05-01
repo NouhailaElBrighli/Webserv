@@ -1,21 +1,21 @@
 #include "RequestParser.hpp"
 
-// GET / HTTP/1.1
-// Host: 127.0.0.1:8080
-// Connection: keep-alive
-// Cache-Control: max-age=0
-// sec-ch-ua: "Google Chrome";v="111", "Not(A:Brand";v="8", "Chromium";v="111"
-// sec-ch-ua-mobile: ?0
-// sec-ch-ua-platform: "macOS"
-// DNT: 1
-// Upgrade-Insecure-Requests: 1
-// User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36
-// Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
-// Sec-Fetch-Site: cross-site
-// Sec-Fetch-Mode: navigate
-// Sec-Fetch-Dest: document
+// data :
+// GET /image.jpg HTTP/1.1
+// User-Agent: PostmanRuntime/7.31.3
+// Accept: */*
+// Postman-Token: a85095a1-a10f-4b75-9b83-fc61f18d692f
+// Host: localhost:18000
 // Accept-Encoding: gzip, deflate, br
-// Accept-Language: en,fr;q=0.9,ar;q=0.8
+// Connection: keep-alive
+// Content-Type: multipart/form-data; boundary=--------------------------224007463543657981304300
+// Content-Length: 1640
+
+// ----------------------------224007463543657981304300
+// Content-Disposition: form-data; name="file"; filename="image.jpg"
+// Content-Type: text/x-c
+// "binary data"
+// ----------------------------224007463543657981304300--
 
 // Getters
 const string &WSN::RequestParser::get_data() const {
@@ -40,7 +40,7 @@ WSN::RequestParser::RequestParser() {
 }
 
 WSN::RequestParser::RequestParser(string &data) : data(data) {
-	this->parse();
+	this->parse_head();
 }
 
 WSN::RequestParser::RequestParser(const RequestParser &requestParser) : data(requestParser.data), request(requestParser.request) {
@@ -56,14 +56,16 @@ WSN::RequestParser::~RequestParser() {
 }
 
 // Methods
-void WSN::RequestParser::run(string &data) {
+void WSN::RequestParser::run_head(string &data) {
 	this->request.clear();
 	this->data.clear();
 	this->set_data(data);
-	this->parse();
+	this->parse_head();
 }
 
-void WSN::RequestParser::parse() {
+void WSN::RequestParser::run_body(string &data) {}
+
+void WSN::RequestParser::parse_head() {
 	this->is_data_valid();
 	this->parse_first_line();
 	this->is_first_line_valid();

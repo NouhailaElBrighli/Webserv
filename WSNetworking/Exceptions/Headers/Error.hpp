@@ -10,15 +10,7 @@ class Error {
   public:
 	// Nested classes
 
-	// 2xx
-	class NoContent204 : public std::exception {
-	  public:
-		virtual const char *what() const throw() {
-			return "204No content";
-		}
-	};
-
-	// 4xx
+	// 4xx Client errors
 	class BadRequest400 : public std::exception {
 	  public:
 		virtual const char *what() const throw() {
@@ -54,10 +46,31 @@ class Error {
 		}
 	};
 
+	class NotAcceptable406 : public std::exception {
+	  public:
+		virtual const char *what() const throw() {
+			return "406Not acceptable";
+		}
+	};
+
 	class Conflict409 : public std::exception {
 	  public:
 		virtual const char *what() const throw() {
 			return "409Conflict";
+		}
+	};
+
+	class Gone410 : public std::exception {
+	  public:
+		virtual const char *what() const throw() {
+			return "410Gone";
+		}
+	};
+
+	class PreconditionFailed412 : public std::exception {
+	  public:
+		virtual const char *what() const throw() {
+			return "412Precondition failed";
 		}
 	};
 
@@ -75,7 +88,14 @@ class Error {
 		}
 	};
 
-	// 5xx
+	class UnsupportedMediaType415 : public std::exception {
+	  public:
+		virtual const char *what() const throw() {
+			return "415Unsupported media type";
+		}
+	};
+
+	// 5xx Server errors
 	class InternalServerError500 : public std::exception {
 	  public:
 		virtual const char *what() const throw() {
@@ -87,6 +107,13 @@ class Error {
 	  public:
 		virtual const char *what() const throw() {
 			return "501Not implemented";
+		}
+	};
+
+	class ServiceUnavailable503 : public std::exception {
+	  public:
+		virtual const char *what() const throw() {
+			return "503Service unavailable";
 		}
 	};
 };

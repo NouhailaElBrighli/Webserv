@@ -10,7 +10,7 @@ class Accurate {
   public:
 	// Nested classes
 
-	// 2xx
+	// 2xx Success
 	class OK200 : public std::exception {
 	  public:
 		virtual const char *what() const throw() {
@@ -32,11 +32,46 @@ class Accurate {
 		}
 	};
 
-	// 3xx
+	class NoContent204 : public std::exception {
+	  public:
+		virtual const char *what() const throw() {
+			return "204No content";
+		}
+	};
+
+	// 3xx Redirection
+	class MultipleChoices300 : public std::exception {
+	  public:
+		virtual const char *what() const throw() {
+			return "300Multiple choices";
+		}
+	};
+
 	class MovedPermanently301 : public std::exception {
 	  public:
 		virtual const char *what() const throw() {
 			return "301Moved permanently";
+		}
+	};
+
+	class Found302 : public std::exception {
+	  public:
+		virtual const char *what() const throw() {
+			return "302Found";
+		}
+	};
+
+	class SeeOther303 : public std::exception {
+	  public:
+		virtual const char *what() const throw() {
+			return "303See other";
+		}
+	};
+
+	class NotModified304 : public std::exception {
+	  public:
+		virtual const char *what() const throw() {
+			return "304Not modified";
 		}
 	};
 };

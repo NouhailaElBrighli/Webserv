@@ -31,7 +31,6 @@
 
 // print the line with the step where we are
 #define print_line(str) cout << C_CYAN << "--------------------------------" << str << C_RES << endl;
-
 #define print_error(str) cerr << C_RED << "--------------------------------" << str << C_RES << endl;
 
 typedef struct sockaddr_in t_sockaddr_in;
