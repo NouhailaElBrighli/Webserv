@@ -1,6 +1,6 @@
 #include "RequestParser.hpp"
 
-// data :
+// head :
 // GET /image.jpg HTTP/1.1
 // User-Agent: PostmanRuntime/7.31.3
 // Accept: */*
@@ -18,8 +18,12 @@
 // ----------------------------224007463543657981304300--
 
 // Getters
-const string &WSN::RequestParser::get_data() const {
-	return this->data;
+const string &WSN::RequestParser::get_head() const {
+	return this->head;
+}
+
+const string &WSN::RequestParser::get_body() const {
+	return this->body;
 }
 
 const map<string, string> &WSN::RequestParser::get_request() const {
@@ -31,23 +35,23 @@ const string &WSN::RequestParser::get_request(string key) {
 }
 
 // Setters
-void WSN::RequestParser::set_data(string &data) {
-	this->data = data;
+void WSN::RequestParser::set_head(string &head) {
+	this->head = head;
+}
+
+void WSN::RequestParser::set_body(string &body) {
+	this->body = body;
 }
 
 // Constructors and copy constructor and copy assignment operator and destructor
 WSN::RequestParser::RequestParser() {
 }
 
-WSN::RequestParser::RequestParser(string &data) : data(data) {
-	this->parse_head();
-}
-
-WSN::RequestParser::RequestParser(const RequestParser &requestParser) : data(requestParser.data), request(requestParser.request) {
+WSN::RequestParser::RequestParser(const RequestParser &requestParser) : head(requestParser.head), request(requestParser.request) {
 }
 
 WSN::RequestParser &WSN::RequestParser::operator=(const RequestParser &requestParser) {
-	this->data	  = requestParser.data;
+	this->head	  = requestParser.head;
 	this->request = requestParser.request;
 	return *this;
 }
@@ -56,30 +60,30 @@ WSN::RequestParser::~RequestParser() {
 }
 
 // Methods
-void WSN::RequestParser::run_head(string &data) {
+void WSN::RequestParser::run_head(string &head) {
 	this->request.clear();
-	this->data.clear();
-	this->set_data(data);
+	this->head.clear();
+	this->set_head(head);
 	this->parse_head();
 }
 
-void WSN::RequestParser::run_body(string &data) {}
+void WSN::RequestParser::run_body(string &head) {}
 
 void WSN::RequestParser::parse_head() {
-	this->is_data_valid();
+	this->is_head_valid();
 	this->parse_first_line();
 	this->is_first_line_valid();
 	this->parse_rest_lines();
 }
 
-void WSN::RequestParser::is_data_valid() {
+void WSN::RequestParser::is_head_valid() {
 	cout << endl
-		 << C_GREEN << "data.length() : " << data.length() << C_RES << endl
+		 << C_GREEN << "head.length() : " << head.length() << C_RES << endl
 		 << endl;
-	if (data.empty())
+	if (head.empty())
 		throw WSN::Error::BadRequest400();
 
-	if (data.length() > MAXLINE)
+	if (head.length() > MAXLINE)
 		throw WSN::Error::RequestEntityTooLarge413();
 }
 
@@ -105,9 +109,9 @@ void WSN::RequestParser::parse_first_line() {
 	string value;
 	size_t pos;
 
-	if ((pos = this->data.find("\r")) != string::npos) {
-		line = this->data.substr(0, pos + 2);
-		this->data.erase(0, pos + 2);
+	if ((pos = this->head.find("\r")) != string::npos) {
+		line = this->head.substr(0, pos + 2);
+		this->head.erase(0, pos + 2);
 		if (line.empty())
 			throw WSN::Error::BadRequest400();
 
@@ -137,9 +141,9 @@ void WSN::RequestParser::parse_rest_lines() {
 	string value;
 	size_t pos;
 
-	while ((pos = this->data.find("\r")) != string::npos) {
-		line = this->data.substr(0, pos);
-		this->data.erase(0, pos + 2);
+	while ((pos = this->head.find("\r")) != string::npos) {
+		line = this->head.substr(0, pos);
+		this->head.erase(0, pos + 2);
 		if (line.empty()) {
 			break;
 		}
