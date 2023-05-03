@@ -1,7 +1,8 @@
 #ifndef MAINCLIENT_HPP
 #define MAINCLIENT_HPP
 
-#include "Exceptions.hpp"
+#include "Accurate.hpp"
+#include "Error.hpp"
 #include "Include.hpp"
 #include "RequestParser.hpp"
 

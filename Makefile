@@ -12,50 +12,31 @@ MAIN_DIR	= WSNetworking
 
 # *************WSNETWORKING************* #
 
-INCLUDE		= -I $(MAIN_DIR)/Includes
+INCLUDE		= -I $(MAIN_DIR)/Includes -I $(MAIN_DIR)/Headers
 SRCS		= $(MAIN_DIR)/Sources/main.cpp
 
 # ***************CLIENTS**************** #
 
-INCLUDE		+= \
-	-I $(MAIN_DIR)/Clients/Headers						\
-	-I $(MAIN_DIR)/Clients/Include
 SRCS		+= \
-	$(MAIN_DIR)/Clients/Sources/MainClient.cpp
-
-# **************EXCEPTIONS************** #
-
-INCLUDE		+= \
-	-I $(MAIN_DIR)/Exceptions/Headers					\
-	-I $(MAIN_DIR)/Exceptions/Include
+	$(MAIN_DIR)/Sources/MainClient.cpp
 
 # ***************PARSERS**************** #
 
-INCLUDE		+= \
-	-I $(MAIN_DIR)/Parsers/Headers						\
-	-I $(MAIN_DIR)/Parsers/Include
 SRCS		+= \
-	$(MAIN_DIR)/Parsers/Sources/RequestParser.cpp
+	$(MAIN_DIR)/Sources/RequestParser.cpp
 
 # ***************SERVERS**************** #
 
-INCLUDE		+= \
-	-I $(MAIN_DIR)/Servers/Headers						\
-	-I $(MAIN_DIR)/Servers/Include
 SRCS		+= \
-	$(MAIN_DIR)/Servers/Sources/MainServer.cpp
+	$(MAIN_DIR)/Sources/MainServer.cpp
 
 # ***************SOCKETS**************** #
 
-INCLUDE		+= \
-	-I $(MAIN_DIR)/Sockets/Headers						\
-	-I $(MAIN_DIR)/Sockets/Include
-
 SRCS		+= \
-	$(MAIN_DIR)/Sockets/Sources/BindingSocket.cpp		\
-	$(MAIN_DIR)/Sockets/Sources/ConnectingSocket.cpp	\
-	$(MAIN_DIR)/Sockets/Sources/ListeningSocket.cpp		\
-	$(MAIN_DIR)/Sockets/Sources/Socket.cpp
+	$(MAIN_DIR)/Sources/BindingSocket.cpp		\
+	$(MAIN_DIR)/Sources/ConnectingSocket.cpp	\
+	$(MAIN_DIR)/Sources/ListeningSocket.cpp		\
+	$(MAIN_DIR)/Sources/Socket.cpp
 
 # *************************************************************************** # 
 #                                   FOLDERS                                   #

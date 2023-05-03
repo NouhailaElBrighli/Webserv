@@ -1,7 +1,8 @@
 #ifndef REQUESTPARSER_HPP
 #define REQUESTPARSER_HPP
 
-#include "Exceptions.hpp"
+#include "Accurate.hpp"
+#include "Error.hpp"
 #include "Include.hpp"
 
 namespace WSN {
