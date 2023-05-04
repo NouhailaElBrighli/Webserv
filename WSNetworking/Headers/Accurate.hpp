@@ -1,7 +1,7 @@
 #ifndef ACCURATE_HPP
 #define ACCURATE_HPP
 
-#include "Include.hpp"
+#include "WSNetworking.hpp"
 
 namespace WSN {
 

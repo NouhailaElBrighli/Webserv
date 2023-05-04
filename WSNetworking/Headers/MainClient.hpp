@@ -1,10 +1,7 @@
 #ifndef MAINCLIENT_HPP
 #define MAINCLIENT_HPP
 
-#include "Accurate.hpp"
-#include "Error.hpp"
-#include "Include.hpp"
-#include "RequestParser.hpp"
+#include "WSNetworking.hpp"
 
 namespace WSN {
 

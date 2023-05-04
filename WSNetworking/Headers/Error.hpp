@@ -1,7 +1,7 @@
 #ifndef ERROR_HPP
 #define ERROR_HPP
 
-#include "Include.hpp"
+#include "WSNetworking.hpp"
 
 namespace WSN {
 

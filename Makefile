@@ -12,7 +12,9 @@ MAIN_DIR	= WSNetworking
 
 # *************WSNETWORKING************* #
 
-INCLUDE		= -I $(MAIN_DIR)/Includes -I $(MAIN_DIR)/Headers
+INCLUDE		= \
+	-I $(MAIN_DIR)/Headers						\
+	-I $(MAIN_DIR)/Includes
 SRCS		= $(MAIN_DIR)/Sources/main.cpp
 
 # ***************CLIENTS**************** #
@@ -33,10 +35,9 @@ SRCS		+= \
 # ***************SOCKETS**************** #
 
 SRCS		+= \
+	$(MAIN_DIR)/Sources/Socket.cpp				\
 	$(MAIN_DIR)/Sources/BindingSocket.cpp		\
-	$(MAIN_DIR)/Sources/ConnectingSocket.cpp	\
-	$(MAIN_DIR)/Sources/ListeningSocket.cpp		\
-	$(MAIN_DIR)/Sources/Socket.cpp
+	$(MAIN_DIR)/Sources/ListeningSocket.cpp
 
 # *************************************************************************** # 
 #                                   FOLDERS                                   #

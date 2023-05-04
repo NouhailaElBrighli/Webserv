@@ -1,16 +1,7 @@
 #ifndef MAINSERVER_HPP
 #define MAINSERVER_HPP
 
-#include "Accurate.hpp"
-#include "BindingSocket.hpp"
-#include "ConfigFileParser.hpp"
-#include "ConnectingSocket.hpp"
-#include "Error.hpp"
-#include "Include.hpp"
-#include "ListeningSocket.hpp"
-#include "MainClient.hpp"
-#include "RequestParser.hpp"
-#include "Socket.hpp"
+#include "WSNetworking.hpp"
 
 namespace WSN {
 

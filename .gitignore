@@ -5,6 +5,6 @@
 **/*.o
 **/*.d
 **/*.out
-**/dependecies
+**/dependencies
 **/executable
 **/objects
