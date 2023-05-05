@@ -3,13 +3,12 @@
 
 #include "WSNetworking.hpp"
 
-namespace WSN {
 
 class MainClient {
 
   private:
 	RequestParser *request_parser;
-	bool		   status;
+	int			   status;
 	string		   msg_status;
 	int			   client_socket;
 	char		   buffer[MAXLINE + 1];
@@ -22,7 +21,7 @@ class MainClient {
 	const map<string, string> &get_request() const;
 	const string			  &get_request(string key);
 
-	const bool	 &get_status() const;
+	const int	 &get_status() const;
 	const string &get_msg_status() const;
 
 	// Constructors and copy constructor and copy assignment operator and destructor
@@ -37,6 +36,5 @@ class MainClient {
 	void is_method_allowded_in_location();
 };
 
-} // namespace WSN
 
 #endif // MAINCLIENT_HPP

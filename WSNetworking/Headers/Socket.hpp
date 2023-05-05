@@ -3,7 +3,6 @@
 
 #include "Include.hpp"
 
-namespace WSN {
 
 class Socket {
 
@@ -26,6 +25,5 @@ class Socket {
 
 	void test_connection(int item_to_test, const string &name);
 };
-} // namespace WSN
 
 #endif // SOCKET_HPP

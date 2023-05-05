@@ -3,7 +3,6 @@
 
 #include "WSNetworking.hpp"
 
-namespace WSN {
 
 class Error {
 
@@ -118,6 +117,5 @@ class Error {
 	};
 };
 
-} // namespace WSN
 
 #endif // ERROR_HPP

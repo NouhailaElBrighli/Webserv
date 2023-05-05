@@ -18,92 +18,92 @@
 // ----------------------------224007463543657981304300--
 
 // Getters
-const string &WSN::RequestParser::get_head() const {
+const string &RequestParser::get_head() const {
 	return this->head;
 }
 
-const string &WSN::RequestParser::get_body() const {
+const string &RequestParser::get_body() const {
 	return this->body;
 }
 
-const map<string, string> &WSN::RequestParser::get_request() const {
+const map<string, string> &RequestParser::get_request() const {
 	return this->request;
 }
 
-const string &WSN::RequestParser::get_request(string key) {
+const string &RequestParser::get_request(string key) {
 	return this->request[key];
 }
 
 // Setters
-void WSN::RequestParser::set_head(string &head) {
+void RequestParser::set_head(string &head) {
 	this->head = head;
 }
 
-void WSN::RequestParser::set_body(string &body) {
+void RequestParser::set_body(string &body) {
 	this->body = body;
 }
 
 // Constructors and copy constructor and copy assignment operator and destructor
-WSN::RequestParser::RequestParser() {
+RequestParser::RequestParser() {
 }
 
-WSN::RequestParser::RequestParser(const RequestParser &requestParser) : head(requestParser.head), request(requestParser.request) {
+RequestParser::RequestParser(const RequestParser &requestParser) : head(requestParser.head), request(requestParser.request) {
 }
 
-WSN::RequestParser &WSN::RequestParser::operator=(const RequestParser &requestParser) {
+RequestParser &RequestParser::operator=(const RequestParser &requestParser) {
 	this->head	  = requestParser.head;
 	this->request = requestParser.request;
 	return *this;
 }
 
-WSN::RequestParser::~RequestParser() {
+RequestParser::~RequestParser() {
 }
 
 // Methods
-void WSN::RequestParser::run_head(string &head) {
+void RequestParser::run_head(string &head) {
 	this->request.clear();
 	this->head.clear();
 	this->set_head(head);
 	this->parse_head();
 }
 
-void WSN::RequestParser::run_body(string &head) {}
+void RequestParser::run_body(string &head) {}
 
-void WSN::RequestParser::parse_head() {
+void RequestParser::parse_head() {
 	this->is_head_valid();
 	this->parse_first_line();
 	this->is_first_line_valid();
 	this->parse_rest_lines();
 }
 
-void WSN::RequestParser::is_head_valid() {
+void RequestParser::is_head_valid() {
 	cout << endl
 		 << C_GREEN << "head.length() : " << head.length() << C_RES << endl
 		 << endl;
 	if (head.empty())
-		throw WSN::Error::BadRequest400();
+		throw Error::BadRequest400();
 
 	if (head.length() > MAXLINE)
-		throw WSN::Error::RequestEntityTooLarge413();
+		throw Error::RequestEntityTooLarge413();
 }
 
-void WSN::RequestParser::is_first_line_valid() {
+void RequestParser::is_first_line_valid() {
 	string allowed_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;=%";
 
 	if (this->request.size() != 3)
-		throw WSN::Error::NotImplemented501();
+		throw Error::NotImplemented501();
 
 	if (this->request["Request-Type"] != "GET" && this->request["Request-Type"] != "POST" && this->request["Request-Type"] != "DELETE")
-		throw WSN::Error::BadRequest400();
+		throw Error::BadRequest400();
 
 	if (this->request["Request-URI"].find_first_not_of(allowed_chars) != string::npos)
-		throw WSN::Error::BadRequest400();
+		throw Error::BadRequest400();
 
 	if (this->request["Request-URI"].length() > 2048)
-		throw WSN::Error::RequestURITooLong414();
+		throw Error::RequestURITooLong414();
 }
 
-void WSN::RequestParser::parse_first_line() {
+void RequestParser::parse_first_line() {
 	string line;
 	string key;
 	string value;
@@ -113,7 +113,7 @@ void WSN::RequestParser::parse_first_line() {
 		line = this->head.substr(0, pos + 2);
 		this->head.erase(0, pos + 2);
 		if (line.empty())
-			throw WSN::Error::BadRequest400();
+			throw Error::BadRequest400();
 
 		if ((pos = line.find(" ")) != string::npos) {
 			key				   = "Request-Type";
@@ -135,7 +135,7 @@ void WSN::RequestParser::parse_first_line() {
 	}
 }
 
-void WSN::RequestParser::parse_rest_lines() {
+void RequestParser::parse_rest_lines() {
 	string line;
 	string key;
 	string value;
@@ -156,7 +156,7 @@ void WSN::RequestParser::parse_rest_lines() {
 }
 
 // Operators <<
-std::ostream &WSN::operator<<(std::ostream &out, const WSN::RequestParser &requestParser) {
+std::ostream &operator<<(std::ostream &out, const RequestParser &requestParser) {
 	out << "RequestParser {" << endl;
 	out << "	request: {" << endl;
 	for (map<string, string>::const_iterator it = requestParser.get_request().begin(); it != requestParser.get_request().end(); it++) {

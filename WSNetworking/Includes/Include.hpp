@@ -15,10 +15,12 @@
 
 #include <algorithm>
 #include <exception>
+#include <fstream>
 #include <iostream>
 #include <iterator>
 #include <map>
 #include <string>
+#include <sstream>
 #include <vector>
 
 #define MAXLINE 4096

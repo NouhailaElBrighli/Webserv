@@ -3,7 +3,6 @@
 
 #include "BindingSocket.hpp"
 
-namespace WSN {
 
 class ListeningSocket : public BindingSocket {
 
@@ -27,6 +26,5 @@ class ListeningSocket : public BindingSocket {
 	// Virtual function from perent class
 	int start_listening();
 };
-} // namespace WSN
 
 #endif // LSTENINGSOCKET_HPP

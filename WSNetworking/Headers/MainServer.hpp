@@ -3,7 +3,6 @@
 
 #include "WSNetworking.hpp"
 
-namespace WSN {
 
 class MainServer {
 
@@ -36,6 +35,5 @@ class MainServer {
 	~MainServer();
 };
 
-} // namespace WSN
 
 #endif // MAINSERVER_HPP

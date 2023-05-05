@@ -3,7 +3,6 @@
 
 #include "WSNetworking.hpp"
 
-namespace WSN {
 
 class Accurate {
 
@@ -76,6 +75,5 @@ class Accurate {
 	};
 };
 
-} // namespace WSN
 
 #endif // ACCURATE_HPP

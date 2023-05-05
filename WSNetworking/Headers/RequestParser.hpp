@@ -3,7 +3,6 @@
 
 #include "WSNetworking.hpp"
 
-namespace WSN {
 
 class RequestParser {
 
@@ -47,6 +46,5 @@ class RequestParser {
 // Operator <<
 std::ostream &operator<<(std::ostream &out, const RequestParser &requestParser);
 
-} // namespace WSN
 
 #endif // REQUESTPARSER_HPP

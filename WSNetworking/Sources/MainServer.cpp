@@ -1,20 +1,20 @@
 #include "MainServer.hpp"
 
 // Getters
-WSN::ListeningSocket WSN::MainServer::get_listen_socket(int index) const {
+ListeningSocket MainServer::get_listen_socket(int index) const {
 	return listen_socket[index];
 }
 
-vector<WSN::ListeningSocket> WSN::MainServer::get_listen_socket() const {
+vector<ListeningSocket> MainServer::get_listen_socket() const {
 	return listen_socket;
 }
 
-string WSN::MainServer::get_request(int client_socket, string key) {
+string MainServer::get_request(int client_socket, string key) {
 	return this->clients[client_socket]->get_request(key);
 }
 
 // Constructors and copy constructor and copy assignment operator and destructor
-WSN::MainServer::MainServer(int domain, int service, int protocol, vector<int> port, u_long interface, int backlog) {
+MainServer::MainServer(int domain, int service, int protocol, vector<int> port, u_long interface, int backlog) {
 	// Create a listening socket for each port
 	for (size_t i = 0; i < port.size(); i++)
 		listen_socket.push_back(ListeningSocket(domain, service, protocol, port[i], interface, backlog));
@@ -28,20 +28,20 @@ WSN::MainServer::MainServer(int domain, int service, int protocol, vector<int> p
 	this->launch();
 }
 
-WSN::MainServer::MainServer(const MainServer &main_server) : listen_socket(main_server.listen_socket), address(main_server.address), socket(main_server.socket) {
+MainServer::MainServer(const MainServer &main_server) : listen_socket(main_server.listen_socket), address(main_server.address), socket(main_server.socket) {
 }
 
-WSN::MainServer &WSN::MainServer::operator=(const MainServer &main_server) {
+MainServer &MainServer::operator=(const MainServer &main_server) {
 	listen_socket = main_server.listen_socket;
 	this->address = main_server.address;
 	this->socket  = main_server.socket;
 	return *this;
 }
 
-WSN::MainServer::~MainServer() {
+MainServer::~MainServer() {
 }
 
-void WSN::MainServer::accepter(int accept_socket) {
+void MainServer::accepter(int accept_socket) {
 	print_line("accepter");
 
 	char	  client_address[MAXLINE + 1];
@@ -54,32 +54,32 @@ void WSN::MainServer::accepter(int accept_socket) {
 	cout << "Client connection : " << client_address << endl;
 }
 
-void WSN::MainServer::handle(int client_socket) {
+void MainServer::handle(int client_socket) {
 	print_line("handle");
 
-	WSN::MainClient *mainClient	 = new WSN::MainClient(client_socket);
+	MainClient *mainClient	 = new MainClient(client_socket);
 	this->clients[client_socket] = mainClient;
 }
 
-void WSN::MainServer::responder(int client_socket) {
+void MainServer::responder(int client_socket) {
 	print_line("responder");
 
-	if (this->clients[client_socket]->get_status() == true) {
-		string hello = "HTTP/1.1 200OK\r\n\r\n";
-		hello += "Hello From Server\nYou are Host : ";
-		hello += this->get_request(client_socket, "Host") + "\n";
-		// write(client_socket, hello, strlen(hello));
-		send(client_socket, hello.c_str(), hello.length(), 0);
+	if (this->clients[client_socket]->get_status() < 400) {
+		string accurate = "HTTP/1.1 ";
+		accurate += this->clients[client_socket]->get_msg_status();
+		accurate += "\r\n\r\n";
+		accurate += "Hello From Server\nYou are Host : ";
+		accurate += this->get_request(client_socket, "Host") + "\n";
+		send(client_socket, accurate.c_str(), accurate.length(), 0);
 	} else {
 		string error = "HTTP/1.1 ";
 		error += this->clients[client_socket]->get_msg_status();
 		error += "\r\n\r\n";
-		// write(client_socket, error, strlen(error));
 		send(client_socket, error.c_str(), error.length(), 0);
 	}
 }
 
-void WSN::MainServer::init() {
+void MainServer::init() {
 	FD_ZERO(&this->current_sockets);
 	for (size_t i = 0; i < this->socket.size(); i++)
 		FD_SET(this->socket[i], &this->current_sockets);
@@ -87,7 +87,7 @@ void WSN::MainServer::init() {
 	this->max_socket = *std::max_element(this->socket.begin(), this->socket.end());
 }
 
-void WSN::MainServer::destroy_client(int i) {
+void MainServer::destroy_client(int i) {
 	// if (this->clients[i].get_request("Connection") != "keep-alive")
 	FD_CLR(i, &this->current_sockets);
 	// Destroy the client
@@ -96,7 +96,7 @@ void WSN::MainServer::destroy_client(int i) {
 	close(i);
 }
 
-void WSN::MainServer::launch() {
+void MainServer::launch() {
 	init();
 	while (true) {
 		print_line("Waiting for connection...");

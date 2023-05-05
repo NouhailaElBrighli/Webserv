@@ -3,7 +3,6 @@
 
 #include "Socket.hpp"
 
-namespace WSN {
 
 class BindingSocket : public Socket {
 
@@ -26,6 +25,5 @@ class BindingSocket : public Socket {
 	// Virtual function from perent class
 	virtual int connect_to_network(int socket, t_sockaddr_in address);
 };
-} // namespace WSN
 
 #endif // BINDINGSOCKET_HPP

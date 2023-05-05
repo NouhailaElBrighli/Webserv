@@ -25,6 +25,8 @@ SRCS		+= \
 # ***************PARSERS**************** #
 
 SRCS		+= \
+	$(MAIN_DIR)/Sources/ConfigFileParser.cpp	\
+	$(MAIN_DIR)/Sources/ConfigServerParser.cpp	\
 	$(MAIN_DIR)/Sources/RequestParser.cpp
 
 # ***************SERVERS**************** #
@@ -136,7 +138,7 @@ re : fclean all
 
 run : all
 	$(M_RUN_S)
-	./$(NAME)
+	./$(NAME) default.conf
 	$(M_RUN_E)
 
 .PHONY : all clean fclean re run
