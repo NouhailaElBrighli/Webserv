@@ -8,23 +8,27 @@ class ConfigServerParser {
   private:
 	// Attributes
 	int				 port;
-	bool			 port_set;
-	vector<int>		 host;
-	bool			 host_set;
+	bool			 port_status;
+	vector<int>		 host_v;
+	string			 host_s;
+	bool			 host_status;
 	string			 server_name;
-	bool			 server_name_set;
+	bool			 server_name_status;
 	size_t			 client_max_body_size;
-	bool			 client_max_body_size_set;
+	bool			 client_max_body_size_status;
 	map<int, string> error_page;
+	bool			 error_page_status;
 	// vector<ConfigLocationParser *> config_location_parser;
+	bool config_location_parser_status;
 
   public:
 	// Getters
-	int				 get_port() const;
-	vector<int>		 get_host() const;
-	string			 get_server_name() const;
-	size_t			 get_client_max_body_size() const;
-	map<int, string> get_error_page() const;
+	const int			   &get_port() const;
+	const int			   &get_host(int i) const;
+	const string		   &get_host() const;
+	const string		   &get_server_name() const;
+	const size_t		   &get_client_max_body_size() const;
+	const map<int, string> &get_error_page() const;
 	// vector<ConfigLocationParser *> get_config_location_parser() const;
 
 	// Constructors and copy constructor and copy assignment operator and destructor
@@ -49,6 +53,9 @@ class ConfigServerParser {
 
 	// Methods
 	void parse_config_server(string config_server);
+	void check_status();
 };
+
+std::ostream &operator<<(std::ostream &o, ConfigServerParser const &rhs);
 
 #endif // CONFIGSERVERPARSER_HPP

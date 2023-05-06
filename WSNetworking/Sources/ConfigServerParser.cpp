@@ -1,23 +1,27 @@
 #include "ConfigServerParser.hpp"
 
 // Getters
-int ConfigServerParser::get_port() const {
+const int &ConfigServerParser::get_port() const {
 	return this->port;
 }
 
-vector<int> ConfigServerParser::get_host() const {
-	return this->host;
+const int &ConfigServerParser::get_host(int i) const {
+	return this->host_v[i];
 }
 
-string ConfigServerParser::get_server_name() const {
+const string &ConfigServerParser::get_host() const {
+	return this->host_s;
+}
+
+const string &ConfigServerParser::get_server_name() const {
 	return this->server_name;
 }
 
-size_t ConfigServerParser::get_client_max_body_size() const {
+const size_t &ConfigServerParser::get_client_max_body_size() const {
 	return this->client_max_body_size;
 }
 
-map<int, string> ConfigServerParser::get_error_page() const {
+const map<int, string> &ConfigServerParser::get_error_page() const {
 	return this->error_page;
 }
 
@@ -27,11 +31,13 @@ map<int, string> ConfigServerParser::get_error_page() const {
 
 // Constructors and copy constructor and copy assignment operator and destructor
 ConfigServerParser::ConfigServerParser(string config_server) {
-	this->port_set				   = false;
-	this->host_set				   = false;
-	this->server_name_set		   = false;
-	this->client_max_body_size_set = false;
-	// this->config_location_parser = vector<ConfigLocationParser *>();
+	this->port_status					= false;
+	this->host_status					= false;
+	this->server_name_status			= false;
+	this->client_max_body_size_status	= false;
+	this->error_page_status				= false;
+	this->config_location_parser_status = false;
+
 	this->parse_config_server(config_server);
 }
 
@@ -148,48 +154,58 @@ vector<int> ConfigServerParser::stringToHost(string host) {
 }
 // Setters
 void ConfigServerParser::set_port(string port) {
-	if (this->port_set == true || port.empty() == true) {
+	if (this->port_status == true || port.empty() == true) {
 		throw std::runtime_error(red_string("Port Error !!"));
 	}
-	cout << "port: " << port << endl;
-	this->port	   = this->stringToInt(port);
-	this->port_set = true;
+
+	this->port		  = this->stringToInt(port);
+	this->port_status = true;
 }
 
 // parse if host is in format "127.0.0.1"
 void ConfigServerParser::set_host(string host) {
-	if (this->host_set == true || host.empty() == true) {
+	if (this->host_status == true || host.empty() == true) {
 		throw std::runtime_error(red_string("Host Error !!"));
 	}
-	cout << "host: " << host << endl;
-	this->host	   = stringToHost(host);
-	this->host_set = true;
+
+	this->host_v	  = stringToHost(host);
+	this->host_s	  = host;
+	this->host_status = true;
 }
 
 void ConfigServerParser::set_server_name(string server_name) {
-	if (this->server_name_set == true || server_name.empty() == true) {
+	if (this->server_name_status == true || server_name.empty() == true) {
 		throw std::runtime_error(red_string("Server Name Error !!"));
 	}
-	cout << "server_name: " << server_name << endl;
-	// this->server_name	   = server_name;
-	// this->server_name_set = true;
+
+	this->server_name		 = server_name;
+	this->server_name_status = true;
 }
 
 void ConfigServerParser::set_client_max_body_size(string client_max_body_size) {
-	if (this->client_max_body_size_set == true || client_max_body_size.empty() == true) {
+	if (this->client_max_body_size_status == true || client_max_body_size.empty() == true) {
 		throw std::runtime_error(red_string("Client Max Body Size Error !!"));
 	}
-	cout << "client_max_body_size: " << client_max_body_size << endl;
-	// this->client_max_body_size	   = client_max_body_size;
-	// this->client_max_body_size_set = true;
+
+	this->client_max_body_size		  = stringToInt(client_max_body_size);
+	this->client_max_body_size_status = true;
 }
 
 void ConfigServerParser::set_error_page(string error_page) {
+	int	   status_code;
+	string error_page_path;
 	if (error_page.empty() == true) {
 		throw std::runtime_error(red_string("Error Page Error !!"));
 	}
-	cout << "error_page: " << error_page << endl;
-	// this->error_page.insert(std::pair<int, string>(error_page.substr(0, error_page.find(" ")), error_page.substr(error_page.find(" ") + 1, error_page.size())));
+
+	status_code		= stringToInt(error_page.substr(0, error_page.find(" ")));
+	error_page_path = error_page.substr(error_page.find(" ") + 1, error_page.size());
+	if (status_code < 400 || 599 < status_code || error_page_path.empty() == true) {
+		throw std::runtime_error(red_string("Error Page Error !!"));
+	}
+
+	this->error_page[status_code] = error_page_path;
+	this->error_page_status		  = true;
 }
 
 // void ConfigServerParser::set_config_location_parser(string config_location) {
@@ -225,4 +241,34 @@ void ConfigServerParser::parse_config_server(string config_server) {
 		// else if (line.find("location") != std::string::npos)
 		// 	this->config_location_parser.push_back(new ConfigLocationParser(line.substr(line.find(" ") + 1)));
 	}
+	this->check_status();
+}
+
+void ConfigServerParser::check_status() {
+	if (!this->port_status)
+		throw ConfigServerParser::red_string("Error: port is missing");
+	if (!this->host_status)
+		throw ConfigServerParser::red_string("Error: host is missing");
+	if (!this->server_name_status)
+		throw ConfigServerParser::red_string("Error: server_name is missing");
+	if (!this->client_max_body_size_status)
+		throw ConfigServerParser::red_string("Error: client_max_body_size is missing");
+	if (!this->error_page_status)
+		throw ConfigServerParser::red_string("Error: error_page is missing");
+	// if (!this->config_location_parser_status)
+	// 	throw ConfigServerParser::red_string("Error: config_location_parser is missing");
+}
+
+std::ostream &operator<<(std::ostream &out, const ConfigServerParser &config_server_parser) {
+	print_line("Parsed Server");
+
+	out << "port: " << config_server_parser.get_port() << endl;
+	out << "host: " << config_server_parser.get_host() << endl;
+	out << "server_name: " << config_server_parser.get_server_name() << endl;
+	out << "client_max_body_size: " << config_server_parser.get_client_max_body_size() << endl;
+	for (std::map<int, string>::const_iterator it = config_server_parser.get_error_page().begin(); it != config_server_parser.get_error_page().end(); ++it) {
+		out << "error_page: " << it->first << " " << it->second << endl;
+	}
+	// for (std::vector<ConfigLocationParser *>::const_iterator it = config_server_parser.get_config_location_parser().begin(); it != config_server_parser.get_config_location_parser().end(); ++it) {
+	return out;
 }
