@@ -7,6 +7,7 @@ class ConfigFileParser {
 
   private:
 	// Attributes
+	bool						 run_status;
 	std::ifstream				 config_file;
 	string						 config_file_path;
 	string						 config_file_content;
@@ -21,6 +22,10 @@ class ConfigFileParser {
 	// Constructors and copy constructor and copy assignment operator and destructor
 	ConfigFileParser(string config_file_path);
 	~ConfigFileParser();
+
+	// Methods
+	void run();
+	void print_config_file();
 
   private:
 	// Methods

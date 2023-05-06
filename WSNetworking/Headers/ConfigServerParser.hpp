@@ -7,6 +7,8 @@ class ConfigServerParser {
 
   private:
 	// Attributes
+	bool						   run_status;
+	string						   config_server;
 	int							   port;
 	bool						   port_status;
 	vector<int>					   host_v;
@@ -35,6 +37,9 @@ class ConfigServerParser {
 	ConfigServerParser(string config_server);
 	~ConfigServerParser();
 
+	// Methods
+	void parse_config_server();
+
   private:
 	// Tools
 	int			checkType(string str);
@@ -53,7 +58,6 @@ class ConfigServerParser {
 	// Methods
 	int	 get_start_end_location(string location, size_t pos);
 	int	 split_config_location(string &location);
-	void parse_config_server(string config_server);
 	void check_status();
 };
 

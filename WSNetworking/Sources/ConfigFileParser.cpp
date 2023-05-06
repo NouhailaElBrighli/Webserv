@@ -6,12 +6,7 @@ vector<ConfigServerParser *> ConfigFileParser::get_config_server_parser() const 
 }
 
 // Constructors and copy constructor and copy assignment operator and destructor
-ConfigFileParser::ConfigFileParser(string config_file_path) : config_file(config_file_path), config_file_path(config_file_path), config_file_content_status(false) {
-
-	this->open_config_file();
-	this->read_config_file();
-	this->split_config_file();
-	this->parse_config_file();
+ConfigFileParser::ConfigFileParser(string config_file_path) : config_file(config_file_path), config_file_path(config_file_path), config_file_content_status(false), run_status(false) {
 }
 
 ConfigFileParser::~ConfigFileParser() {
@@ -21,6 +16,17 @@ ConfigFileParser::~ConfigFileParser() {
 }
 
 // Methods
+void ConfigFileParser::run() {
+	if (this->run_status) {
+		return;
+	}
+	this->open_config_file();
+	this->read_config_file();
+	this->split_config_file();
+	this->parse_config_file();
+	this->run_status = true;
+}
+
 void ConfigFileParser::open_config_file() {
 	if (!config_file.is_open()) {
 		throw std::runtime_error(str_red("Failed to open file: " + this->config_file_path));
@@ -98,9 +104,17 @@ void ConfigFileParser::split_config_file() {
 void ConfigFileParser::parse_config_file() {
 	for (vector<string>::iterator it = this->config_file_server.begin(); it != this->config_file_server.end(); it++) {
 		ConfigServerParser *config_server_parser = new ConfigServerParser(*it);
+		try {
+			config_server_parser->parse_config_server();
+		} catch (const std::exception &e) {
+			delete config_server_parser;
+			throw std::runtime_error(e.what());
+		}
 		this->config_server_parser.push_back(config_server_parser);
 	}
-	// print parsed servers
+}
+
+void ConfigFileParser::print_config_file() {
 	for (vector<ConfigServerParser *>::iterator it = this->config_server_parser.begin(); it != this->config_server_parser.end(); it++) {
 		cout << **it;
 	}

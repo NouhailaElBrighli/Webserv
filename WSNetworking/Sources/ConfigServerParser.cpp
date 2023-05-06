@@ -31,14 +31,14 @@ const vector<ConfigLocationParser *> &ConfigServerParser::get_config_location_pa
 
 // Constructors and copy constructor and copy assignment operator and destructor
 ConfigServerParser::ConfigServerParser(string config_server) {
+	this->run_status					= false;
+	this->config_server					= config_server;
 	this->port_status					= false;
 	this->host_status					= false;
 	this->server_name_status			= false;
 	this->client_max_body_size_status	= false;
 	this->error_page_status				= false;
 	this->config_location_parser_status = false;
-
-	this->parse_config_server(config_server);
 }
 
 ConfigServerParser::~ConfigServerParser() {
@@ -256,12 +256,15 @@ int ConfigServerParser::split_config_location(string &location) {
 	return location_size + 1;
 }
 
-void ConfigServerParser::parse_config_server(string config_server) {
+void ConfigServerParser::parse_config_server() {
 	size_t pos = 0;
 	string line;
 
-	while ((pos = config_server.find("\n")) != string::npos) {
-		line = config_server.substr(0, pos - 1);
+	if (this->run_status) {
+		return;
+	}
+	while ((pos = this->config_server.find("\n")) != string::npos) {
+		line = this->config_server.substr(0, pos - 1);
 
 		if (line.find("listen") != string::npos)
 			this->set_port(line.substr(line.find(" ") + 1));
@@ -279,14 +282,15 @@ void ConfigServerParser::parse_config_server(string config_server) {
 			this->set_error_page(line.substr(line.find(" ") + 1));
 
 		else if (line.find("location") != string::npos)
-			pos = this->split_config_location(config_server);
+			pos = this->split_config_location(this->config_server);
 
-		// else
-		// 	throw std::runtime_error(str_red("Error : unknown directive"));
+		else
+			throw std::runtime_error(str_red("Error : unknown directive '" + line + "'"));
 
-		config_server.erase(0, pos + 1);
+		this->config_server.erase(0, pos + 1);
 	}
 	this->check_status();
+	this->run_status = true;
 }
 
 void ConfigServerParser::check_status() {
