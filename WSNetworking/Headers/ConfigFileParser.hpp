@@ -10,6 +10,7 @@ class ConfigFileParser {
 	std::ifstream				 config_file;
 	string						 config_file_path;
 	string						 config_file_content;
+	bool						 config_file_content_status;
 	vector<string>				 config_file_server;
 	vector<ConfigServerParser *> config_server_parser;
 

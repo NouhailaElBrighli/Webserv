@@ -246,17 +246,17 @@ void ConfigServerParser::parse_config_server(string config_server) {
 
 void ConfigServerParser::check_status() {
 	if (!this->port_status)
-		throw ConfigServerParser::red_string("Error: port is missing");
+		throw std::runtime_error(red_string("Error: port is missing"));
 	if (!this->host_status)
-		throw ConfigServerParser::red_string("Error: host is missing");
+		throw std::runtime_error(red_string("Error: host is missing"));
 	if (!this->server_name_status)
-		throw ConfigServerParser::red_string("Error: server_name is missing");
+		throw std::runtime_error(red_string("Error: server_name is missing"));
 	if (!this->client_max_body_size_status)
-		throw ConfigServerParser::red_string("Error: client_max_body_size is missing");
+		throw std::runtime_error(red_string("Error: client_max_body_size is missing"));
 	if (!this->error_page_status)
-		throw ConfigServerParser::red_string("Error: error_page is missing");
+		throw std::runtime_error(red_string("Error: error_page is missing"));
 	// if (!this->config_location_parser_status)
-	// 	throw ConfigServerParser::red_string("Error: config_location_parser is missing");
+	// 	throw std::runtime_error(red_string("Error: config_location_parser is missing"));
 }
 
 std::ostream &operator<<(std::ostream &out, const ConfigServerParser &config_server_parser) {

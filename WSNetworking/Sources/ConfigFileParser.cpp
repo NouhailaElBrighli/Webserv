@@ -6,7 +6,7 @@ vector<ConfigServerParser *> ConfigFileParser::get_config_server_parser() const 
 }
 
 // Constructors and copy constructor and copy assignment operator and destructor
-ConfigFileParser::ConfigFileParser(string config_file_path) : config_file(config_file_path), config_file_path(config_file_path) {
+ConfigFileParser::ConfigFileParser(string config_file_path) : config_file(config_file_path), config_file_path(config_file_path), config_file_content_status(false) {
 
 	this->open_config_file();
 	this->read_config_file();
@@ -41,6 +41,10 @@ void ConfigFileParser::read_config_file() {
 
 		line = line.substr(pos);
 		this->config_file_content += (line) + "\n";
+	}
+	// check if empty file
+	if (this->config_file_content.empty()) {
+		throw std::runtime_error("Empty file: " + this->config_file_path);
 	}
 }
 
@@ -79,6 +83,10 @@ void ConfigFileParser::split_config_file() {
 		server		= this->config_file_content.substr(delimiter.length() + 1, server_size - 2);
 		this->config_file_content.erase(0, server_size + delimiter.length() + 1);
 		this->config_file_server.push_back(server);
+		this->config_file_content_status = true;
+	}
+	if (!this->config_file_content_status) {
+		throw std::runtime_error("No server found in file: " + this->config_file_path);
 	}
 	// print splitted servers
 	int i = 1;
