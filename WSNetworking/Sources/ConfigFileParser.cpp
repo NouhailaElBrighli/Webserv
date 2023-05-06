@@ -46,6 +46,7 @@ void ConfigFileParser::read_config_file() {
 	if (this->config_file_content.empty()) {
 		throw std::runtime_error(str_red("Empty file: " + this->config_file_path));
 	}
+	this->config_file_content += "\0";
 }
 
 // by counting the brackets to get the number of servers
@@ -57,16 +58,20 @@ int ConfigFileParser::get_start_end_server(size_t pos, string delimiter) {
 		bracket++;
 		count += pos + delimiter.length();
 	}
-	while (bracket > 0) {
+	while (this->config_file_content[count]) {
 		if (this->config_file_content[count] == '{') {
 			bracket++;
 		} else if (this->config_file_content[count] == '}') {
 			bracket--;
 		}
-		if (bracket == -1) {
+		count++;
+		if (bracket == 0) {
 			break;
 		}
-		count++;
+	}
+
+	if (this->config_file_content[count] == '\0') {
+		throw std::runtime_error(str_red("Missing closing bracket in file: " + this->config_file_path));
 	}
 
 	return count;

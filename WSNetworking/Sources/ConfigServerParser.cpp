@@ -227,7 +227,7 @@ void ConfigServerParser::set_config_location_parser(string config_location) {
 int ConfigServerParser::get_start_end_location(string location, size_t pos) {
 	int bracket = 0;
 
-	while (true) {
+	while (location[pos]) {
 		if (location[pos] == '}')
 			bracket--;
 
@@ -236,6 +236,8 @@ int ConfigServerParser::get_start_end_location(string location, size_t pos) {
 
 		pos++;
 	}
+	if (location[pos] == '\0')
+		throw std::runtime_error(str_red("Missing closing bracket in location : " + location));
 
 	return pos;
 }
