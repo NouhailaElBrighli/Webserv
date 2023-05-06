@@ -10,6 +10,7 @@ class Error;
 
 // Parsers Prototypes
 class ConfigFileParser;
+class ConfigLocationParser;
 class ConfigServerParser;
 class RequestParser;
 
@@ -33,6 +34,7 @@ class ListeningSocket;
 
 // Parsers
 #include "ConfigFileParser.hpp"
+#include "ConfigLocationParser.hpp"
 #include "ConfigServerParser.hpp"
 #include "RequestParser.hpp"
 

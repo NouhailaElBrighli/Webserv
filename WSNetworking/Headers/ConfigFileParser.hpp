@@ -26,7 +26,7 @@ class ConfigFileParser {
 	// Methods
 	void open_config_file();
 	void read_config_file();
-	int	 get_start_end_server(size_t pos);
+	int	 get_start_end_server(size_t pos, string delimiter);
 	void split_config_file();
 	void parse_config_file();
 };

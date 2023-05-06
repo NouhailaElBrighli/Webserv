@@ -1,37 +1,37 @@
 #include "WSNetworking.hpp"
 
 void binding_socket_test() {
-	cout << C_CYAN << "Test Binding Socket ..." << C_RES << endl;
+	cout << str_cyan("Test Binding Socket ...") << endl;
 
 	try {
 		cout << "Binding Socket ..." << endl;
 		BindingSocket binding_socket(AF_INET, SOCK_STREAM, 0, 8080, INADDR_ANY);
-		cout << C_GREEN << "Binding Socket Succeed" << C_RES << endl;
+		cout << str_green("Binding Socket Succeed") << endl;
 	} catch (const std::exception &e) {
 		cerr << e.what() << endl;
 	}
 }
 
 void listening_socket_test() {
-	cout << C_CYAN << "Test Listening Socket ..." << C_RES << endl;
+	cout << str_cyan("Test Listening Socket ...") << endl;
 
 	try {
 		cout << "Listening socket ..." << endl;
 		ListeningSocket listening_socket(AF_INET, SOCK_STREAM, 0, 8080, INADDR_ANY, 10);
-		cout << C_GREEN << "Listening Socket Succeed" << C_RES << endl;
+		cout << str_green("Listening Socket Succeed") << endl;
 	} catch (const std::exception &e) {
 		cerr << e.what() << endl;
 	}
 }
 
 void config_file_parser_test(char *config_file_path) {
-	cout << C_CYAN << "Test Config File Parser ..." << C_RES << endl;
+	cout << str_cyan("Test Config File Parser ...") << endl;
 	ConfigFileParser config_file_parser(config_file_path);
-	cout << C_GREEN << "Test Config File Parser Succeed" << C_RES << endl;
+	cout << str_green("Test Config File Parser Succeed") << endl;
 }
 
 void main_server_run() {
-	cout << C_CYAN << "Test Main Server ..." << C_RES << endl;
+	cout << str_cyan("Test Main Server ...") << endl;
 	// Create a listening socket for each port
 	vector<int> port;
 
@@ -40,7 +40,7 @@ void main_server_run() {
 	port.push_back(8888);
 
 	MainServer main_server(AF_INET, SOCK_STREAM, 0, port, INADDR_ANY, 10);
-	cout << C_GREEN << "Test Main Server Succeed" << C_RES << endl;
+	cout << str_green("Test Main Server Succeed") << endl;
 }
 
 int main(int ac, char **av) {

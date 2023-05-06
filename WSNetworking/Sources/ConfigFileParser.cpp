@@ -23,19 +23,19 @@ ConfigFileParser::~ConfigFileParser() {
 // Methods
 void ConfigFileParser::open_config_file() {
 	if (!config_file.is_open()) {
-		throw std::runtime_error("Failed to open file: " + this->config_file_path);
+		throw std::runtime_error(str_red("Failed to open file: " + this->config_file_path));
 	}
 }
 
 void ConfigFileParser::read_config_file() {
-	std::string line;
+	string line;
 	while (std::getline(this->config_file, line)) {
 		if (line.empty() || line[0] == '#') {
 			continue; // skip empty lines and comments
 		}
 
 		size_t pos = line.find_first_not_of(' ');
-		if (pos == std::string::npos) {
+		if (pos == string::npos) {
 			continue; // skip lines with only whitespace
 		}
 
@@ -44,16 +44,16 @@ void ConfigFileParser::read_config_file() {
 	}
 	// check if empty file
 	if (this->config_file_content.empty()) {
-		throw std::runtime_error("Empty file: " + this->config_file_path);
+		throw std::runtime_error(str_red("Empty file: " + this->config_file_path));
 	}
 }
 
 // by counting the brackets to get the number of servers
-int ConfigFileParser::get_start_end_server(size_t pos) {
-	int	   count	 = 0;
-	size_t bracket	 = 0;
-	string delimiter = "server {";
-	if ((count = this->config_file_content.find(delimiter)) != std::string::npos) {
+int ConfigFileParser::get_start_end_server(size_t pos, string delimiter) {
+	int count	= 0;
+	int bracket = 0;
+
+	if ((count = this->config_file_content.find(delimiter)) != string::npos) {
 		bracket++;
 		count += pos + delimiter.length();
 	}
@@ -78,23 +78,16 @@ void ConfigFileParser::split_config_file() {
 	size_t pos		   = 0;
 	string delimiter   = "server {";
 
-	while ((pos = this->config_file_content.find(delimiter)) != std::string::npos) {
-		server_size = this->get_start_end_server(pos) - delimiter.length();
+	while ((pos = this->config_file_content.find(delimiter)) != string::npos) {
+		server_size = this->get_start_end_server(pos, delimiter) - delimiter.length();
 		server		= this->config_file_content.substr(delimiter.length() + 1, server_size - 2);
 		this->config_file_content.erase(0, server_size + delimiter.length() + 1);
 		this->config_file_server.push_back(server);
 		this->config_file_content_status = true;
 	}
 	if (!this->config_file_content_status) {
-		throw std::runtime_error("No server found in file: " + this->config_file_path);
+		throw std::runtime_error(str_red("No server found in file: " + this->config_file_path));
 	}
-	// print splitted servers
-	int i = 1;
-	for (vector<string>::iterator it = this->config_file_server.begin(); it != this->config_file_server.end(); it++) {
-		print_line("Server " + std::to_string(i++));
-		cout << *it << endl;
-	}
-	print_line("Done");
 }
 
 void ConfigFileParser::parse_config_file() {

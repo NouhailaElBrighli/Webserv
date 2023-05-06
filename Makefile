@@ -13,7 +13,7 @@ MAIN_DIR	= WSNetworking
 # *************WSNETWORKING************* #
 
 INCLUDE		= \
-	-I $(MAIN_DIR)/Headers						\
+	-I $(MAIN_DIR)/Headers							\
 	-I $(MAIN_DIR)/Includes
 SRCS		= $(MAIN_DIR)/Sources/main.cpp
 
@@ -25,8 +25,9 @@ SRCS		+= \
 # ***************PARSERS**************** #
 
 SRCS		+= \
-	$(MAIN_DIR)/Sources/ConfigFileParser.cpp	\
-	$(MAIN_DIR)/Sources/ConfigServerParser.cpp	\
+	$(MAIN_DIR)/Sources/ConfigFileParser.cpp		\
+	$(MAIN_DIR)/Sources/ConfigLocationParser.cpp	\
+	$(MAIN_DIR)/Sources/ConfigServerParser.cpp		\
 	$(MAIN_DIR)/Sources/RequestParser.cpp
 
 # ***************SERVERS**************** #
@@ -37,8 +38,8 @@ SRCS		+= \
 # ***************SOCKETS**************** #
 
 SRCS		+= \
-	$(MAIN_DIR)/Sources/Socket.cpp				\
-	$(MAIN_DIR)/Sources/BindingSocket.cpp		\
+	$(MAIN_DIR)/Sources/Socket.cpp					\
+	$(MAIN_DIR)/Sources/BindingSocket.cpp			\
 	$(MAIN_DIR)/Sources/ListeningSocket.cpp
 
 # *************************************************************************** # 

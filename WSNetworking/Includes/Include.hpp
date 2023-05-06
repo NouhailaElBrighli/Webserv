@@ -19,8 +19,8 @@
 #include <iostream>
 #include <iterator>
 #include <map>
-#include <string>
 #include <sstream>
+#include <string>
 #include <vector>
 
 #define MAXLINE 4096
@@ -31,9 +31,12 @@
 #define C_CYAN "\033[1;36m"
 #define C_YELLOW "\033[1;33m"
 
-// print the line with the step where we are
 #define print_line(str) cout << C_CYAN << "--------------------------------" << str << C_RES << endl;
 #define print_error(str) cerr << C_RED << "--------------------------------" << str << C_RES << endl;
+
+#define str_red(str) (std::string(C_RED) + std::string(str) + std::string(C_RES))
+#define str_green(str) (std::string(C_GREEN) + std::string(str) + std::string(C_RES))
+#define str_cyan(str) (std::string(C_CYAN) + std::string(str) + std::string(C_RES))
 
 typedef struct sockaddr_in t_sockaddr_in;
 typedef struct sockaddr	   t_sockaddr;

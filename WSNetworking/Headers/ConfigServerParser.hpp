@@ -7,29 +7,29 @@ class ConfigServerParser {
 
   private:
 	// Attributes
-	int				 port;
-	bool			 port_status;
-	vector<int>		 host_v;
-	string			 host_s;
-	bool			 host_status;
-	string			 server_name;
-	bool			 server_name_status;
-	size_t			 client_max_body_size;
-	bool			 client_max_body_size_status;
-	map<int, string> error_page;
-	bool			 error_page_status;
-	// vector<ConfigLocationParser *> config_location_parser;
-	bool config_location_parser_status;
+	int							   port;
+	bool						   port_status;
+	vector<int>					   host_v;
+	string						   host_s;
+	bool						   host_status;
+	string						   server_name;
+	bool						   server_name_status;
+	size_t						   client_max_body_size;
+	bool						   client_max_body_size_status;
+	map<int, string>			   error_page;
+	bool						   error_page_status;
+	vector<ConfigLocationParser *> config_location_parser;
+	bool						   config_location_parser_status;
 
   public:
 	// Getters
-	const int			   &get_port() const;
-	const int			   &get_host(int i) const;
-	const string		   &get_host() const;
-	const string		   &get_server_name() const;
-	const size_t		   &get_client_max_body_size() const;
-	const map<int, string> &get_error_page() const;
-	// vector<ConfigLocationParser *> get_config_location_parser() const;
+	const int							 &get_port() const;
+	const int							 &get_host(int i) const;
+	const string						 &get_host() const;
+	const string						 &get_server_name() const;
+	const size_t						 &get_client_max_body_size() const;
+	const map<int, string>				 &get_error_page() const;
+	const vector<ConfigLocationParser *> &get_config_location_parser() const;
 
 	// Constructors and copy constructor and copy assignment operator and destructor
 	ConfigServerParser(string config_server);
@@ -37,7 +37,6 @@ class ConfigServerParser {
 
   private:
 	// Tools
-	string		red_string(string txt);
 	int			checkType(string str);
 	int			stringToInt(string str);
 	vector<int> split_ip_address(const string &str);
@@ -49,9 +48,11 @@ class ConfigServerParser {
 	void set_server_name(string server_name);
 	void set_client_max_body_size(string client_max_body_size);
 	void set_error_page(string error_page);
-	// void set_config_location_parser(vector<ConfigLocationParser *> config_location_parser);
+	void set_config_location_parser(string config_location);
 
 	// Methods
+	int	 get_start_end_location(string location, size_t pos);
+	int	 split_config_location(string &location);
 	void parse_config_server(string config_server);
 	void check_status();
 };
