@@ -30,11 +30,11 @@ class ConfigFileParser {
 
   private:
 	// Methods
-	void open_config_file();
-	void read_config_file();
-	int	 get_start_end_server(size_t pos, string delimiter);
-	void split_config_file();
-	void parse_config_file();
+	void   open_config_file();
+	void   read_config_file();
+	size_t get_start_end_server(size_t pos, string delimiter);
+	void   split_config_file();
+	void   parse_config_file();
 };
 
 #endif // CONFIGFILEPARSER_HPP

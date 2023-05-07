@@ -14,7 +14,8 @@ string MainServer::get_request(int client_socket, string key) {
 }
 
 // Constructors and copy constructor and copy assignment operator and destructor
-MainServer::MainServer(int domain, int service, int protocol, ConfigFileParser &config_file_parser, u_long interface, int backlog) : launch_status(false), config_file_parser(&config_file_parser) {
+MainServer::MainServer(int domain, int service, int protocol, ConfigFileParser &config_file_parser, u_long interface, int backlog) : config_file_parser(&config_file_parser) {
+	launch_status = false;
 	// Create a listening socket for each port
 	for (size_t i = 0; i < config_file_parser.get_config_server_parser().size(); i++)
 		listen_socket.push_back(ListeningSocket(domain, service, protocol, config_file_parser.get_config_server_parser(i)->get_port(), interface, backlog));

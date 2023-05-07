@@ -114,7 +114,7 @@ int ConfigServerParser::stringToInt(string str) {
 			num = num * 10 + (str[i] - '0');
 		else
 			throw std::runtime_error(str_red("Bad Input : " + str));
-		if (num > INT32_MAX || (num == INT32_MAX && str[i] - '0' > 7))
+		if (num > INT_MAX || (num == INT_MAX && str[i] - '0' > 7))
 			throw std::runtime_error(str_red("Bad Input : " + str));
 		i++;
 	}

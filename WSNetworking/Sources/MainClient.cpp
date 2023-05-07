@@ -23,7 +23,7 @@ MainClient::MainClient() {
 	std::memset(buffer, 0, MAXLINE + 1);
 }
 
-MainClient::MainClient(int client_socket, ConfigServerParser *config_server_parser) : request_parser(new RequestParser()), status(true), msg_status(Accurate::OK200().what()), client_socket(client_socket), config_server_parser(config_server_parser) {
+MainClient::MainClient(int client_socket, ConfigServerParser *config_server_parser) : config_server_parser(config_server_parser), request_parser(new RequestParser()), status(true), msg_status(Accurate::OK200().what()), client_socket(client_socket) {
 	std::memset(buffer, 0, MAXLINE + 1);
 	try {
 		this->handle(client_socket);
@@ -66,8 +66,8 @@ void MainClient::handle(int client_socket) {
 		throw Error::RequestEntityTooLarge413();
 
 	this->request_parser->run_head(head);
-	if (body.length() > 0)
-		this->request_parser->run_body(body);
+	// if (body.length() > 0)
+	// 	this->request_parser->run_body(body);
 
 	cout << "data : " << endl
 		 << data << endl;
@@ -112,7 +112,7 @@ void MainClient::get_matched_location_for_request_uri() {
 void MainClient::is_method_allowded_in_location() {
 	for (vector<ConfigLocationParser *>::iterator it = config_server_parser->get_config_location_parser().begin(); it != config_server_parser->get_config_location_parser().end(); it++) {
 		if (this->get_request("Request-URI").find((*it)->get_location()) != string::npos) {
-			for (int i = 0; i < (*it)->get_methods().size(); i++) {
+			for (size_t i = 0; i < (*it)->get_methods().size(); i++) {
 				if ((*it)->get_methods(i) == this->get_request("Request-Type"))
 					return;
 			}

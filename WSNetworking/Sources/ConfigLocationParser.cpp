@@ -125,7 +125,7 @@ int ConfigLocationParser::stringToInt(string str) {
 			num = num * 10 + (str[i] - '0');
 		else
 			throw std::runtime_error(str_red("Bad Input : " + str));
-		if (num > INT32_MAX || (num == INT32_MAX && str[i] - '0' > 7))
+		if (num > INT_MAX || (num == INT_MAX && str[i] - '0' > 7))
 			throw std::runtime_error(str_red("Bad Input : " + str));
 		i++;
 	}
@@ -153,7 +153,7 @@ vector<string> ConfigLocationParser::stringToMethods(string host) {
 	vector<string> vect_mth;
 
 	vect_mth = this->split_methods(host);
-	for (int i = 0; i < vect_mth.size(); i++) {
+	for (size_t i = 0; i < vect_mth.size(); i++) {
 		if (vect_mth[i] != "GET" && vect_mth[i] != "POST" && vect_mth[i] != "DELETE")
 			throw std::runtime_error(str_red("Allow Methods Bad Input : " + host));
 	}

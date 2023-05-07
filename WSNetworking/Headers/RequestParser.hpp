@@ -3,7 +3,6 @@
 
 #include "WSNetworking.hpp"
 
-
 class RequestParser {
 
   private:
@@ -32,7 +31,7 @@ class RequestParser {
 
 	// Methods
 	void run_head(string &head);
-	void run_body(string &head);
+	// void run_body(string &head);
 
   private:
 	// Methods
@@ -45,6 +44,5 @@ class RequestParser {
 
 // Operator <<
 std::ostream &operator<<(std::ostream &out, const RequestParser &requestParser);
-
 
 #endif // REQUESTPARSER_HPP

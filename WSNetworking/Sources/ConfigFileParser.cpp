@@ -10,7 +10,7 @@ ConfigServerParser *ConfigFileParser::get_config_server_parser(int index) const 
 }
 
 // Constructors and copy constructor and copy assignment operator and destructor
-ConfigFileParser::ConfigFileParser(string config_file_path) : config_file(config_file_path), config_file_path(config_file_path), config_file_content_status(false), parse_status(false) {
+ConfigFileParser::ConfigFileParser(string config_file_path) : parse_status(false), config_file(config_file_path.c_str()), config_file_path(config_file_path), config_file_content_status(false) {
 }
 
 ConfigFileParser::~ConfigFileParser() {
@@ -60,9 +60,9 @@ void ConfigFileParser::read_config_file() {
 }
 
 // by counting the brackets to get the number of servers
-int ConfigFileParser::get_start_end_server(size_t pos, string delimiter) {
-	int count	= 0;
-	int bracket = 0;
+size_t ConfigFileParser::get_start_end_server(size_t pos, string delimiter) {
+	size_t count   = 0;
+	int	   bracket = 0;
 
 	if ((count = this->config_file_content.find(delimiter)) != string::npos) {
 		bracket++;

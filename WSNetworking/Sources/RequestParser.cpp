@@ -50,7 +50,7 @@ void RequestParser::run_head(string &head) {
 	this->parse_head();
 }
 
-void RequestParser::run_body(string &head) {}
+// void RequestParser::run_body(string &head) {}
 
 void RequestParser::parse_head() {
 	this->is_head_valid();
