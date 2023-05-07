@@ -25,6 +25,10 @@ const string &ConfigLocationParser::get_return() const {
 	return this->return_;
 }
 
+const string &ConfigLocationParser::get_file_body() const {
+	return this->file_body;
+}
+
 const vector<string> &ConfigLocationParser::get_methods() const {
 	return this->methods;
 }
@@ -47,6 +51,7 @@ ConfigLocationParser::ConfigLocationParser(string config_location) {
 	this->root_status		  = false;
 	this->index_status		  = false;
 	this->return_status		  = false;
+	this->file_body_status	  = false;
 	this->methods_status	  = false;
 	this->cgi_ext_path_status = false;
 
@@ -119,6 +124,8 @@ int ConfigLocationParser::stringToInt(string str) {
 		if (isdigit(str[i]))
 			num = num * 10 + (str[i] - '0');
 		else
+			throw std::runtime_error(str_red("Bad Input : " + str));
+		if (num > INT32_MAX || (num == INT32_MAX && str[i] - '0' > 7))
 			throw std::runtime_error(str_red("Bad Input : " + str));
 		i++;
 	}
@@ -206,6 +213,14 @@ void ConfigLocationParser::set_return(string return_) {
 	this->return_status = true;
 }
 
+void ConfigLocationParser::set_file_body(string file_body) {
+	if (this->file_body_status == true || file_body.empty())
+		throw std::runtime_error(str_red("file_body Error : " + file_body));
+
+	this->file_body		   = file_body;
+	this->file_body_status = true;
+}
+
 void ConfigLocationParser::set_methods(string methods) {
 	if (this->methods_status == true || methods.empty())
 		throw std::runtime_error(str_red("methods Error : " + methods));
@@ -251,29 +266,32 @@ void ConfigLocationParser::parse_config_location(string config_location) {
 		line = config_location.substr(0, pos - 1);
 		config_location.erase(0, pos + 1);
 
-		if (line.find("location") != string::npos)
+		if (line.find("location") != string::npos && line.find("location") == 0 && std::strlen("location") == line.find(" "))
 			this->set_location(line.substr(line.find(" ") + 1, line.find("{")));
 
-		else if (line.find("autoindex") != string::npos)
+		else if (line.find("autoindex") != string::npos && line.find("autoindex") == 0 && std::strlen("autoindex") == line.find(" "))
 			this->set_autoindex(line.substr(line.find(" ") + 1));
 
-		else if (line.find("root") != string::npos)
+		else if (line.find("root") != string::npos && line.find("root") == 0 && std::strlen("root") == line.find(" "))
 			this->set_root(line.substr(line.find(" ") + 1));
 
-		else if (line.find("return") != string::npos)
+		else if (line.find("return") != string::npos && line.find("return") == 0 && std::strlen("return") == line.find(" "))
 			this->set_return(line.substr(line.find(" ") + 1));
 
-		else if (line.find("index") != string::npos)
+		else if (line.find("file_body") != string::npos && line.find("file_body") == 0 && std::strlen("file_body") == line.find(" "))
+			this->set_file_body(line.substr(line.find(" ") + 1));
+
+		else if (line.find("index") != string::npos && line.find("index") == 0 && std::strlen("index") == line.find(" "))
 			this->set_index(line.substr(line.find(" ") + 1));
 
-		else if (line.find("methods") != string::npos)
+		else if (line.find("methods") != string::npos && line.find("methods") == 0 && std::strlen("methods") == line.find(" "))
 			this->set_methods(line.substr(line.find(" ") + 1));
 
-		else if (line.find("cgi_ext_path") != string::npos)
+		else if (line.find("cgi_ext_path") != string::npos && line.find("cgi_ext_path") == 0 && std::strlen("cgi_ext_path") == line.find(" "))
 			this->set_cgi_ext_path(line.substr(line.find(" ") + 1));
 
-		// else
-		// 	throw std::runtime_error(str_red("Error : unknown directive"));
+		else
+			throw std::runtime_error(str_red("Error : unknown directive '" + line + "'"));
 	}
 	this->check_status();
 }
@@ -290,6 +308,8 @@ void ConfigLocationParser::check_status() {
 			throw std::runtime_error(str_red("Error : index is unnecessary"));
 		if (this->return_status == true)
 			throw std::runtime_error(str_red("Error : return is unnecessary"));
+		if (this->file_body_status == true)
+			throw std::runtime_error(str_red("Error : file_body is unnecessary"));
 		if (this->methods_status == true)
 			throw std::runtime_error(str_red("Error : methods is unnecessary"));
 	} else {
@@ -302,6 +322,8 @@ void ConfigLocationParser::check_status() {
 			throw std::runtime_error(str_red("Error : index is missing"));
 		if (this->return_status == false)
 			throw std::runtime_error(str_red("Error : return is missing"));
+		if (this->file_body_status == false)
+			throw std::runtime_error(str_red("Error : file_body is missing"));
 		if (this->methods_status == false)
 			throw std::runtime_error(str_red("Error : methods is missing"));
 	}

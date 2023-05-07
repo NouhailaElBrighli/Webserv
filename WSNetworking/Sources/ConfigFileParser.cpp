@@ -5,8 +5,12 @@ vector<ConfigServerParser *> ConfigFileParser::get_config_server_parser() const 
 	return this->config_server_parser;
 }
 
+ConfigServerParser *ConfigFileParser::get_config_server_parser(int index) const {
+	return this->config_server_parser[index];
+}
+
 // Constructors and copy constructor and copy assignment operator and destructor
-ConfigFileParser::ConfigFileParser(string config_file_path) : config_file(config_file_path), config_file_path(config_file_path), config_file_content_status(false), run_status(false) {
+ConfigFileParser::ConfigFileParser(string config_file_path) : config_file(config_file_path), config_file_path(config_file_path), config_file_content_status(false), parse_status(false) {
 }
 
 ConfigFileParser::~ConfigFileParser() {
@@ -16,15 +20,15 @@ ConfigFileParser::~ConfigFileParser() {
 }
 
 // Methods
-void ConfigFileParser::run() {
-	if (this->run_status) {
+void ConfigFileParser::parse() {
+	if (this->parse_status) {
 		return;
 	}
 	this->open_config_file();
 	this->read_config_file();
 	this->split_config_file();
 	this->parse_config_file();
-	this->run_status = true;
+	this->parse_status = true;
 }
 
 void ConfigFileParser::open_config_file() {
@@ -114,7 +118,7 @@ void ConfigFileParser::parse_config_file() {
 	}
 }
 
-void ConfigFileParser::print_config_file() {
+void ConfigFileParser::print_parsed_config_file() {
 	for (vector<ConfigServerParser *>::iterator it = this->config_server_parser.begin(); it != this->config_server_parser.end(); it++) {
 		cout << **it;
 	}

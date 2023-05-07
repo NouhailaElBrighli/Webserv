@@ -1,22 +1,5 @@
 #include "RequestParser.hpp"
 
-// head :
-// GET /image.jpg HTTP/1.1
-// User-Agent: PostmanRuntime/7.31.3
-// Accept: */*
-// Postman-Token: a85095a1-a10f-4b75-9b83-fc61f18d692f
-// Host: localhost:18000
-// Accept-Encoding: gzip, deflate, br
-// Connection: keep-alive
-// Content-Type: multipart/form-data; boundary=--------------------------224007463543657981304300
-// Content-Length: 1640
-
-// ----------------------------224007463543657981304300
-// Content-Disposition: form-data; name="file"; filename="image.jpg"
-// Content-Type: text/x-c
-// "binary data"
-// ----------------------------224007463543657981304300--
-
 // Getters
 const string &RequestParser::get_head() const {
 	return this->head;
@@ -82,9 +65,6 @@ void RequestParser::is_head_valid() {
 		 << endl;
 	if (head.empty())
 		throw Error::BadRequest400();
-
-	if (head.length() > MAXLINE)
-		throw Error::RequestEntityTooLarge413();
 }
 
 void RequestParser::is_first_line_valid() {

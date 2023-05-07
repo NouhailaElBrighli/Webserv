@@ -14,10 +14,10 @@ string MainServer::get_request(int client_socket, string key) {
 }
 
 // Constructors and copy constructor and copy assignment operator and destructor
-MainServer::MainServer(int domain, int service, int protocol, vector<int> port, u_long interface, int backlog) {
+MainServer::MainServer(int domain, int service, int protocol, ConfigFileParser &config_file_parser, u_long interface, int backlog) : launch_status(false), config_file_parser(&config_file_parser) {
 	// Create a listening socket for each port
-	for (size_t i = 0; i < port.size(); i++)
-		listen_socket.push_back(ListeningSocket(domain, service, protocol, port[i], interface, backlog));
+	for (size_t i = 0; i < config_file_parser.get_config_server_parser().size(); i++)
+		listen_socket.push_back(ListeningSocket(domain, service, protocol, config_file_parser.get_config_server_parser(i)->get_port(), interface, backlog));
 
 	this->address = get_listen_socket(0).get_address();
 
@@ -25,7 +25,9 @@ MainServer::MainServer(int domain, int service, int protocol, vector<int> port, 
 	for (size_t i = 0; i < get_listen_socket().size(); i++)
 		this->socket.push_back(get_listen_socket(i).get_socket());
 
-	this->launch();
+	// print port and socket
+	for (size_t i = 0; i < this->socket.size(); i++)
+		cout << C_YELLOW << "Port : " << this->config_file_parser->get_config_server_parser(i)->get_port() << "	Socket : " << this->socket[i] << C_RES << endl;
 }
 
 MainServer::MainServer(const MainServer &main_server) : listen_socket(main_server.listen_socket), address(main_server.address), socket(main_server.socket) {
@@ -39,6 +41,8 @@ MainServer &MainServer::operator=(const MainServer &main_server) {
 }
 
 MainServer::~MainServer() {
+	for (size_t i = 0; i < this->clients.size(); i++)
+		destroy_client(i);
 }
 
 void MainServer::accepter(int accept_socket) {
@@ -57,7 +61,7 @@ void MainServer::accepter(int accept_socket) {
 void MainServer::handle(int client_socket) {
 	print_line("handle");
 
-	MainClient *mainClient	 = new MainClient(client_socket);
+	MainClient *mainClient		 = new MainClient(client_socket, this->config_file_parser->get_config_server_parser(client_socket));
 	this->clients[client_socket] = mainClient;
 }
 
@@ -97,6 +101,9 @@ void MainServer::destroy_client(int i) {
 }
 
 void MainServer::launch() {
+	if (this->launch_status)
+		return;
+	this->launch_status = true;
 	init();
 	while (true) {
 		print_line("Waiting for connection...");

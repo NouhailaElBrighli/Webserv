@@ -74,7 +74,8 @@
 		"optional": "cpp",
 		"ratio": "cpp",
 		"sstream": "cpp",
-		"stack": "cpp"
+		"stack": "cpp",
+		"climits": "cpp"
 	},
 	"C_Cpp.default.configurationProvider": "ms-vscode.makefile-tools",
 	"C_Cpp.errorSquiggles": "disabled",

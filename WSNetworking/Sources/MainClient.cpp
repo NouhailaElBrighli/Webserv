@@ -23,7 +23,7 @@ MainClient::MainClient() {
 	std::memset(buffer, 0, MAXLINE + 1);
 }
 
-MainClient::MainClient(int client_socket) : request_parser(new RequestParser()), status(true), msg_status(Accurate::OK200().what()), client_socket(client_socket) {
+MainClient::MainClient(int client_socket, ConfigServerParser *config_server_parser) : request_parser(new RequestParser()), status(true), msg_status(Accurate::OK200().what()), client_socket(client_socket), config_server_parser(config_server_parser) {
 	std::memset(buffer, 0, MAXLINE + 1);
 	try {
 		this->handle(client_socket);
@@ -60,7 +60,10 @@ void MainClient::handle(int client_socket) {
 	}
 
 	head = data.substr(0, data.find("\r\n\r\n"));
+	//! body need to be fill in external file
 	body = data.substr(data.find("\r\n\r\n") + 4);
+	if (body.length() > this->config_server_parser->get_client_max_body_size())
+		throw Error::RequestEntityTooLarge413();
 
 	this->request_parser->run_head(head);
 	if (body.length() > 0)
@@ -76,7 +79,7 @@ void MainClient::handle(int client_socket) {
 	// cout << *this->request_parser << endl;
 
 	get_matched_location_for_request_uri();
-	// is_method_allowded_in_location(); //! TODO: Unable when parsing of ConfigFile is ready
+	is_method_allowded_in_location();
 
 	// if (this->get_request("Request-Type") == "GET") {
 	// 	this->parse_get(reauest_pasrer->get_request());
@@ -107,9 +110,14 @@ void MainClient::get_matched_location_for_request_uri() {
 }
 
 void MainClient::is_method_allowded_in_location() {
-	//! TODO: Unable when parsing of ConfigFile is ready
-	// if (this->get_request("Request-Type") == ConfigFileParsing::get_instance()->get_config()["method"])
-	// 	return;
-
+	for (vector<ConfigLocationParser *>::iterator it = config_server_parser->get_config_location_parser().begin(); it != config_server_parser->get_config_location_parser().end(); it++) {
+		if (this->get_request("Request-URI").find((*it)->get_location()) != string::npos) {
+			for (int i = 0; i < (*it)->get_methods().size(); i++) {
+				if ((*it)->get_methods(i) == this->get_request("Request-Type"))
+					return;
+			}
+			throw Error::MethodNotAllowed405();
+		}
+	}
 	throw Error::MethodNotAllowed405();
 }

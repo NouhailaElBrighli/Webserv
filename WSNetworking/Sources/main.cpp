@@ -8,8 +8,8 @@ int main(int ac, char **av) {
 		ConfigFileParser config_file_parser(av[1]);
 
 		try {
-			config_file_parser.run();
-			// config_file_parser.print_config_file();
+			config_file_parser.parse();
+			// config_file_parser.print_parsed_config_file();
 
 			cout << str_green("Config File Parsed Successfully") << endl;
 		} catch (const std::exception &e) {
@@ -17,15 +17,12 @@ int main(int ac, char **av) {
 			return EXIT_FAILURE;
 		}
 
+		cout << str_cyan("Run Main Server ...") << endl;
+
+		MainServer main_server(AF_INET, SOCK_STREAM, 0, config_file_parser, INADDR_ANY, 10);
+
 		try {
-			cout << str_cyan("Run Main Server ...") << endl;
-
-			vector<int> port;
-			port.push_back(8080);
-			port.push_back(18000);
-			port.push_back(8888);
-
-			MainServer main_server(AF_INET, SOCK_STREAM, 0, port, INADDR_ANY, 10);
+			main_server.launch();
 
 			cout << str_green("Main Server Terminate Successfully") << endl;
 		} catch (const std::exception &e) {

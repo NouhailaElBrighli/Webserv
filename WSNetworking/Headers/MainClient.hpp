@@ -3,15 +3,15 @@
 
 #include "WSNetworking.hpp"
 
-
 class MainClient {
 
   private:
-	RequestParser *request_parser;
-	int			   status;
-	string		   msg_status;
-	int			   client_socket;
-	char		   buffer[MAXLINE + 1];
+	ConfigServerParser *config_server_parser;
+	RequestParser	   *request_parser;
+	int					status;
+	string				msg_status;
+	int					client_socket;
+	char				buffer[MAXLINE + 1];
 
 	MainClient(const MainClient &);
 	MainClient &operator=(const MainClient &);
@@ -26,7 +26,7 @@ class MainClient {
 
 	// Constructors and copy constructor and copy assignment operator and destructor
 	MainClient();
-	MainClient(int client_socket);
+	MainClient(int client_socket, ConfigServerParser *config_server_parser);
 	~MainClient();
 
   private:
@@ -35,6 +35,5 @@ class MainClient {
 	void get_matched_location_for_request_uri();
 	void is_method_allowded_in_location();
 };
-
 
 #endif // MAINCLIENT_HPP
