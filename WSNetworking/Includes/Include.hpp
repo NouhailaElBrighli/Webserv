@@ -14,6 +14,7 @@
 #include <cstring>
 
 #include <algorithm>
+#include <cstdint>
 #include <exception>
 #include <fstream>
 #include <iostream>
