@@ -161,7 +161,7 @@ vector<int> ConfigServerParser::stringToHost(string host) {
 // Setters
 void ConfigServerParser::set_port(string port, size_t pos) {
 	port = port.substr(0, port.length() - 1);
-	if (this->port_status == true || port.empty() == true || checkType(port) != 1 || port.length() > 5 || stringToInt(port) < 0 || stringToInt(port) > 65535 || this->config_server[pos - 1] != ';' || this->config_server[pos - 2] == ' ') {
+	if (this->port_status == true || port.empty() == true || checkType(port) != 1 || port.length() > 5 || stringToInt(port) < 0 || stringToInt(port) > 65535 || this->config_server[pos - 1] != ';' || !std::isalnum(this->config_server[pos - 2])) {
 		throw std::runtime_error(str_red("Port Error : " + port));
 	}
 	this->port		  = this->stringToInt(port);
@@ -171,7 +171,7 @@ void ConfigServerParser::set_port(string port, size_t pos) {
 // parse host on format "127.0.0.1"
 void ConfigServerParser::set_host(string host, size_t pos) {
 	host = host.substr(0, host.length() - 1);
-	if (this->host_status == true || host.empty() == true || this->config_server[pos - 1] != ';' || this->config_server[pos - 2] == ' ') {
+	if (this->host_status == true || host.empty() == true || this->config_server[pos - 1] != ';' || !std::isalnum(this->config_server[pos - 2])) {
 		throw std::runtime_error(str_red("Host Error : " + host));
 	}
 
@@ -182,7 +182,7 @@ void ConfigServerParser::set_host(string host, size_t pos) {
 
 void ConfigServerParser::set_server_name(string server_name, size_t pos) {
 	server_name = server_name.substr(0, server_name.length() - 1);
-	if (this->server_name_status == true || server_name.empty() == true || this->config_server[pos - 1] != ';' || this->config_server[pos - 2] == ' ') {
+	if (this->server_name_status == true || server_name.empty() == true || this->config_server[pos - 1] != ';' || !std::isalnum(this->config_server[pos - 2])) {
 		throw std::runtime_error(str_red("Server Name Error : " + server_name));
 	}
 
@@ -192,7 +192,7 @@ void ConfigServerParser::set_server_name(string server_name, size_t pos) {
 
 void ConfigServerParser::set_client_max_body_size(string client_max_body_size, size_t pos) {
 	client_max_body_size = client_max_body_size.substr(0, client_max_body_size.length() - 1);
-	if (this->client_max_body_size_status == true || client_max_body_size.empty() == true || checkType(client_max_body_size) != 1 || this->config_server[pos - 1] != ';' || this->config_server[pos - 2] == ' ') {
+	if (this->client_max_body_size_status == true || client_max_body_size.empty() == true || checkType(client_max_body_size) != 1 || this->config_server[pos - 1] != ';' || !std::isalnum(this->config_server[pos - 2])) {
 		throw std::runtime_error(str_red("Client Max Body Size Error : " + client_max_body_size));
 	}
 
@@ -222,7 +222,7 @@ void ConfigServerParser::set_error_page(string error_page, size_t pos) {
 
 	status_code		= stringToInt(status_code_str);
 	error_page_path = error_page.substr(0, error_page.size() - 1);
-	if (status_code < 400 || 599 < status_code || error_page_path.empty() == true || this->config_server[pos - 1] != ';' || this->config_server[pos - 2] == ' ') {
+	if (status_code < 400 || 599 < status_code || error_page_path.empty() == true || this->config_server[pos - 1] != ';' || !std::isalnum(this->config_server[pos - 2])) {
 		throw std::runtime_error(str_red("Error Page Error : " + error_page_input));
 	}
 
