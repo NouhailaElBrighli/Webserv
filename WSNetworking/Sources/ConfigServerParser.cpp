@@ -326,9 +326,9 @@ std::ostream &operator<<(std::ostream &out, const ConfigServerParser &config_ser
 	out << "client_max_body_size: " << config_server_parser.get_client_max_body_size() << endl;
 	if (config_server_parser.get_error_page_status() == true) {
 		cout << "error_page_status: " << config_server_parser.get_error_page_status() << endl;
-		// for (map<int, string>::const_iterator it = config_server_parser.get_error_page().begin(); it != config_server_parser.get_error_page().end(); ++it) {
-		// 	out << "error_page: " << it->first << " " << it->second << endl;
-		// }
+		for (map<int, string>::const_iterator it = config_server_parser.get_error_page().begin(); it != config_server_parser.get_error_page().end(); ++it) {
+			out << "error_page: " << it->first << " " << it->second << endl;
+		}
 	} else {
 		out << "error_page_status: " << config_server_parser.get_error_page_status() << endl;
 	}
