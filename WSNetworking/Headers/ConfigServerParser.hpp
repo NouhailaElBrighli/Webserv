@@ -25,13 +25,14 @@ class ConfigServerParser {
 
   public:
 	// Getters
-	const int					  &get_port() const;
-	const int					  &get_host(int i) const;
-	const string				  &get_host() const;
-	const string				  &get_server_name() const;
-	const size_t				  &get_client_max_body_size() const;
-	map<int, string>			   get_error_page() const;
-	vector<ConfigLocationParser *> get_config_location_parser() const;
+	const int							 &get_port() const;
+	const int							 &get_host(int i) const;
+	const string						 &get_host() const;
+	const string						 &get_server_name() const;
+	const size_t						 &get_client_max_body_size() const;
+	const map<int, string>				 &get_error_page() const;
+	const bool							 &get_error_page_status() const;
+	const vector<ConfigLocationParser *> &get_config_location_parser() const;
 
 	// Constructors and copy constructor and copy assignment operator and destructor
 	ConfigServerParser(string config_server);

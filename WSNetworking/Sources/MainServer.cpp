@@ -14,11 +14,11 @@ string MainServer::get_request(int client_socket, string key) {
 }
 
 // Constructors and copy constructor and copy assignment operator and destructor
-MainServer::MainServer(int domain, int service, int protocol, ConfigFileParser &config_file_parser, u_long interface, int backlog) : config_file_parser(&config_file_parser) {
+MainServer::MainServer(int domain, int service, int protocol, ConfigFileParser *config_file_parser, u_long interface, int backlog) : config_file_parser(config_file_parser) {
 	launch_status = false;
 	// Create a listening socket for each port
-	for (size_t i = 0; i < config_file_parser.get_config_server_parser().size(); i++)
-		listen_socket.push_back(ListeningSocket(domain, service, protocol, config_file_parser.get_config_server_parser(i)->get_port(), interface, backlog));
+	for (size_t i = 0; i < config_file_parser->get_config_server_parser().size(); i++)
+		listen_socket.push_back(ListeningSocket(domain, service, protocol, config_file_parser->get_config_server_parser(i)->get_port(), interface, backlog));
 
 	this->address = get_listen_socket(0).get_address();
 
@@ -53,17 +53,42 @@ void MainServer::accepter(int accept_socket) {
 	socklen_t addrlen = sizeof(address);
 
 	this->accept_socket = accept(accept_socket, (t_sockaddr *)&address, &addrlen);
-	cout << "Accept socket : " << this->accept_socket << endl;
+	cout << "this->accept_socket : " << this->accept_socket << endl;
+	cout << "accept_socket : " << accept_socket << endl;
 
 	inet_ntop(AF_INET, &address, client_address, MAXLINE);
 	cout << "Client connection : " << client_address << endl;
+
+	in_addr_t client_ip = ntohl(address.sin_addr.s_addr);
+	cout << "Client IP : " << client_ip << endl;
+
+	// Get the socket address structure for the client socket
+	cout << "getsockname(this->accept_socket, (sockaddr *)&address, &addrlen) : " << getsockname(this->accept_socket, (sockaddr *)&address, &addrlen) << endl;
+
+	// Get the port number from the socket address structure
+	uint16_t port = ntohs(((sockaddr_in *)&address)->sin_port);
+	cout << "port : " << port << endl;
 }
 
 void MainServer::handle(int client_socket) {
+	socklen_t addrlen = sizeof(address);
+
 	print_line("handle");
 
-	MainClient *mainClient		 = new MainClient(client_socket, this->config_file_parser->get_config_server_parser(client_socket));
-	this->clients[client_socket] = mainClient;
+	// Get the socket address structure for the client socket
+	if (getsockname(this->accept_socket, (sockaddr *)&address, &addrlen) != 0)
+		return;
+
+	// Get the port number from the socket address structure
+	uint16_t port = ntohs(((sockaddr_in *)&address)->sin_port);
+	for (size_t i = 0; i < this->socket.size(); i++) {
+		if (this->config_file_parser->get_config_server_parser(i)->get_port() == port) {
+			MainClient *mainClient		 = new MainClient(client_socket, this->config_file_parser->get_config_server_parser(i));
+			this->clients[client_socket] = mainClient;
+			print_line("add new client");
+			break;
+		}
+	}
 }
 
 void MainServer::responder(int client_socket) {

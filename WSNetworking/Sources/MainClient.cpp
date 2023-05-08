@@ -110,7 +110,7 @@ void MainClient::get_matched_location_for_request_uri() {
 }
 
 void MainClient::is_method_allowded_in_location() {
-	for (vector<ConfigLocationParser *>::iterator it = config_server_parser->get_config_location_parser().begin(); it != config_server_parser->get_config_location_parser().end(); it++) {
+	for (vector<ConfigLocationParser *>::const_iterator it = config_server_parser->get_config_location_parser().begin(); it != config_server_parser->get_config_location_parser().end(); it++) {
 		if (this->get_request("Request-URI").find((*it)->get_location()) != string::npos) {
 			for (size_t i = 0; i < (*it)->get_methods().size(); i++) {
 				if ((*it)->get_methods(i) == this->get_request("Request-Type"))

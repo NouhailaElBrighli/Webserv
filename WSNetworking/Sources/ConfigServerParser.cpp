@@ -21,14 +21,20 @@ const size_t &ConfigServerParser::get_client_max_body_size() const {
 	return this->client_max_body_size;
 }
 
-map<int, string> ConfigServerParser::get_error_page() const {
+const map<int, string> &ConfigServerParser::get_error_page() const {
 	if (this->error_page_status) {
 		return this->error_page;
 	}
-	return map<int, string>();
+	// return an empty map if error_page_status is false
+	static std::map<int, std::string> empty_map;
+	return empty_map;
 }
 
-vector<ConfigLocationParser *> ConfigServerParser::get_config_location_parser() const {
+const bool &ConfigServerParser::get_error_page_status() const {
+	return this->error_page_status;
+}
+
+const vector<ConfigLocationParser *> &ConfigServerParser::get_config_location_parser() const {
 	return this->config_location_parser;
 }
 
@@ -318,10 +324,15 @@ std::ostream &operator<<(std::ostream &out, const ConfigServerParser &config_ser
 	out << "host: " << config_server_parser.get_host() << endl;
 	out << "server_name: " << config_server_parser.get_server_name() << endl;
 	out << "client_max_body_size: " << config_server_parser.get_client_max_body_size() << endl;
-	for (std::map<int, string>::const_iterator it = config_server_parser.get_error_page().begin(); it != config_server_parser.get_error_page().end(); ++it) {
-		out << "error_page: " << it->first << " " << it->second << endl;
+	if (config_server_parser.get_error_page_status() == true) {
+		cout << "error_page_status: " << config_server_parser.get_error_page_status() << endl;
+		// for (map<int, string>::const_iterator it = config_server_parser.get_error_page().begin(); it != config_server_parser.get_error_page().end(); ++it) {
+		// 	out << "error_page: " << it->first << " " << it->second << endl;
+		// }
+	} else {
+		out << "error_page_status: " << config_server_parser.get_error_page_status() << endl;
 	}
-	for (std::vector<ConfigLocationParser *>::const_iterator it = config_server_parser.get_config_location_parser().begin(); it != config_server_parser.get_config_location_parser().end(); ++it) {
+	for (vector<ConfigLocationParser *>::const_iterator it = config_server_parser.get_config_location_parser().begin(); it != config_server_parser.get_config_location_parser().end(); ++it) {
 		out << **it;
 	}
 	return out;

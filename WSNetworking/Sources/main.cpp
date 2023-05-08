@@ -5,11 +5,11 @@ int main(int ac, char **av) {
 	if (ac == 2) {
 		cout << str_cyan("Run Config File Parser ...") << endl;
 
-		ConfigFileParser config_file_parser(av[1]);
+		ConfigFileParser *config_file_parser = new ConfigFileParser(av[1]);
 
 		try {
-			config_file_parser.parse();
-			// config_file_parser.print_parsed_config_file();
+			config_file_parser->parse();
+			config_file_parser->print_parsed_config_file();
 
 			cout << str_green("Config File Parsed Successfully") << endl;
 		} catch (const std::exception &e) {
@@ -29,6 +29,8 @@ int main(int ac, char **av) {
 			cerr << e.what() << endl;
 			return EXIT_FAILURE;
 		}
+
+		delete config_file_parser;
 
 	} else {
 		cerr << "Usage: " << av[0] << " <config_file_path>" << endl;

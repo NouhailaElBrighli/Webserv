@@ -29,7 +29,7 @@ class MainServer {
 	string					get_request(int client_socket, string key);
 
 	// Constructors and copy constructor and copy assignment operator and destructor
-	MainServer(int domain, int service, int protocol, ConfigFileParser &config_file_parser, u_long interface, int backlog);
+	MainServer(int domain, int service, int protocol, ConfigFileParser *config_file_parser, u_long interface, int backlog);
 	MainServer(const MainServer &main_server);
 	MainServer &operator=(const MainServer &main_server);
 	~MainServer();
