@@ -159,8 +159,9 @@ vector<int> ConfigServerParser::stringToHost(string host) {
 }
 
 // Setters
-void ConfigServerParser::set_port(string port) {
-	if (this->port_status == true || port.empty() == true || checkType(port) != 1) {
+void ConfigServerParser::set_port(string port, size_t pos) {
+	port = port.substr(0, port.length() - 1);
+	if (this->port_status == true || port.empty() == true || checkType(port) != 1 || port.length() > 5 || stringToInt(port) < 0 || stringToInt(port) > 65535 || this->config_server[pos - 1] != ';' || this->config_server[pos - 2] == ' ') {
 		throw std::runtime_error(str_red("Port Error : " + port));
 	}
 	this->port		  = this->stringToInt(port);
@@ -168,8 +169,9 @@ void ConfigServerParser::set_port(string port) {
 }
 
 // parse host on format "127.0.0.1"
-void ConfigServerParser::set_host(string host) {
-	if (this->host_status == true || host.empty() == true) {
+void ConfigServerParser::set_host(string host, size_t pos) {
+	host = host.substr(0, host.length() - 1);
+	if (this->host_status == true || host.empty() == true || this->config_server[pos - 1] != ';' || this->config_server[pos - 2] == ' ') {
 		throw std::runtime_error(str_red("Host Error : " + host));
 	}
 
@@ -178,8 +180,9 @@ void ConfigServerParser::set_host(string host) {
 	this->host_status = true;
 }
 
-void ConfigServerParser::set_server_name(string server_name) {
-	if (this->server_name_status == true || server_name.empty() == true) {
+void ConfigServerParser::set_server_name(string server_name, size_t pos) {
+	server_name = server_name.substr(0, server_name.length() - 1);
+	if (this->server_name_status == true || server_name.empty() == true || this->config_server[pos - 1] != ';' || this->config_server[pos - 2] == ' ') {
 		throw std::runtime_error(str_red("Server Name Error : " + server_name));
 	}
 
@@ -187,8 +190,9 @@ void ConfigServerParser::set_server_name(string server_name) {
 	this->server_name_status = true;
 }
 
-void ConfigServerParser::set_client_max_body_size(string client_max_body_size) {
-	if (this->client_max_body_size_status == true || client_max_body_size.empty() == true || checkType(client_max_body_size) != 1) {
+void ConfigServerParser::set_client_max_body_size(string client_max_body_size, size_t pos) {
+	client_max_body_size = client_max_body_size.substr(0, client_max_body_size.length() - 1);
+	if (this->client_max_body_size_status == true || client_max_body_size.empty() == true || checkType(client_max_body_size) != 1 || this->config_server[pos - 1] != ';' || this->config_server[pos - 2] == ' ') {
 		throw std::runtime_error(str_red("Client Max Body Size Error : " + client_max_body_size));
 	}
 
@@ -196,7 +200,7 @@ void ConfigServerParser::set_client_max_body_size(string client_max_body_size) {
 	this->client_max_body_size_status = true;
 }
 
-void ConfigServerParser::set_error_page(string error_page) {
+void ConfigServerParser::set_error_page(string error_page, size_t pos) {
 	int	   status_code;
 	string error_page_input = error_page;
 	string status_code_str;
@@ -217,8 +221,8 @@ void ConfigServerParser::set_error_page(string error_page) {
 	}
 
 	status_code		= stringToInt(status_code_str);
-	error_page_path = error_page.substr(0, error_page.size());
-	if (status_code < 400 || 599 < status_code || error_page_path.empty() == true) {
+	error_page_path = error_page.substr(0, error_page.size() - 1);
+	if (status_code < 400 || 599 < status_code || error_page_path.empty() == true || this->config_server[pos - 1] != ';' || this->config_server[pos - 2] == ' ') {
 		throw std::runtime_error(str_red("Error Page Error : " + error_page_input));
 	}
 
@@ -275,22 +279,22 @@ void ConfigServerParser::parse_config_server() {
 		return;
 	}
 	while ((pos = this->config_server.find("\n")) != string::npos) {
-		line = this->config_server.substr(0, pos - 1);
+		line = this->config_server.substr(0, pos);
 
 		if (line.find("listen") != string::npos && line.find("listen") == 0 && std::strlen("listen") == line.find(" "))
-			this->set_port(line.substr(line.find(" ") + 1));
+			this->set_port(line.substr(line.find(" ") + 1), pos);
 
 		else if (line.find("server_name") != string::npos && line.find("server_name") == 0 && std::strlen("server_name") == line.find(" "))
-			this->set_server_name(line.substr(line.find(" ") + 1));
+			this->set_server_name(line.substr(line.find(" ") + 1), pos);
 
 		else if (line.find("host") != string::npos && line.find("host") == 0 && std::strlen("host") == line.find(" "))
-			this->set_host(line.substr(line.find(" ") + 1));
+			this->set_host(line.substr(line.find(" ") + 1), pos);
 
 		else if (line.find("client_max_body_size") != string::npos && line.find("client_max_body_size") == 0 && std::strlen("client_max_body_size") == line.find(" "))
-			this->set_client_max_body_size(line.substr(line.find(" ") + 1));
+			this->set_client_max_body_size(line.substr(line.find(" ") + 1), pos);
 
 		else if (line.find("error_page") != string::npos && line.find("error_page") == 0 && std::strlen("error_page") == line.find(" "))
-			this->set_error_page(line.substr(line.find(" ") + 1));
+			this->set_error_page(line.substr(line.find(" ") + 1), pos);
 
 		else if (line.find("location") != string::npos && line.find("location") == 0 && std::strlen("location") == line.find(" "))
 			pos = this->split_config_location(this->config_server);
@@ -329,7 +333,7 @@ std::ostream &operator<<(std::ostream &out, const ConfigServerParser &config_ser
 			out << "error_page: " << it->first << " " << it->second << endl;
 		}
 	} else {
-		out << "error_page_status: " << config_server_parser.get_error_page_status() << endl;
+		out << "error_page_status: off" << endl;
 	}
 	for (vector<ConfigLocationParser *>::const_iterator it = config_server_parser.get_config_location_parser().begin(); it != config_server_parser.get_config_location_parser().end(); ++it) {
 		out << **it;

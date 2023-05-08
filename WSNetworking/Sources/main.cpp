@@ -13,6 +13,7 @@ int main(int ac, char **av) {
 
 			cout << str_green("Config File Parsed Successfully") << endl;
 		} catch (const std::exception &e) {
+			delete config_file_parser;
 			cerr << e.what() << endl;
 			return EXIT_FAILURE;
 		}

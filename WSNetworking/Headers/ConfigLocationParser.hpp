@@ -7,6 +7,7 @@ class ConfigLocationParser {
 
   private:
 	// Attributes
+	string				config_location;
 	string				location;
 	bool				location_status;
 	bool				autoindex;
@@ -50,17 +51,17 @@ class ConfigLocationParser {
 	vector<string> stringToMethods(string host);
 
 	// Setters
-	void set_location(string location);
-	void set_autoindex(string autoindex);
-	void set_root(string root);
-	void set_index(string index);
-	void set_return(string return_);
-	void set_file_body(string file_body);
-	void set_methods(string methods);
-	void set_cgi_ext_path(string cgi_ext_path);
+	void set_location(string location, size_t pos);
+	void set_autoindex(string autoindex, size_t pos);
+	void set_root(string root, size_t pos);
+	void set_index(string index, size_t pos);
+	void set_return(string return_, size_t pos);
+	void set_file_body(string file_body, size_t pos);
+	void set_methods(string methods, size_t pos);
+	void set_cgi_ext_path(string cgi_ext_path, size_t pos);
 
 	// Methods
-	void parse_config_location(string config_location);
+	void parse_config_location();
 	void check_status();
 };
 

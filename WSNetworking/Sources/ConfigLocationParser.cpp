@@ -46,7 +46,7 @@ const string &ConfigLocationParser::get_cgi_ext_path(string key) const {
 }
 
 // Constructors and copy constructor and copy assignment operator and destructor
-ConfigLocationParser::ConfigLocationParser(string config_location) {
+ConfigLocationParser::ConfigLocationParser(string config_location) : config_location(config_location) {
 	this->location_status	  = false;
 	this->root_status		  = false;
 	this->index_status		  = false;
@@ -55,7 +55,7 @@ ConfigLocationParser::ConfigLocationParser(string config_location) {
 	this->methods_status	  = false;
 	this->cgi_ext_path_status = false;
 
-	this->parse_config_location(config_location);
+	this->parse_config_location();
 }
 
 ConfigLocationParser::~ConfigLocationParser() {
@@ -162,16 +162,18 @@ vector<string> ConfigLocationParser::stringToMethods(string host) {
 }
 
 // Setters
-void ConfigLocationParser::set_location(string location) {
-	if (this->location_status == true || location.empty())
+void ConfigLocationParser::set_location(string location, size_t pos) {
+	location = location.substr(0, location.size() - 2);
+	if (this->location_status == true || location.empty() || this->config_location[pos - 1] != '{' || this->config_location[pos - 2] != ' ')
 		throw std::runtime_error(str_red("location Error : " + location));
 
 	this->location		  = location;
 	this->location_status = true;
 }
 
-void ConfigLocationParser::set_autoindex(string autoindex) {
-	if (this->autoindex_status == true || autoindex.empty())
+void ConfigLocationParser::set_autoindex(string autoindex, size_t pos) {
+	autoindex = autoindex.substr(0, autoindex.size() - 1);
+	if (this->autoindex_status == true || autoindex.empty() || this->config_location[pos - 1] != ';' || this->config_location[pos - 2] == ' ')
 		throw std::runtime_error(str_red("autoindex Error : " + autoindex));
 
 	if (autoindex == "on")
@@ -184,19 +186,21 @@ void ConfigLocationParser::set_autoindex(string autoindex) {
 	this->autoindex_status = true;
 }
 
-void ConfigLocationParser::set_root(string root) {
-	if (this->root_status == true || root.empty())
+void ConfigLocationParser::set_root(string root, size_t pos) {
+	root = root.substr(0, root.size() - 1);
+	if (this->root_status == true || root.empty() || this->config_location[pos - 1] != ';' || this->config_location[pos - 2] == ' ')
 		throw std::runtime_error(str_red("root Error : " + root));
 
 	this->root		  = root;
 	this->root_status = true;
 }
 
-void ConfigLocationParser::set_index(string index) {
+void ConfigLocationParser::set_index(string index, size_t pos) {
+	index = index.substr(0, index.size() - 1);
 	std::stringstream ss_index(index);
 	string			  str_idx;
 
-	if (this->index_status == true || index.empty())
+	if (this->index_status == true || index.empty() || this->config_location[pos - 1] != ';' || this->config_location[pos - 2] == ' ')
 		throw std::runtime_error(str_red("index Error : " + index));
 
 	while (std::getline(ss_index, str_idx, ' '))
@@ -205,31 +209,34 @@ void ConfigLocationParser::set_index(string index) {
 	this->index_status = true;
 }
 
-void ConfigLocationParser::set_return(string return_) {
-	if (this->return_status == true || return_.empty())
+void ConfigLocationParser::set_return(string return_, size_t pos) {
+	return_ = return_.substr(0, return_.size() - 1);
+	if (this->return_status == true || return_.empty() || this->config_location[pos - 1] != ';' || this->config_location[pos - 2] == ' ')
 		throw std::runtime_error(str_red("return Error : " + return_));
 
 	this->return_		= return_;
 	this->return_status = true;
 }
 
-void ConfigLocationParser::set_file_body(string file_body) {
-	if (this->file_body_status == true || file_body.empty())
+void ConfigLocationParser::set_file_body(string file_body, size_t pos) {
+	file_body = file_body.substr(0, file_body.size() - 1);
+	if (this->file_body_status == true || file_body.empty() || this->config_location[pos - 1] != ';' || this->config_location[pos - 2] == ' ')
 		throw std::runtime_error(str_red("file_body Error : " + file_body));
 
 	this->file_body		   = file_body;
 	this->file_body_status = true;
 }
 
-void ConfigLocationParser::set_methods(string methods) {
-	if (this->methods_status == true || methods.empty())
+void ConfigLocationParser::set_methods(string methods, size_t pos) {
+	methods = methods.substr(0, methods.size() - 1);
+	if (this->methods_status == true || methods.empty() || this->config_location[pos - 1] != ';' || this->config_location[pos - 2] == ' ')
 		throw std::runtime_error(str_red("methods Error : " + methods));
 
 	this->methods		 = this->stringToMethods(methods);
 	this->methods_status = true;
 }
 
-void ConfigLocationParser::set_cgi_ext_path(string cgi_ext_path) {
+void ConfigLocationParser::set_cgi_ext_path(string cgi_ext_path, size_t pos) {
 	string cgi_ext_path_input = cgi_ext_path;
 	string cgi_ext_path_str;
 	string error_page_path;
@@ -249,7 +256,7 @@ void ConfigLocationParser::set_cgi_ext_path(string cgi_ext_path) {
 	}
 
 	error_page_path = cgi_ext_path.substr(0, cgi_ext_path.size());
-	if (error_page_path.empty() == true) {
+	if (error_page_path.empty() == true || this->config_location[pos - 1] != ';' || this->config_location[pos - 2] == ' ') {
 		throw std::runtime_error(str_red("Error CGI Ext Path : " + cgi_ext_path_input));
 	}
 
@@ -258,40 +265,41 @@ void ConfigLocationParser::set_cgi_ext_path(string cgi_ext_path) {
 }
 
 // Methods
-void ConfigLocationParser::parse_config_location(string config_location) {
+void ConfigLocationParser::parse_config_location() {
 	size_t pos = 0;
 	string line;
 
 	while ((pos = config_location.find("\n")) != string::npos) {
-		line = config_location.substr(0, pos - 1);
-		config_location.erase(0, pos + 1);
+		line = config_location.substr(0, pos);
 
 		if (line.find("location") != string::npos && line.find("location") == 0 && std::strlen("location") == line.find(" "))
-			this->set_location(line.substr(line.find(" ") + 1, line.find("{")));
+			this->set_location(line.substr(line.find(" ") + 1, line.find("{")), pos);
 
 		else if (line.find("autoindex") != string::npos && line.find("autoindex") == 0 && std::strlen("autoindex") == line.find(" "))
-			this->set_autoindex(line.substr(line.find(" ") + 1));
+			this->set_autoindex(line.substr(line.find(" ") + 1), pos);
 
 		else if (line.find("root") != string::npos && line.find("root") == 0 && std::strlen("root") == line.find(" "))
-			this->set_root(line.substr(line.find(" ") + 1));
+			this->set_root(line.substr(line.find(" ") + 1), pos);
 
 		else if (line.find("return") != string::npos && line.find("return") == 0 && std::strlen("return") == line.find(" "))
-			this->set_return(line.substr(line.find(" ") + 1));
+			this->set_return(line.substr(line.find(" ") + 1), pos);
 
 		else if (line.find("file_body") != string::npos && line.find("file_body") == 0 && std::strlen("file_body") == line.find(" "))
-			this->set_file_body(line.substr(line.find(" ") + 1));
+			this->set_file_body(line.substr(line.find(" ") + 1), pos);
 
 		else if (line.find("index") != string::npos && line.find("index") == 0 && std::strlen("index") == line.find(" "))
-			this->set_index(line.substr(line.find(" ") + 1));
+			this->set_index(line.substr(line.find(" ") + 1), pos);
 
 		else if (line.find("methods") != string::npos && line.find("methods") == 0 && std::strlen("methods") == line.find(" "))
-			this->set_methods(line.substr(line.find(" ") + 1));
+			this->set_methods(line.substr(line.find(" ") + 1), pos);
 
 		else if (line.find("cgi_ext_path") != string::npos && line.find("cgi_ext_path") == 0 && std::strlen("cgi_ext_path") == line.find(" "))
-			this->set_cgi_ext_path(line.substr(line.find(" ") + 1));
+			this->set_cgi_ext_path(line.substr(line.find(" ") + 1), pos);
 
 		else
 			throw std::runtime_error(str_red("Error : unknown directive '" + line + "'"));
+
+		config_location.erase(0, pos + 1);
 	}
 	this->check_status();
 }

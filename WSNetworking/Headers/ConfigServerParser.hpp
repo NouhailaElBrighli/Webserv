@@ -49,11 +49,11 @@ class ConfigServerParser {
 	vector<int> stringToHost(string host);
 
 	// Setters
-	void set_port(string port);
-	void set_host(string host);
-	void set_server_name(string server_name);
-	void set_client_max_body_size(string client_max_body_size);
-	void set_error_page(string error_page);
+	void set_port(string port, size_t pos);
+	void set_host(string host, size_t pos);
+	void set_server_name(string server_name, size_t pos);
+	void set_client_max_body_size(string client_max_body_size, size_t pos);
+	void set_error_page(string error_page, size_t pos);
 	void set_config_location_parser(string config_location);
 
 	// Methods
