@@ -34,7 +34,8 @@ class ConfigServerParser {
 	const bool							 &get_error_page_status() const;
 	const vector<ConfigLocationParser *> &get_config_location_parser() const;
 
-	// Constructors and copy constructor and copy assignment operator and destructor
+	// Constructors and copy constructor and copy assignment operator and
+	// destructor
 	ConfigServerParser(string config_server);
 	~ConfigServerParser();
 
@@ -47,6 +48,7 @@ class ConfigServerParser {
 	int			stringToInt(string str);
 	vector<int> split_ip_address(const string &str);
 	vector<int> stringToHost(string host);
+	bool		find_compare(string &line, const string &str);
 
 	// Setters
 	void set_port(string port, size_t pos);
@@ -64,4 +66,4 @@ class ConfigServerParser {
 
 std::ostream &operator<<(std::ostream &o, ConfigServerParser const &rhs);
 
-#endif // CONFIGSERVERPARSER_HPP
+#endif	// CONFIGSERVERPARSER_HPP

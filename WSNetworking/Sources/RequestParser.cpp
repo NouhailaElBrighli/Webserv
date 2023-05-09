@@ -1,13 +1,9 @@
 #include "RequestParser.hpp"
 
 // Getters
-const string &RequestParser::get_head() const {
-	return this->head;
-}
+const string &RequestParser::get_head() const { return this->head; }
 
-const string &RequestParser::get_body() const {
-	return this->body;
-}
+const string &RequestParser::get_body() const { return this->body; }
 
 const map<string, string> &RequestParser::get_request() const {
 	return this->request;
@@ -18,20 +14,15 @@ const string &RequestParser::get_request(string key) {
 }
 
 // Setters
-void RequestParser::set_head(string &head) {
-	this->head = head;
-}
+void RequestParser::set_head(string &head) { this->head = head; }
 
-void RequestParser::set_body(string &body) {
-	this->body = body;
-}
+void RequestParser::set_body(string &body) { this->body = body; }
 
 // Constructors and copy constructor and copy assignment operator and destructor
-RequestParser::RequestParser() {
-}
+RequestParser::RequestParser() {}
 
-RequestParser::RequestParser(const RequestParser &requestParser) : head(requestParser.head), request(requestParser.request) {
-}
+RequestParser::RequestParser(const RequestParser &requestParser)
+	: head(requestParser.head), request(requestParser.request) {}
 
 RequestParser &RequestParser::operator=(const RequestParser &requestParser) {
 	this->head	  = requestParser.head;
@@ -39,8 +30,7 @@ RequestParser &RequestParser::operator=(const RequestParser &requestParser) {
 	return *this;
 }
 
-RequestParser::~RequestParser() {
-}
+RequestParser::~RequestParser() {}
 
 // Methods
 void RequestParser::run_head(string &head) {
@@ -68,15 +58,19 @@ void RequestParser::is_head_valid() {
 }
 
 void RequestParser::is_first_line_valid() {
-	string allowed_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;=%";
+	string allowed_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxy"
+						   "z0123456789-._~:/?#[]@!$&'()*+,;=%";
 
 	if (this->request.size() != 3)
 		throw Error::NotImplemented501();
 
-	if (this->request["Request-Type"] != "GET" && this->request["Request-Type"] != "POST" && this->request["Request-Type"] != "DELETE")
+	if (this->request["Request-Type"] != "GET"
+		&& this->request["Request-Type"] != "POST"
+		&& this->request["Request-Type"] != "DELETE")
 		throw Error::BadRequest400();
 
-	if (this->request["Request-URI"].find_first_not_of(allowed_chars) != string::npos)
+	if (this->request["Request-URI"].find_first_not_of(allowed_chars)
+		!= string::npos)
 		throw Error::BadRequest400();
 
 	if (this->request["Request-URI"].length() > 2048)
@@ -136,10 +130,13 @@ void RequestParser::parse_rest_lines() {
 }
 
 // Operators <<
-std::ostream &operator<<(std::ostream &out, const RequestParser &requestParser) {
+std::ostream &operator<<(std::ostream		 &out,
+						 const RequestParser &requestParser) {
 	out << "RequestParser {" << endl;
 	out << "	request: {" << endl;
-	for (map<string, string>::const_iterator it = requestParser.get_request().begin(); it != requestParser.get_request().end(); it++) {
+	for (map<string, string>::const_iterator it
+		 = requestParser.get_request().begin();
+		 it != requestParser.get_request().end(); it++) {
 		cout << "		" << it->first << " : " << it->second << endl;
 	}
 	out << "	}" << endl;

@@ -8,7 +8,8 @@ class RequestParser {
   private:
 	string head;
 	string body;
-	// the first line splited to three parts : the `Request-Type`, the `Request-URI`, and the `Protocol-Version`
+	// the first line splited to three parts : the `Request-Type`, the
+	// `Request-URI`, and the `Protocol-Version`
 	map<string, string> request;
 	// parse body head : could be a json or a form data or a binary data
 
@@ -23,7 +24,8 @@ class RequestParser {
 	void set_head(string &head);
 	void set_body(string &body);
 
-	// Constructors and copy constructor and copy assignment operator and destructor
+	// Constructors and copy constructor and copy assignment operator and
+	// destructor
 	RequestParser();
 	RequestParser(const RequestParser &requestParser);
 	RequestParser &operator=(const RequestParser &requestParser);
@@ -45,4 +47,4 @@ class RequestParser {
 // Operator <<
 std::ostream &operator<<(std::ostream &out, const RequestParser &requestParser);
 
-#endif // REQUESTPARSER_HPP
+#endif	// REQUESTPARSER_HPP

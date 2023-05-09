@@ -24,7 +24,7 @@ class MainClient {
 	const int	 &get_status() const;
 	const string &get_msg_status() const;
 
-	// Constructors and copy constructor and copy assignment operator and destructor
+	// Constructors and destructor
 	MainClient();
 	MainClient(int client_socket, ConfigServerParser *config_server_parser);
 	~MainClient();

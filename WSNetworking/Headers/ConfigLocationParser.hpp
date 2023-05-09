@@ -39,7 +39,8 @@ class ConfigLocationParser {
 	const map<string, string> &get_cgi_ext_path() const;
 	const string			  &get_cgi_ext_path(string key) const;
 
-	// Constructors and copy constructor and copy assignment operator and destructor
+	// Constructors and copy constructor and copy assignment operator and
+	// destructor
 	ConfigLocationParser(string config_location);
 	~ConfigLocationParser();
 
@@ -49,6 +50,7 @@ class ConfigLocationParser {
 	int			   stringToInt(string str);
 	vector<string> split_methods(const string &str);
 	vector<string> stringToMethods(string host);
+	bool		   find_compare(string &line, const string &str);
 
 	// Setters
 	void set_location(string location, size_t pos);
@@ -67,4 +69,4 @@ class ConfigLocationParser {
 
 std::ostream &operator<<(std::ostream &os, const ConfigLocationParser &clp);
 
-#endif // CONFIGLOCATIONPARSER_HPP
+#endif	// CONFIGLOCATIONPARSER_HPP

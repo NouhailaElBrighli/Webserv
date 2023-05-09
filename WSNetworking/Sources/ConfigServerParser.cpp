@@ -1,17 +1,11 @@
 #include "ConfigServerParser.hpp"
 
 // Getters
-const int &ConfigServerParser::get_port() const {
-	return this->port;
-}
+const int &ConfigServerParser::get_port() const { return this->port; }
 
-const int &ConfigServerParser::get_host(int i) const {
-	return this->host_v[i];
-}
+const int &ConfigServerParser::get_host(int i) const { return this->host_v[i]; }
 
-const string &ConfigServerParser::get_host() const {
-	return this->host_s;
-}
+const string &ConfigServerParser::get_host() const { return this->host_s; }
 
 const string &ConfigServerParser::get_server_name() const {
 	return this->server_name;
@@ -34,7 +28,8 @@ const bool &ConfigServerParser::get_error_page_status() const {
 	return this->error_page_status;
 }
 
-const vector<ConfigLocationParser *> &ConfigServerParser::get_config_location_parser() const {
+const vector<ConfigLocationParser *> &
+ConfigServerParser::get_config_location_parser() const {
 	return this->config_location_parser;
 }
 
@@ -63,7 +58,7 @@ int ConfigServerParser::checkType(string str) {
 	bool point	= false;
 	int	 num	= 0;
 	int	 decLen = 0;
-	int	 type	= -1; // {1: int} {2: float} {3: double}
+	int	 type	= -1;  // {1: int} {2: float} {3: double}
 
 	if (str[i] == '-' || str[i] == '+')
 		i++;
@@ -152,16 +147,30 @@ vector<int> ConfigServerParser::stringToHost(string host) {
 	vector<int> ip_address;
 
 	ip_address = split_ip_address(host);
-	if ((ip_address[0] < 1 || 255 < ip_address[0]) || (ip_address[1] < 0 || 255 < ip_address[1]) || (ip_address[2] < 0 || 255 < ip_address[2]) || (ip_address[3] < 0 || 255 < ip_address[3]))
+	if ((ip_address[0] < 1 || 255 < ip_address[0])
+		|| (ip_address[1] < 0 || 255 < ip_address[1])
+		|| (ip_address[2] < 0 || 255 < ip_address[2])
+		|| (ip_address[3] < 0 || 255 < ip_address[3]))
 		throw std::runtime_error(str_red("Host Bad Input : " + host));
 
 	return ip_address;
 }
 
+bool ConfigServerParser::find_compare(string &line, const string &str) {
+	size_t pos = line.find(str);
+
+	if (pos != string::npos && pos == 0 && str.length() == line.find(" "))
+		return true;
+	return false;
+}
+
 // Setters
 void ConfigServerParser::set_port(string port, size_t pos) {
 	port = port.substr(0, port.length() - 1);
-	if (this->port_status == true || port.empty() == true || checkType(port) != 1 || port.length() > 5 || stringToInt(port) < 0 || stringToInt(port) > 65535 || this->config_server[pos - 1] != ';' || !std::isalnum(this->config_server[pos - 2])) {
+	if (this->port_status == true || port.empty() == true
+		|| checkType(port) != 1 || port.length() > 5 || stringToInt(port) < 0
+		|| stringToInt(port) > 65535 || this->config_server[pos - 1] != ';'
+		|| !std::isalnum(this->config_server[pos - 2])) {
 		throw std::runtime_error(str_red("Port Error : " + port));
 	}
 	this->port		  = this->stringToInt(port);
@@ -171,7 +180,9 @@ void ConfigServerParser::set_port(string port, size_t pos) {
 // parse host on format "127.0.0.1"
 void ConfigServerParser::set_host(string host, size_t pos) {
 	host = host.substr(0, host.length() - 1);
-	if (this->host_status == true || host.empty() == true || this->config_server[pos - 1] != ';' || !std::isalnum(this->config_server[pos - 2])) {
+	if (this->host_status == true || host.empty() == true
+		|| this->config_server[pos - 1] != ';'
+		|| !std::isalnum(this->config_server[pos - 2])) {
 		throw std::runtime_error(str_red("Host Error : " + host));
 	}
 
@@ -182,7 +193,9 @@ void ConfigServerParser::set_host(string host, size_t pos) {
 
 void ConfigServerParser::set_server_name(string server_name, size_t pos) {
 	server_name = server_name.substr(0, server_name.length() - 1);
-	if (this->server_name_status == true || server_name.empty() == true || this->config_server[pos - 1] != ';' || !std::isalnum(this->config_server[pos - 2])) {
+	if (this->server_name_status == true || server_name.empty() == true
+		|| this->config_server[pos - 1] != ';'
+		|| !std::isalnum(this->config_server[pos - 2])) {
 		throw std::runtime_error(str_red("Server Name Error : " + server_name));
 	}
 
@@ -190,10 +203,17 @@ void ConfigServerParser::set_server_name(string server_name, size_t pos) {
 	this->server_name_status = true;
 }
 
-void ConfigServerParser::set_client_max_body_size(string client_max_body_size, size_t pos) {
-	client_max_body_size = client_max_body_size.substr(0, client_max_body_size.length() - 1);
-	if (this->client_max_body_size_status == true || client_max_body_size.empty() == true || checkType(client_max_body_size) != 1 || this->config_server[pos - 1] != ';' || !std::isalnum(this->config_server[pos - 2])) {
-		throw std::runtime_error(str_red("Client Max Body Size Error : " + client_max_body_size));
+void ConfigServerParser::set_client_max_body_size(string client_max_body_size,
+												  size_t pos) {
+	client_max_body_size
+		= client_max_body_size.substr(0, client_max_body_size.length() - 1);
+	if (this->client_max_body_size_status == true
+		|| client_max_body_size.empty() == true
+		|| checkType(client_max_body_size) != 1
+		|| this->config_server[pos - 1] != ';'
+		|| !std::isalnum(this->config_server[pos - 2])) {
+		throw std::runtime_error(
+			str_red("Client Max Body Size Error : " + client_max_body_size));
 	}
 
 	this->client_max_body_size		  = stringToInt(client_max_body_size);
@@ -207,23 +227,31 @@ void ConfigServerParser::set_error_page(string error_page, size_t pos) {
 	string error_page_path;
 
 	if (error_page.empty() == true) {
-		throw std::runtime_error(str_red("Error Page Error : " + error_page_input));
+		throw std::runtime_error(
+			str_red("Error Page Error : " + error_page_input));
 	}
 
 	status_code_str = error_page.substr(0, error_page.find(" "));
 	if (status_code_str.empty() == true || checkType(status_code_str) != 1) {
-		throw std::runtime_error(str_red("Error Page Error : " + error_page_input));
+		throw std::runtime_error(
+			str_red("Error Page Error : " + error_page_input));
 	}
 	error_page.erase(0, error_page.find(" ") + 1);
 
-	if (error_page.find(" ") != string::npos && error_page[error_page.find(" ") + 1] != '\0') {
-		throw std::runtime_error(str_red("Error Page Error : " + error_page_input));
+	if (error_page.find(" ") != string::npos
+		&& error_page[error_page.find(" ") + 1] != '\0') {
+		throw std::runtime_error(
+			str_red("Error Page Error : " + error_page_input));
 	}
 
 	status_code		= stringToInt(status_code_str);
 	error_page_path = error_page.substr(0, error_page.size() - 1);
-	if (status_code < 400 || 599 < status_code || error_page_path.empty() == true || this->config_server[pos - 1] != ';' || !std::isalnum(this->config_server[pos - 2])) {
-		throw std::runtime_error(str_red("Error Page Error : " + error_page_input));
+	if (status_code < 400 || 599 < status_code
+		|| error_page_path.empty() == true
+		|| this->config_server[pos - 1] != ';'
+		|| !std::isalnum(this->config_server[pos - 2])) {
+		throw std::runtime_error(
+			str_red("Error Page Error : " + error_page_input));
 	}
 
 	this->error_page[status_code] = error_page_path;
@@ -232,9 +260,11 @@ void ConfigServerParser::set_error_page(string error_page, size_t pos) {
 
 void ConfigServerParser::set_config_location_parser(string config_location) {
 	if (config_location.empty() == true) {
-		throw std::runtime_error(str_red("Config Location Error : " + config_location));
+		throw std::runtime_error(
+			str_red("Config Location Error : " + config_location));
 	}
-	this->config_location_parser.push_back(new ConfigLocationParser(config_location));
+	this->config_location_parser.push_back(
+		new ConfigLocationParser(config_location));
 	this->config_location_parser_status = true;
 }
 
@@ -252,7 +282,8 @@ int ConfigServerParser::get_start_end_location(string location, size_t pos) {
 		pos++;
 	}
 	if (location[pos] == '\0')
-		throw std::runtime_error(str_red("Missing closing bracket in location : " + location));
+		throw std::runtime_error(
+			str_red("Missing closing bracket in location : " + location));
 
 	return pos;
 }
@@ -281,26 +312,28 @@ void ConfigServerParser::parse_config_server() {
 	while ((pos = this->config_server.find("\n")) != string::npos) {
 		line = this->config_server.substr(0, pos);
 
-		if (line.find("listen") != string::npos && line.find("listen") == 0 && std::strlen("listen") == line.find(" "))
+		if (this->find_compare(line, "listen"))
 			this->set_port(line.substr(line.find(" ") + 1), pos);
 
-		else if (line.find("server_name") != string::npos && line.find("server_name") == 0 && std::strlen("server_name") == line.find(" "))
+		else if (this->find_compare(line, "server_name"))
 			this->set_server_name(line.substr(line.find(" ") + 1), pos);
 
-		else if (line.find("host") != string::npos && line.find("host") == 0 && std::strlen("host") == line.find(" "))
+		else if (this->find_compare(line, "host"))
 			this->set_host(line.substr(line.find(" ") + 1), pos);
 
-		else if (line.find("client_max_body_size") != string::npos && line.find("client_max_body_size") == 0 && std::strlen("client_max_body_size") == line.find(" "))
-			this->set_client_max_body_size(line.substr(line.find(" ") + 1), pos);
+		else if (this->find_compare(line, "client_max_body_size"))
+			this->set_client_max_body_size(line.substr(line.find(" ") + 1),
+										   pos);
 
-		else if (line.find("error_page") != string::npos && line.find("error_page") == 0 && std::strlen("error_page") == line.find(" "))
+		else if (this->find_compare(line, "error_page"))
 			this->set_error_page(line.substr(line.find(" ") + 1), pos);
 
-		else if (line.find("location") != string::npos && line.find("location") == 0 && std::strlen("location") == line.find(" "))
+		else if (this->find_compare(line, "location"))
 			pos = this->split_config_location(this->config_server);
 
 		else
-			throw std::runtime_error(str_red("Error : unknown directive '" + line + "'"));
+			throw std::runtime_error(
+				str_red("Error : unknown directive '" + line + "'"));
 
 		this->config_server.erase(0, pos + 1);
 	}
@@ -316,26 +349,34 @@ void ConfigServerParser::check_status() {
 	if (!this->server_name_status)
 		throw std::runtime_error(str_red("Error: server_name is missing"));
 	if (!this->client_max_body_size_status)
-		throw std::runtime_error(str_red("Error: client_max_body_size is missing"));
+		throw std::runtime_error(
+			str_red("Error: client_max_body_size is missing"));
 	if (!this->config_location_parser_status)
-		throw std::runtime_error(str_red("Error: config_location_parser is missing"));
+		throw std::runtime_error(
+			str_red("Error: config_location_parser is missing"));
 }
 
-std::ostream &operator<<(std::ostream &out, const ConfigServerParser &config_server_parser) {
+std::ostream &operator<<(std::ostream			  &out,
+						 const ConfigServerParser &config_server_parser) {
 	print_line("Parsed Server");
 
 	out << "port: " << config_server_parser.get_port() << endl;
 	out << "host: " << config_server_parser.get_host() << endl;
 	out << "server_name: " << config_server_parser.get_server_name() << endl;
-	out << "client_max_body_size: " << config_server_parser.get_client_max_body_size() << endl;
+	out << "client_max_body_size: "
+		<< config_server_parser.get_client_max_body_size() << endl;
 	if (config_server_parser.get_error_page_status() == true) {
-		for (map<int, string>::const_iterator it = config_server_parser.get_error_page().begin(); it != config_server_parser.get_error_page().end(); ++it) {
+		for (map<int, string>::const_iterator it
+			 = config_server_parser.get_error_page().begin();
+			 it != config_server_parser.get_error_page().end(); ++it) {
 			out << "error_page: " << it->first << " " << it->second << endl;
 		}
 	} else {
 		out << "error_page_status: off" << endl;
 	}
-	for (vector<ConfigLocationParser *>::const_iterator it = config_server_parser.get_config_location_parser().begin(); it != config_server_parser.get_config_location_parser().end(); ++it) {
+	for (vector<ConfigLocationParser *>::const_iterator it
+		 = config_server_parser.get_config_location_parser().begin();
+		 it != config_server_parser.get_config_location_parser().end(); ++it) {
 		out << **it;
 	}
 	return out;

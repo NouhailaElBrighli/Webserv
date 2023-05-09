@@ -10,20 +10,18 @@ const string &MainClient::get_request(string key) {
 	return request_parser->get_request(key);
 }
 
-const int &MainClient::get_status() const {
-	return status;
-}
+const int &MainClient::get_status() const { return status; }
 
-const string &MainClient::get_msg_status() const {
-	return msg_status;
-}
+const string &MainClient::get_msg_status() const { return msg_status; }
 
-// Constructors and copy constructor and copy assignment operator and destructor
-MainClient::MainClient() {
-	std::memset(buffer, 0, MAXLINE + 1);
-}
+// Constructors and destructor
+MainClient::MainClient() { std::memset(buffer, 0, MAXLINE + 1); }
 
-MainClient::MainClient(int client_socket, ConfigServerParser *config_server_parser) : config_server_parser(config_server_parser), request_parser(new RequestParser()), status(true), msg_status(Accurate::OK200().what()), client_socket(client_socket) {
+MainClient::MainClient(int				   client_socket,
+					   ConfigServerParser *config_server_parser)
+	: config_server_parser(config_server_parser),
+	  request_parser(new RequestParser()), status(true),
+	  msg_status(Accurate::OK200().what()), client_socket(client_socket) {
 	std::memset(buffer, 0, MAXLINE + 1);
 	try {
 		this->handle(client_socket);
@@ -35,9 +33,7 @@ MainClient::MainClient(int client_socket, ConfigServerParser *config_server_pars
 	}
 }
 
-MainClient::~MainClient() {
-	delete request_parser;
-}
+MainClient::~MainClient() { delete request_parser; }
 
 // Methods
 void MainClient::handle(int client_socket) {
@@ -69,12 +65,9 @@ void MainClient::handle(int client_socket) {
 	// if (body.length() > 0)
 	// 	this->request_parser->run_body(body);
 
-	cout << "data : " << endl
-		 << data << endl;
-	cout << "head : " << endl
-		 << head << endl;
-	cout << "body : " << endl
-		 << body << endl;
+	cout << "data : " << endl << data << endl;
+	cout << "head : " << endl << head << endl;
+	cout << "body : " << endl << body << endl;
 	print_line("Request Parser");
 	// cout << *this->request_parser << endl;
 
@@ -84,7 +77,8 @@ void MainClient::handle(int client_socket) {
 	// if (this->get_request("Request-Type") == "GET") {
 	// 	this->parse_get(reauest_pasrer->get_request());
 	// } else if (this->get_request("Request-Type") == "POST") {
-	// 	this->parse_post(reauest_pasrer->get_request(), request_parser->get_body());
+	// 	this->parse_post(reauest_pasrer->get_request(),
+	// 					 request_parser->get_body());
 	// } else if (this->get_request("Request-Type") == "DELETE") {
 	// 	this->parse_delete();
 	// }
@@ -101,17 +95,40 @@ void MainClient::get_matched_location_for_request_uri() {
 		// File is a directory
 		throw Error::NotFound404();
 
-	if (S_ISREG(file_info.st_mode))
-		// File is a regular file
-		return;
+	if (S_ISREG(file_info.st_mode)) {
+		for (vector<ConfigLocationParser *>::const_iterator it
+			 = config_server_parser->get_config_location_parser().begin();
+			 it != config_server_parser->get_config_location_parser().end();
+			 it++) {
+			if (this->get_request("Request-URI").find((*it)->get_location())
+					!= string::npos
+				&& this->get_request("Request-URI").find((*it)->get_root())
+					   != string::npos) {
+				// get file name to compare with index
+				string file_name = this->get_request("Request-URI");
+				file_name.erase(0, (*it)->get_root().length()
+									   + (*it)->get_location().length());
+				if (file_name[0] == '/')
+					file_name.erase(0, 1);
+				cout << "file_name : " << file_name << endl;
+				for (size_t i = 0; i < (*it)->get_index().size(); i++) {
+					if (file_name == (*it)->get_index(i))
+						return;
+				}
+			}
+		}
+	}
 
-	// File is not a directory or a regular file
+	// File is not a regular file or not match with index
 	throw Error::NotFound404();
 }
 
 void MainClient::is_method_allowded_in_location() {
-	for (vector<ConfigLocationParser *>::const_iterator it = config_server_parser->get_config_location_parser().begin(); it != config_server_parser->get_config_location_parser().end(); it++) {
-		if (this->get_request("Request-URI").find((*it)->get_location()) != string::npos) {
+	for (vector<ConfigLocationParser *>::const_iterator it
+		 = config_server_parser->get_config_location_parser().begin();
+		 it != config_server_parser->get_config_location_parser().end(); it++) {
+		if (this->get_request("Request-URI").find((*it)->get_location())
+			!= string::npos) {
 			for (size_t i = 0; i < (*it)->get_methods().size(); i++) {
 				if ((*it)->get_methods(i) == this->get_request("Request-Type"))
 					return;
