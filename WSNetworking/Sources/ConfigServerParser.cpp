@@ -255,8 +255,29 @@ void ConfigServerParser::set_error_page(string error_page, size_t pos) {
 			str_red("Error Page Error : " + error_page_input));
 	}
 
-	this->error_page[status_code] = error_page_path;
-	this->error_page_status		  = true;
+	struct stat file_info;
+
+	if (stat(error_page_path.c_str(), &file_info) != 0)
+		// Failed to stat file
+		throw std::runtime_error(str_red(
+			"Error Page Error : " + error_page_input + " => does not exist"));
+
+	if (S_ISDIR(file_info.st_mode))
+		// File is a directory
+		throw std::runtime_error(str_red(
+			"Error Page Error : " + error_page_input + " => is a directory"));
+
+	if (S_ISREG(file_info.st_mode)) {
+		// File is a regular file
+		this->error_page[status_code] = error_page_path;
+		this->error_page_status		  = true;
+		return;
+	}
+
+	// File is not a directory or a regular file
+	throw std::runtime_error(
+		str_red("Error Page Error : " + error_page_input
+				+ " => is not a directory or a regular file"));
 }
 
 void ConfigServerParser::set_config_location_parser(string config_location) {
