@@ -259,13 +259,15 @@ void ConfigServerParser::set_error_page(string error_page, size_t pos) {
 
 	if (stat(error_page_path.c_str(), &file_info) != 0)
 		// Failed to stat file
-		throw std::runtime_error(str_red(
-			"Error Page Error : " + error_page_input + " => does not exist"));
+		throw std::runtime_error(
+			str_red("Error Page Error : " + error_page_input + " => '"
+					+ error_page_path + "' does not exist"));
 
 	if (S_ISDIR(file_info.st_mode))
 		// File is a directory
-		throw std::runtime_error(str_red(
-			"Error Page Error : " + error_page_input + " => is a directory"));
+		throw std::runtime_error(
+			str_red("Error Page Error : " + error_page_input + " => '"
+					+ error_page_path + "' is a directory"));
 
 	if (S_ISREG(file_info.st_mode)) {
 		// File is a regular file
@@ -276,8 +278,8 @@ void ConfigServerParser::set_error_page(string error_page, size_t pos) {
 
 	// File is not a directory or a regular file
 	throw std::runtime_error(
-		str_red("Error Page Error : " + error_page_input
-				+ " => is not a directory or a regular file"));
+		str_red("Error Page Error : " + error_page_input + " => '"
+				+ error_page_path + "' is not a directory or a regular file"));
 }
 
 void ConfigServerParser::set_config_location_parser(string config_location) {
