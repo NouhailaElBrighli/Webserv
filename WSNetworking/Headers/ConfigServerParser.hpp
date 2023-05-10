@@ -21,7 +21,8 @@ class ConfigServerParser {
 	map<int, string>			   error_page;
 	bool						   error_page_status;
 	vector<ConfigLocationParser *> config_location_parser;
-	bool						   config_location_parser_status;
+	int							   config_location_parser_status;
+	int							   config_location_cgi_status;
 
   public:
 	// Getters

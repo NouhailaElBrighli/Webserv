@@ -173,7 +173,8 @@ void ConfigLocationParser::set_location(string location, size_t pos) {
 	location = location.substr(0, location.size() - 2);
 	if (this->location_status == true || location.empty()
 		|| this->config_location[pos - 1] != '{'
-		|| this->config_location[pos - 2] != ' ')
+		|| this->config_location[pos - 2] != ' ' || location[0] != '/'
+		|| location[location.size() - 1] == '/')
 		throw std::runtime_error(str_red("location Error : " + location));
 
 	this->location		  = location;
@@ -201,9 +202,10 @@ void ConfigLocationParser::set_root(string root, size_t pos) {
 	root = root.substr(0, root.size() - 1);
 	if (this->root_status == true || root.empty()
 		|| this->config_location[pos - 1] != ';'
-		|| (!std::isalnum(this->config_location[pos - 2])
+		|| (root.length() == 1 && !std::isalnum(this->config_location[pos - 2])
 			&& this->config_location[pos - 2] != '.'
-			&& this->config_location[pos - 2] != '/'))
+			&& this->config_location[pos - 2] != '/')
+		|| (root.length() > 2 && !std::isalnum(this->config_location[pos - 2])))
 		throw std::runtime_error(str_red("root Error : " + root));
 
 	this->root		  = root;
@@ -336,40 +338,43 @@ void ConfigLocationParser::parse_config_location() {
 }
 
 void ConfigLocationParser::check_status() {
-	if (this->cgi_ext_path_status == true) {
 
-		if (this->location_status == false)
-			throw std::runtime_error(str_red("Error : location is missing"));
-		if (this->root_status == false)
-			throw std::runtime_error(str_red("Error : root is missing"));
+	if (!this->location_status)
+		throw std::runtime_error(str_red("Error : location is missing"));
+	if (!this->root_status)
+		throw std::runtime_error(str_red("Error : root is missing"));
 
-		if (this->index_status == true)
-			throw std::runtime_error(str_red("Error : index is unnecessary"));
-		if (this->return_status == true)
-			throw std::runtime_error(str_red("Error : return is unnecessary"));
-		if (this->file_body_status == true)
+	if (this->location.find("cgi") != string::npos) {
+		if (!this->cgi_ext_path_status)
 			throw std::runtime_error(
-				str_red("Error : file_body is unnecessary"));
-		if (this->methods_status == true)
-			throw std::runtime_error(str_red("Error : methods is unnecessary"));
+				str_red("Error : cgi_ext_path is missing"));
+
+		if (this->index_status)
+			throw std::runtime_error(
+				str_red("Error : index is unnecessary in cgi location"));
+		if (this->return_status)
+			throw std::runtime_error(
+				str_red("Error : return is unnecessary in cgi location"));
+		if (this->file_body_status)
+			throw std::runtime_error(
+				str_red("Error : file_body is unnecessary in cgi location"));
+		if (this->methods_status)
+			throw std::runtime_error(
+				str_red("Error : methods is unnecessary in cgi location"));
 	} else {
-
-		if (this->location_status == false)
-			throw std::runtime_error(str_red("Error : location is missing"));
-		if (this->root_status == false)
-			throw std::runtime_error(str_red("Error : root is missing"));
-		if (this->index_status == false)
+		if (!this->index_status)
 			throw std::runtime_error(str_red("Error : index is missing"));
-		if (this->return_status == false)
+		if (!this->return_status)
 			throw std::runtime_error(str_red("Error : return is missing"));
-		if (this->file_body_status == false)
+		if (!this->file_body_status)
 			throw std::runtime_error(str_red("Error : file_body is missing"));
-		if (this->methods_status == false)
+		if (!this->methods_status)
 			throw std::runtime_error(str_red("Error : methods is missing"));
-	}
 
-	// if (this->cgi_ext_path_status == false)
-	// 	throw std::runtime_error(str_red("Error : cgi_ext_path is missing"));
+		if (this->cgi_ext_path_status)
+			throw std::runtime_error(str_red(
+				"Error : cgi_ext_path is unnecessary in non-cgi location"));
+	}
 }
 
 std::ostream &operator<<(std::ostream &os, const ConfigLocationParser &clp) {
@@ -384,7 +389,7 @@ std::ostream &operator<<(std::ostream &os, const ConfigLocationParser &clp) {
 	os << "root : " << clp.get_root() << std::endl;
 	for (size_t i = 0; i < clp.get_index().size(); i++)
 		os << "index : " << clp.get_index()[i] << std::endl;
-	if (clp.get_return().empty() == false)
+	if (!clp.get_return().empty())
 		os << "return : " << clp.get_return() << std::endl;
 	for (size_t i = 0; i < clp.get_methods().size(); i++)
 		os << "methods : " << clp.get_methods()[i] << std::endl;

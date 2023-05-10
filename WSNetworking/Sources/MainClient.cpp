@@ -101,15 +101,18 @@ void MainClient::get_matched_location_for_request_uri() {
 			 it != config_server_parser->get_config_location_parser().end();
 			 it++) {
 			if (this->get_request("Request-URI").find((*it)->get_location())
-					!= string::npos
-				&& this->get_request("Request-URI").find((*it)->get_root())
-					   != string::npos) {
+				!= string::npos) {
 				// get file name to compare with index
 				string file_name = this->get_request("Request-URI");
-				file_name.erase(0, (*it)->get_root().length()
-									   + (*it)->get_location().length());
+				file_name.erase(0, (*it)->get_location().length());
+
+				if (this->get_request("Request-URI").find((*it)->get_root())
+					!= string::npos)
+					file_name.erase(0, (*it)->get_root().length());
+
 				if (file_name[0] == '/')
 					file_name.erase(0, 1);
+
 				cout << "file_name : " << file_name << endl;
 				for (size_t i = 0; i < (*it)->get_index().size(); i++) {
 					if (file_name == (*it)->get_index(i))
