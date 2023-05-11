@@ -40,6 +40,9 @@ class ConfigServerParser {
 	ConfigServerParser(string config_server);
 	~ConfigServerParser();
 
+	// Tools
+	static bool check_file(string name, string input, string file_path);
+
 	// Methods
 	void parse_config_server();
 

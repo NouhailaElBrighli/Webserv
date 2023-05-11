@@ -58,76 +58,6 @@ ConfigLocationParser::ConfigLocationParser(string config_location)
 ConfigLocationParser::~ConfigLocationParser() {}
 
 // Tools
-int ConfigLocationParser::checkType(string str) {
-	int	 i		= 0;
-	int	 len	= str.length();
-	bool point	= false;
-	int	 num	= 0;
-	int	 decLen = 0;
-	int	 type	= -1;  // {1: int} {2: float} {3: double}
-
-	if (str[i] == '-' || str[i] == '+')
-		i++;
-	if (str[i] == '\0')
-		return type;
-	while (i < len) {
-		if (isdigit(str[i]))
-			num++;
-		else if (str[i] == '.' || str[i] == ',') {
-			if (point || i == len - 1)
-				break;
-			point = true;
-			i++;
-			while (i < len) {
-				if (isdigit(str[i])) {
-					decLen++;
-				} else if (str[i] == 'f' && i == len - 1)
-					break;
-				else
-					break;
-				i++;
-			}
-			break;
-		} else
-			break;
-		i++;
-	}
-	if (decLen > 0) {
-		if (str[len - 1] == 'f' && i == len - 1)
-			type = 2;
-		else if (i == len)
-			type = 3;
-	} else if (num > 0 && i == len) {
-		type = 1;
-	}
-	return type;
-}
-
-int ConfigLocationParser::stringToInt(string str) {
-	int	 i	  = 0;
-	int	 len  = str.length();
-	int	 sign = 1;
-	long num  = 0;
-
-	if (str[i] == '-') {
-		sign = -1;
-		i++;
-	} else if (str[i] == '+')
-		i++;
-	if (str[i] == '\0')
-		throw std::runtime_error(str_red("Bad Input : " + str));
-	while (i < len) {
-		if (isdigit(str[i]))
-			num = num * 10 + (str[i] - '0');
-		else
-			throw std::runtime_error(str_red("Bad Input : " + str));
-		if (num > INT_MAX || (num == INT_MAX && str[i] - '0' > 7))
-			throw std::runtime_error(str_red("Bad Input : " + str));
-		i++;
-	}
-	return (static_cast<int>(num * sign));
-}
-
 vector<string> ConfigLocationParser::split_methods(const string &str) {
 	vector<string>	  vect_mth;
 	std::stringstream ss_methods(str);
@@ -249,13 +179,14 @@ void ConfigLocationParser::set_index(string index, size_t pos) {
 }
 
 void ConfigLocationParser::set_return(string return_, size_t pos) {
-	return_ = return_.substr(0, return_.size() - 1);
+	string return_save = return_;
+	return_			   = return_.substr(0, return_.size() - 1);
 	if (this->return_status == true || return_.empty()
 		|| this->config_location[pos - 1] != ';'
 		|| !std::isalnum(this->config_location[pos - 2]))
 		throw std::runtime_error(str_red("return Error : " + return_));
-
-	this->return_		= return_;
+	if (ConfigServerParser::check_file("return", return_save, return_))
+		this->return_ = return_;
 	this->return_status = true;
 }
 

@@ -46,8 +46,6 @@ class ConfigLocationParser {
 
   private:
 	// Tools
-	int			   checkType(string str);
-	int			   stringToInt(string str);
 	vector<string> split_methods(const string &str);
 	vector<string> stringToMethods(string host);
 	bool		   find_compare(string &line, const string &str);
