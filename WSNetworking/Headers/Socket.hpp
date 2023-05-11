@@ -3,7 +3,6 @@
 
 #include "Include.hpp"
 
-
 class Socket {
 
   private:
@@ -15,7 +14,8 @@ class Socket {
 	t_sockaddr_in get_address() const;
 	int			  get_socket() const;
 
-	// Constructors and copy constructor and copy assignment operator and destructor
+	// Constructors and copy constructor and copy assignment operator and
+	// destructor
 	Socket(int domain, int service, int protocol, int port, u_long interface);
 	Socket(const Socket &socket);
 	Socket &operator=(const Socket &socket);
