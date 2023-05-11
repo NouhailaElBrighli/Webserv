@@ -20,7 +20,7 @@ MainClient::MainClient() { std::memset(buffer, 0, MAXLINE + 1); }
 MainClient::MainClient(int				   client_socket,
 					   ConfigServerParser *config_server_parser)
 	: config_server_parser(config_server_parser),
-	  request_parser(new RequestParser()), status(true),
+	  request_parser(new RequestParser()), status(200),
 	  msg_status(Accurate::OK200().what()), client_socket(client_socket) {
 	std::memset(buffer, 0, MAXLINE + 1);
 	try {
@@ -85,47 +85,46 @@ void MainClient::handle(int client_socket) {
 }
 
 void MainClient::get_matched_location_for_request_uri() {
-	struct stat file_info;
+	// get file name to compare with index
+	string file_name;
+	bool   is_found = false;
+	for (vector<ConfigLocationParser *>::const_iterator it
+		 = config_server_parser->get_config_location_parser().begin();
+		 it != config_server_parser->get_config_location_parser().end(); it++) {
+		file_name = this->get_request("Request-URI");
 
-	if (stat(this->get_request("Request-URI").c_str(), &file_info) != 0)
-		// Failed to stat file
-		throw Error::NotFound404();
+		if ((*it)->get_location().find("cgi") != string::npos)
+			continue;
+		if (this->get_request("Request-URI").find((*it)->get_location())
+			!= string::npos) {
 
-	if (S_ISDIR(file_info.st_mode))
-		// File is a directory
-		throw Error::NotFound404();
+			file_name.erase(0, (*it)->get_location().length());
+			is_found = true;
 
-	if (S_ISREG(file_info.st_mode)) {
-		// get file name to compare with index
-		string file_name;
-		bool   is_found = false;
-		for (vector<ConfigLocationParser *>::const_iterator it
-			 = config_server_parser->get_config_location_parser().begin();
-			 it != config_server_parser->get_config_location_parser().end();
-			 it++) {
-			file_name = this->get_request("Request-URI");
-			if (this->get_request("Request-URI").find((*it)->get_location())
-				!= string::npos)
-				file_name.erase(0, (*it)->get_location().length()),
-					is_found = true;
+		} else if (this->get_request("Request-URI").find((*it)->get_root())
+				   != string::npos) {
 
-			else if (this->get_request("Request-URI").find((*it)->get_root())
-					 != string::npos)
-				file_name.erase(0, (*it)->get_root().length()), is_found = true;
-			if (is_found) {
-				if (file_name[0] == '/')
-					file_name.erase(0, 1);
+			file_name.erase(0, (*it)->get_root().length());
+			is_found = true;
+		}
 
-				cout << "file_name : " << file_name << endl;
-				for (size_t i = 0; i < (*it)->get_index().size(); i++) {
-					if (file_name == (*it)->get_index(i))
-						return;
+		print_line((*it)->get_location());
+		cout << "root :			" << (*it)->get_root() << endl;
+		cout << "brut_file_name :	" << file_name << endl;
+		if (is_found == true) {
+			if (file_name[0] == '/')
+				file_name.erase(0, 1);
+
+			for (size_t i = 0; i < (*it)->get_index().size(); i++) {
+				if (file_name == (*it)->get_index(i)) {
+					cout << C_GREEN << "file_name :		" << file_name << C_RES
+						 << endl;
+					return;
 				}
 			}
 		}
 	}
-
-	// File is not a regular file or not match with index
+	// File is not a found
 	throw Error::NotFound404();
 }
 
@@ -134,7 +133,9 @@ void MainClient::is_method_allowded_in_location() {
 		 = config_server_parser->get_config_location_parser().begin();
 		 it != config_server_parser->get_config_location_parser().end(); it++) {
 		if (this->get_request("Request-URI").find((*it)->get_location())
-			!= string::npos) {
+				!= string::npos
+			|| this->get_request("Request-URI").find((*it)->get_root())
+				   != string::npos) {
 			for (size_t i = 0; i < (*it)->get_methods().size(); i++) {
 				if ((*it)->get_methods(i) == this->get_request("Request-Type"))
 					return;

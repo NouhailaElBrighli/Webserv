@@ -396,10 +396,6 @@ void ConfigServerParser::check_status() {
 	if (this->config_location_parser_status < 2)
 		throw std::runtime_error(
 			str_red("Error: config_location_parser is missing"));
-	if (this->config_location_parser_status > 2)
-		throw std::runtime_error(
-			str_red("Error: config_location_parser is unnecessary"
-					" (only 2 locations are allowed)"));
 	if (this->config_location_cgi_status != 1) {
 		if (this->config_location_cgi_status > 1)
 			throw std::runtime_error(
