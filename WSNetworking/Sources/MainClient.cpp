@@ -96,20 +96,22 @@ void MainClient::get_matched_location_for_request_uri() {
 		throw Error::NotFound404();
 
 	if (S_ISREG(file_info.st_mode)) {
+		// get file name to compare with index
+		string file_name = this->get_request("Request-URI");
+		bool   is_found	 = false;
 		for (vector<ConfigLocationParser *>::const_iterator it
 			 = config_server_parser->get_config_location_parser().begin();
 			 it != config_server_parser->get_config_location_parser().end();
 			 it++) {
 			if (this->get_request("Request-URI").find((*it)->get_location())
-				!= string::npos) {
-				// get file name to compare with index
-				string file_name = this->get_request("Request-URI");
-				file_name.erase(0, (*it)->get_location().length());
+				!= string::npos)
+				file_name.erase(0, (*it)->get_location().length()),
+					is_found = true;
 
-				if (this->get_request("Request-URI").find((*it)->get_root())
-					!= string::npos)
-					file_name.erase(0, (*it)->get_root().length());
-
+			else if (this->get_request("Request-URI").find((*it)->get_root())
+					 != string::npos)
+				file_name.erase(0, (*it)->get_root().length()), is_found = true;
+			if (is_found) {
 				if (file_name[0] == '/')
 					file_name.erase(0, 1);
 

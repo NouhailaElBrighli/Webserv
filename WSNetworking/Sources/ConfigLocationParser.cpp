@@ -208,8 +208,28 @@ void ConfigLocationParser::set_root(string root, size_t pos) {
 		|| (root.length() > 2 && !std::isalnum(this->config_location[pos - 2])))
 		throw std::runtime_error(str_red("root Error : " + root));
 
-	this->root		  = root;
-	this->root_status = true;
+	struct stat dir_info;
+
+	if (stat(root.c_str(), &dir_info) != 0)
+		// Failed to stat directory
+		throw std::runtime_error(
+			str_red("root Error => '" + root + "' does not exist"));
+
+	if (S_ISREG(dir_info.st_mode))
+		// File is a regular file
+		throw std::runtime_error(
+			str_red("root Error => '" + root + "' is a regular file"));
+
+	if (S_ISDIR(dir_info.st_mode)) {
+		// File is a directory
+		this->root		  = root;
+		this->root_status = true;
+		return;
+	}
+
+	// File is not a directory or a regular file
+	throw std::runtime_error(str_red(
+		"root Error => '" + root + "' is not a directory or a regular file"));
 }
 
 void ConfigLocationParser::set_index(string index, size_t pos) {
