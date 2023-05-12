@@ -139,10 +139,20 @@ re : fclean all
 
 run : all
 	$(M_RUN_S)
-	./$(NAME) default.conf
-	$(M_RUN_E)
+	./$(NAME) default_anajmi.conf
+	$(M_RGS_E)
 
-.PHONY : all clean fclean re run
+go : all
+	$(M_GO_S)
+	./$(NAME) default_hsaidi.conf
+	$(M_RGS_E)
+
+start : all
+	$(M_START_S)
+	./$(NAME) default_nel-brig.conf
+	$(M_RGS_E)
+
+.PHONY : all clean fclean re run go start
 
 # **************************************************************************** # 
 #                                    COLORS                                    #
@@ -189,4 +199,6 @@ M_O_RMV_E	= printf "$(C_RED)... ${NAME_UP} OBJECTS REMOVED ✔$(C_RESET)\n"
 M_O_RMV_F	= printf "$(L_BLUE)... ${NAME_UP} OBJECTS NOT FOUND ✗$(C_RESET)\n"
 
 M_RUN_S		= printf "$(C_CYAN)➔  RUN ${NAME_UP} ... 🚀$(C_RESET)\n"
-M_RUN_E		= printf "$(C_BLUE)... ${NAME_UP} FINISHED ✔$(C_RESET)\n"
+M_GO_S		= printf "$(C_CYAN)➔  GO ${NAME_UP} ... 🚀$(C_RESET)\n"
+M_STR_S		= printf "$(C_CYAN)➔  START ${NAME_UP} ... 🚀$(C_RESET)\n"
+M_RGS_E		= printf "$(C_BLUE)... ${NAME_UP} FINISHED ✔$(C_RESET)\n"

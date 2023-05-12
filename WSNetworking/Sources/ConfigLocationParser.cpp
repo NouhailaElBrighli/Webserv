@@ -6,38 +6,82 @@ const string &ConfigLocationParser::get_location() const {
 }
 
 const bool &ConfigLocationParser::get_autoindex() const {
+	if (this->autoindex_status == false)
+		return this->autoindex_status;
 	return this->autoindex;
 }
 
 const string &ConfigLocationParser::get_root() const { return this->root; }
 
 const vector<string> &ConfigLocationParser::get_index() const {
+	if (this->index_status == false) {
+		// return an empty vector if index is not set
+		static vector<string> empty_vector;
+		return empty_vector;
+	}
 	return this->index;
 }
 
 const string &ConfigLocationParser::get_index(int i) const {
+	if (this->index_status == false) {
+		// return an empty string if index is not set
+		static string empty_string;
+		return empty_string;
+	}
 	return this->index[i];
 }
 
-const string &ConfigLocationParser::get_return() const { return this->return_; }
+const string &ConfigLocationParser::get_return() const {
+	if (this->return_status == false) {
+		// return an empty string if return is not set
+		static string empty_string;
+		return empty_string;
+	}
+	return this->return_;
+}
 
 const string &ConfigLocationParser::get_file_body() const {
+	if (this->file_body_status == false) {
+		// return an empty string if file_body is not set
+		static string empty_string;
+		return empty_string;
+	}
 	return this->file_body;
 }
 
 const vector<string> &ConfigLocationParser::get_methods() const {
+	if (this->methods_status == false) {
+		// return an empty vector if methods is not set
+		static vector<string> empty_vector;
+		return empty_vector;
+	}
 	return this->methods;
 }
 
 const string &ConfigLocationParser::get_methods(int i) const {
+	if (this->methods_status == false) {
+		// return an empty string if methods is not set
+		static string empty_string;
+		return empty_string;
+	}
 	return this->methods[i];
 }
 
 const map<string, string> &ConfigLocationParser::get_cgi_ext_path() const {
+	if (this->cgi_ext_path_status == false) {
+		// return an empty map if cgi_ext_path is not set
+		static map<string, string> empty_map;
+		return empty_map;
+	}
 	return this->cgi_ext_path;
 }
 
 const string &ConfigLocationParser::get_cgi_ext_path(string key) const {
+	if (this->cgi_ext_path_status == false) {
+		// return an empty string if cgi_ext_path is not set
+		static string empty_string;
+		return empty_string;
+	}
 	return this->cgi_ext_path.at(key);
 }
 
@@ -185,8 +229,8 @@ void ConfigLocationParser::set_return(string return_, size_t pos) {
 		|| this->config_location[pos - 1] != ';'
 		|| !std::isalnum(this->config_location[pos - 2]))
 		throw std::runtime_error(str_red("return Error : " + return_));
-	if (ConfigServerParser::check_file("return", return_save, return_))
-		this->return_ = return_;
+
+	this->return_		= return_;
 	this->return_status = true;
 }
 

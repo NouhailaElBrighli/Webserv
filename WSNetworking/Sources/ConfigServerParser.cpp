@@ -294,6 +294,12 @@ void ConfigServerParser::set_config_location_parser(string config_location) {
 	this->config_location_parser.push_back(
 		new ConfigLocationParser(config_location));
 
+	this->config_location_parser_status++;
+	if (this->config_location_parser.back()->get_location().find("cgi")
+		!= string::npos) {
+		this->config_location_cgi_status++;
+		return;
+	}
 	// check if index files is exist
 	for (size_t i = 0;
 		 i < this->config_location_parser.back()->get_index().size(); i++) {
@@ -302,12 +308,11 @@ void ConfigServerParser::set_config_location_parser(string config_location) {
 			this->config_location_parser.back()->get_root() + "/"
 				+ this->config_location_parser.back()->get_index(i));
 	}
-
-	if (this->config_location_parser.back()->get_location().find("cgi")
-		!= string::npos)
-		this->config_location_cgi_status++;
-
-	this->config_location_parser_status++;
+	// check if return file is exist
+	this->check_file("return",
+					 this->config_location_parser.back()->get_return(),
+					 this->config_location_parser.back()->get_root() + "/"
+						 + this->config_location_parser.back()->get_return());
 }
 
 // Methods
