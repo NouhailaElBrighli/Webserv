@@ -175,10 +175,7 @@ void ConfigLocationParser::set_autoindex(string autoindex, size_t pos) {
 void ConfigLocationParser::set_root(string root, size_t pos) {
 	root = root.substr(0, root.size() - 1);
 	if (this->root_status == true || root.empty()
-		|| this->config_location[pos - 1] != ';'
-		|| (root.length() == 1 && !std::isalnum(this->config_location[pos - 2])
-			&& this->config_location[pos - 2] != '.'
-			&& this->config_location[pos - 2] != '/')
+		|| this->config_location[pos - 1] != ';' || root[0] != '/'
 		|| (root.length() > 2 && !std::isalnum(this->config_location[pos - 2])))
 		throw std::runtime_error(str_red("root Error : " + root));
 
