@@ -24,6 +24,7 @@ class MainServer {
 
   private:
 	void run_sockets();
+	int	 right_port(int client_socket);
 	void accepter(int accept_socket);
 	void handle(int client_socket);
 	void responder(int client_socket);
