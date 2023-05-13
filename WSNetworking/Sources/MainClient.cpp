@@ -140,7 +140,6 @@ void MainClient::is_method_allowded_in_location() {
 				if ((*it)->get_methods(i) == this->get_request("Request-Type"))
 					return;
 			}
-			throw Error::MethodNotAllowed405();
 		}
 	}
 	throw Error::MethodNotAllowed405();

@@ -145,17 +145,19 @@ void MainServer::init() {
 }
 
 void MainServer::destroy_client(int i) {
-	if (this->clients[i]->get_request("Connection") != "keep-alive") {
-		for (size_t j = 0; j < this->socket.size(); j++)
-			if (this->socket[j] == i)
-				return;
-		FD_CLR(i, &this->current_sockets);
-		close(i);
-	}
-
+	print_line("destroy client");
 	// Destroy the client
 	delete this->clients[i];
 	this->clients.erase(i);
+	cout << C_PURPLE << "current socket to be destroy: " << std::to_string(i)
+		 << C_RES << endl;
+	for (size_t j = 0; j < this->socket.size(); j++)
+		if (this->socket[j] == i)
+			return;
+	FD_CLR(i, &this->current_sockets);
+	close(i);
+	cout << C_RED << "current socket destroyed: " << std::to_string(i) << C_RES
+		 << endl;
 }
 
 void MainServer::launch() {
