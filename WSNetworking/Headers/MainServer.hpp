@@ -15,6 +15,15 @@ class MainServer {
 	fd_set					current_sockets, ready_sockets;
 	bool					launch_status;
 
+  private:
+	int	   domain;
+	int	   service;
+	int	   protocol;
+	u_long interface;
+	int	   backlog;
+
+  private:
+	void run_sockets();
 	void accepter(int accept_socket);
 	void handle(int client_socket);
 	void responder(int client_socket);
@@ -41,4 +50,4 @@ class MainServer {
 	void launch();
 };
 
-#endif // MAINSERVER_HPP
+#endif	// MAINSERVER_HPP
