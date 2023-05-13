@@ -145,12 +145,17 @@ void MainServer::init() {
 }
 
 void MainServer::destroy_client(int i) {
-	// if (this->clients[i].get_request("Connection") != "keep-alive")
-	FD_CLR(i, &this->current_sockets);
+	if (this->clients[i]->get_request("Connection") != "keep-alive") {
+		for (size_t j = 0; j < this->socket.size(); j++)
+			if (this->socket[j] == i)
+				return;
+		FD_CLR(i, &this->current_sockets);
+		close(i);
+	}
+
 	// Destroy the client
 	delete this->clients[i];
 	this->clients.erase(i);
-	close(i);
 }
 
 void MainServer::launch() {
