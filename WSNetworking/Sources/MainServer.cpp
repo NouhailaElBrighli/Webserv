@@ -65,16 +65,9 @@ void MainServer::run_sockets() {
 			<< "	Socket : " << this->socket[i] << C_RES << endl;
 }
 
-void MainServer::accepter(int accept_socket) {
-	print_line("accepter");
-
-	char	  client_address[MAXLINE + 1];
+int MainServer::right_port(int client_socket) {
 	socklen_t addrlen = sizeof(address);
-
-	this->accept_socket
-		= accept(accept_socket, (t_sockaddr *)&address, &addrlen);
-	cout << "this->accept_socket : " << this->accept_socket << endl;
-	cout << "accept_socket : " << accept_socket << endl;
+	char	  client_address[MAXLINE + 1];
 
 	inet_ntop(AF_INET, &address, client_address, MAXLINE);
 	cout << "Client connection : " << client_address << endl;
@@ -83,38 +76,50 @@ void MainServer::accepter(int accept_socket) {
 	cout << "Client IP : " << client_ip << endl;
 
 	// Get the socket address structure for the client socket
-	cout
-		<< "getsockname(this->accept_socket, (sockaddr *)&address, &addrlen) : "
-		<< getsockname(this->accept_socket, (sockaddr *)&address, &addrlen)
-		<< endl;
+	if (getsockname(client_socket, (sockaddr *)&address, &addrlen) != 0)
+		return -1;
 
 	// Get the port number from the socket address structure
 	uint16_t port = ntohs(((sockaddr_in *)&address)->sin_port);
 	cout << "port : " << port << endl;
-}
 
-void MainServer::handle(int client_socket) {
-	socklen_t addrlen = sizeof(address);
-
-	print_line("handle");
-
-	// Get the socket address structure for the client socket
-	if (getsockname(this->accept_socket, (sockaddr *)&address, &addrlen) != 0)
-		return;
-
-	// Get the port number from the socket address structure
-	uint16_t port = ntohs(((sockaddr_in *)&address)->sin_port);
 	for (size_t i = 0; i < this->socket.size(); i++) {
 		if (this->config_file_parser->get_config_server_parser(i)->get_port()
 			== port) {
-			MainClient *mainClient = new MainClient(
-				client_socket,
-				this->config_file_parser->get_config_server_parser(i));
-			this->clients[client_socket] = mainClient;
-			print_line("add new client");
-			break;
+			return i;
 		}
 	}
+	return -1;
+}
+
+void MainServer::accepter(int accept_socket) {
+	socklen_t addrlen = sizeof(address);
+
+	print_line("accepter");
+	this->accept_socket
+		= accept(accept_socket, (t_sockaddr *)&address, &addrlen);
+
+	if (this->right_port(this->accept_socket) != -1) {
+		cout << "this->accept_socket : " << this->accept_socket << endl;
+		cout << "accept_socket : " << accept_socket << endl;
+		return;
+	}
+	throw std::runtime_error(str_red("port not found"));
+}
+
+void MainServer::handle(int client_socket) {
+	int i;
+	print_line("handle");
+
+	if ((i = this->right_port(client_socket)) != -1) {
+		MainClient *mainClient = new MainClient(
+			client_socket,
+			this->config_file_parser->get_config_server_parser(i));
+		this->clients[client_socket] = mainClient;
+		print_line("add new client");
+		return;
+	}
+	throw std::runtime_error(str_red("port not found"));
 }
 
 void MainServer::responder(int client_socket) {
@@ -123,9 +128,9 @@ void MainServer::responder(int client_socket) {
 	if (this->clients[client_socket]->get_status() < 400) {
 		string accurate = "HTTP/1.1 ";
 		accurate += this->clients[client_socket]->get_msg_status();
-		accurate += "\r\n\r\n";
+		accurate += "\r\nContent-type: text/html\r\n\r\n";
 		accurate += "Hello From Server\nYou are Host : ";
-		accurate += this->get_request(client_socket, "Host") + "\n";
+		accurate += this->get_request(client_socket, "Host") + "\r\n\r\n";
 		send(client_socket, accurate.c_str(), accurate.length(), 0);
 	} else {
 		string error = "HTTP/1.1 ";
@@ -184,12 +189,16 @@ void MainServer::launch() {
 			if (FD_ISSET(i, &this->ready_sockets)) {
 				if (std::find(this->socket.begin(), this->socket.end(), i)
 					!= this->socket.end()) {
-					this->accepter(i);
-					if (this->accept_socket > this->max_socket)
-						this->max_socket = this->accept_socket;
-					if (this->accept_socket < 0)
-						continue;
-					FD_SET(this->accept_socket, &this->current_sockets);
+					try {
+						this->accepter(i);
+						if (this->accept_socket > this->max_socket)
+							this->max_socket = this->accept_socket;
+						if (this->accept_socket < 0)
+							continue;
+						FD_SET(this->accept_socket, &this->current_sockets);
+					} catch (const std::exception &e) {
+						cerr << e.what() << endl;
+					}
 				} else {
 					try {
 						// handle the client's request
