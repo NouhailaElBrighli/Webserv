@@ -3,6 +3,7 @@
 
 // Clients Prototypes
 class MainClient;
+class Cgi;
 
 // Exceptions Prototypes
 class Accurate;
@@ -47,5 +48,7 @@ class ListeningSocket;
 #include "BindingSocket.hpp"
 
 #include "ListeningSocket.hpp"
+
+#include "Cgi.hpp"
 
 #endif // WSNETWORKING_HPP

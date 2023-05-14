@@ -1,5 +1,5 @@
 #include "MainClient.hpp"
-
+#include "Cgi.hpp"
 #include <iomanip>
 // Getters
 const map<string, string> &MainClient::get_request() const {
@@ -70,7 +70,7 @@ void MainClient::handle(int client_socket) {
 	cout << "body : " << endl << body << endl;
 	print_line("Request Parser");
 	// cout << *this->request_parser << endl;
-
+	
 	get_matched_location_for_request_uri();
 	is_method_allowded_in_location();
 

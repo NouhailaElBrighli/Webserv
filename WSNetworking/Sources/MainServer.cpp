@@ -133,6 +133,8 @@ void MainServer::responder(int client_socket) {
 		error += "\r\n\r\n";
 		send(client_socket, error.c_str(), error.length(), 0);
 	}
+	Cgi cgi(this->clients[client_socket]);
+	cgi.just_print();
 }
 
 void MainServer::init() {
