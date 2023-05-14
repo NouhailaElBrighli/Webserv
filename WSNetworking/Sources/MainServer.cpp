@@ -138,9 +138,17 @@ void MainServer::responder(int client_socket) {
 		error += "\r\n\r\n";
 		send(client_socket, error.c_str(), error.length(), 0);
 	}
-	Cgi cgi(this->clients[client_socket]);
-	cgi.just_print();
-}
+	int i;
+	if ((i = this->right_port(client_socket)) != -1) {
+		Cgi cgi(this->clients[client_socket], this->config_file_parser->get_config_server_parser(i)->get_config_location_parser());
+	
+	try {
+		cgi.just_print();
+	} catch (const std::exception &e) {
+		throw std::runtime_error(e.what());
+	}    
+	}   
+}     
 
 void MainServer::init() {
 	FD_ZERO(&this->current_sockets);

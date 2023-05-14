@@ -6,7 +6,7 @@
 /*   By: hsaidi <hsaidi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:33:49 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/05/14 15:50:18 by hsaidi           ###   ########.fr       */
+/*   Updated: 2023/05/14 19:14:15 by hsaidi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,10 +19,12 @@ class Cgi
 {
     private:
         MainClient *main_client;
+        vector<ConfigLocationParser *> config_location_parser;
     public:
-        Cgi(MainClient *main_client);
+        Cgi(MainClient *main_client, vector<ConfigLocationParser *>config_location_parser);
         ~Cgi();
         void just_print();
+        void set_cgi_env();
     // class CgiException : public std::exception
     // {
     //     private:
@@ -33,5 +35,6 @@ class Cgi
     //         virtual const char *what() const throw() { return _msg.c_str(); }
     // };
 }; 
+
 
 #endif // CGI_HPP
