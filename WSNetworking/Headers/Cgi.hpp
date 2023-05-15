@@ -6,7 +6,7 @@
 /*   By: hsaidi <hsaidi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:33:49 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/05/14 19:14:15 by hsaidi           ###   ########.fr       */
+/*   Updated: 2023/05/15 11:19:40 by hsaidi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,7 @@ class Cgi
     private:
         MainClient *main_client;
         vector<ConfigLocationParser *> config_location_parser;
+        map<string, string> cgi_env;
     public:
         Cgi(MainClient *main_client, vector<ConfigLocationParser *>config_location_parser);
         ~Cgi();
