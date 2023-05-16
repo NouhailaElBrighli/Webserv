@@ -20,8 +20,9 @@ int main(int ac, char **av) {
 
 		cout << str_cyan("Run Main Server ...") << endl;
 
-		MainServer main_server(AF_INET, SOCK_STREAM, 0, config_file_parser,
-							   INADDR_ANY, 10);
+		// MainServer main_server(AF_INET, SOCK_STREAM, 0, config_file_parser,
+		// 					   INADDR_ANY, 10);
+		MainServer main_server(config_file_parser, 10);
 
 		try {
 			main_server.launch();

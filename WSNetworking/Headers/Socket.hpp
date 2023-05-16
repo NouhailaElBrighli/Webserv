@@ -5,25 +5,19 @@
 
 class Socket {
 
-  private:
-	t_sockaddr_in address;
-	int			  socket_v;
+  protected:
+	t_addrinfo	hints;
+	t_addrinfo *bind_address;
+	int			socket_listen;
 
   public:
 	// Getters
-	t_sockaddr_in get_address() const;
-	int			  get_socket() const;
+	t_addrinfo *get_bind_address() const;
+	int			get_socket_listen() const;
 
-	// Constructors and copy constructor and copy assignment operator and
-	// destructor
-	Socket(int domain, int service, int protocol, int port, u_long interface);
-	Socket(const Socket &socket);
-	Socket &operator=(const Socket &socket);
+	// Constructors and destructor
+	Socket(const char *host, const char *port);
 	virtual ~Socket();
-
-	virtual int connect_to_network(int socket, t_sockaddr_in address) = 0;
-
-	void test_connection(int item_to_test, const string &name);
 };
 
-#endif // SOCKET_HPP
+#endif	// SOCKET_HPP
