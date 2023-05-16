@@ -127,6 +127,15 @@ void RequestParser::parse_rest_lines() {
 			this->request[key] = value;
 		}
 	}
+	// parse the last line
+	if (!this->head.empty()) {
+		line = this->head;
+		if ((pos = line.find(": ")) != string::npos) {
+			key				   = line.substr(0, pos);
+			value			   = line.substr(pos + 2);
+			this->request[key] = value;
+		}
+	}
 }
 
 // Operators <<
