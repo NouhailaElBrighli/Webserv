@@ -98,9 +98,7 @@ int MainServer::right_port(int client_socket) {
 	for (i = 0; i < this->address.size(); i++) {
 		addrlen = sizeof(this->address[i]);
 		if (getsockname(client_socket, (sockaddr *)&this->address[i], &addrlen)
-			!= 0)
-			continue;
-		else {
+			== 0) {
 			socket_found = true;
 			break;
 		}
@@ -109,18 +107,18 @@ int MainServer::right_port(int client_socket) {
 	if (socket_found == false)
 		throw std::runtime_error(str_red("port not found"));
 
-	char host[NI_MAXHOST];
-	for (size_t i = 0; i < this->address.size(); i++) {
-		addrlen	   = sizeof(this->address[i]);
-		int result = getnameinfo((t_sockaddr *)&address[i], addrlen, host,
-								 NI_MAXHOST, nullptr, 0, 0);
-		if (result == 0) {
-			std::cout << "Server name: " << host << std::endl;
-		} else {
-			std::cerr << "Failed to retrieve server name: "
-					  << gai_strerror(result) << std::endl;
-		}
-	}
+	// char host[NI_MAXHOST];
+	// for (size_t i = 0; i < this->address.size(); i++) {
+	// 	addrlen	   = sizeof(this->address[i]);
+	// 	int result = getnameinfo((t_sockaddr *)&address[i], addrlen, host,
+	// 							 NI_MAXHOST, nullptr, 0, 0);
+	// 	if (result == 0) {
+	// 		std::cout << "Server name: " << host << std::endl;
+	// 	} else {
+	// 		std::cerr << "Failed to retrieve server name: "
+	// 				  << gai_strerror(result) << std::endl;
+	// 	}
+	// }
 
 	for (size_t i = 0;
 		 i < this->config_file_parser->get_config_server_parser().size(); i++) {
@@ -203,15 +201,13 @@ void MainServer::destroy_client(int i) {
 	// Destroy the client
 	delete this->clients[i];
 	this->clients.erase(i);
-	cout << C_PURPLE << "current socket to be destroy: " << std::to_string(i)
-		 << C_RES << endl;
+	cout << C_PURPLE << "current socket to be destroy: " << i << C_RES << endl;
 	for (size_t j = 0; j < this->socket.size(); j++)
 		if (this->socket[j] == i)
 			return;
 	FD_CLR(i, &this->current_sockets);
 	close(i);
-	cout << C_RED << "current socket destroyed: " << std::to_string(i) << C_RES
-		 << endl;
+	cout << C_RED << "current socket destroyed: " << i << C_RES << endl;
 }
 
 void MainServer::launch() {
