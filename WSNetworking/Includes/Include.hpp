@@ -25,7 +25,7 @@
 #include <string>
 #include <vector>
 
-#define MAXLINE 4096
+#define MAXLINE 4097
 
 #define C_RES "\033[0m"
 #define C_RED "\033[1;31m"
@@ -44,8 +44,9 @@
 #define print_short_line(str)                                                  \
 	cout << C_CYAN << "----------------" << str << C_RES << endl;
 #define print_error(str)                                                       \
-	cerr << C_RED << "------------------------------------------------" << str \
-		 << C_RES << endl;
+	cerr << C_RED                                                              \
+		 << "----------------------------------------------------------------" \
+		 << str << C_RES << endl;
 
 #define str_red(str)                                                           \
 	(std::string(C_RED) + std::string(str) + std::string(C_RES))

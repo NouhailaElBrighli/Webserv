@@ -1,13 +1,47 @@
 #include "MainServer.hpp"
 
-string truncate(string str, size_t width) {
+static string truncate(string str, size_t width) {
 	if (str.length() > width)
 		return str.substr(0, width - 1) + ".";
 	return str;
 }
 
-void print_str(string str, size_t width) {
+static void print_str(string str, size_t width) {
 	cout << std::left << std::setw(width) << truncate(str, width);
+}
+
+// Methods
+void MainServer::print_info() {
+	cout << C_CYAN << "-----------------------------------------------" << endl
+		 << C_CYAN << "| " << C_YELLOW;
+	print_str("Server Name", 11);
+	cout << C_CYAN << " | " << C_GREEN;
+	print_str("Host", 11);
+	cout << C_CYAN << " | " << C_RED;
+	print_str("Port", 6);
+	cout << C_CYAN << " | " << C_PURPLE;
+	print_str("Socket", 6);
+	cout << C_CYAN << " |" << C_RES << endl;
+	cout << C_CYAN << "-----------------------------------------------" << endl;
+	for (size_t i = 0; i < this->socket.size(); i++) {
+		cout << C_CYAN << "| " << C_YELLOW;
+		print_str(this->config_file_parser->get_config_server_parser(i)
+					  ->get_server_name(),
+				  11);
+		cout << C_CYAN << " | " << C_GREEN;
+		print_str(
+			this->config_file_parser->get_config_server_parser(i)->get_host(),
+			11);
+		cout << C_CYAN << " | " << C_RED;
+		print_str(this->config_file_parser->get_config_server_parser(i)
+					  ->get_port_str(),
+				  6);
+		cout << C_CYAN << " | " << C_PURPLE << this->socket[i];
+		print_str("", 5);
+		cout << C_CYAN << " |" << C_RES << endl;
+		cout << C_CYAN << "-----------------------------------------------"
+			 << endl;
+	}
 }
 
 // Getters
@@ -51,33 +85,17 @@ void MainServer::run_sockets() {
 		this->address.push_back(get_listen_socket(i).get_bind_address());
 		this->socket.push_back(get_listen_socket(i).get_socket_listen());
 	}
-
-	// print server_name, host:port and socket
-	for (size_t i = 0; i < this->socket.size(); i++) {
-		cout << C_YELLOW;
-		print_str(this->config_file_parser->get_config_server_parser(i)
-					  ->get_server_name(),
-				  10);
-		cout << C_CYAN << " => " << C_GREEN;
-		print_str(
-			this->config_file_parser->get_config_server_parser(i)->get_host(),
-			11);
-		cout << C_RES << ": " << C_BLUE;
-		print_str(this->config_file_parser->get_config_server_parser(i)
-					  ->get_port_str(),
-				  6);
-		cout << C_CYAN << " => " << C_PURPLE << "Socket" << C_RES << " : "
-			 << C_RED << this->socket[i] << C_RES << endl;
-	}
+	this->print_info();
 }
 
 int MainServer::right_port(int client_socket) {
 	int		  port;
 	socklen_t addrlen;
 	bool	  socket_found = false;
+	size_t	  i;
 
 	// Get the socket address structure for the client socket
-	for (size_t i = 0; i < this->address.size(); i++) {
+	for (i = 0; i < this->address.size(); i++) {
 		addrlen = sizeof(this->address[i]);
 		if (getsockname(client_socket, (sockaddr *)&this->address[i], &addrlen)
 			!= 0)
@@ -90,6 +108,19 @@ int MainServer::right_port(int client_socket) {
 
 	if (socket_found == false)
 		throw std::runtime_error(str_red("port not found"));
+
+	char host[NI_MAXHOST];
+	for (size_t i = 0; i < this->address.size(); i++) {
+		addrlen	   = sizeof(this->address[i]);
+		int result = getnameinfo((t_sockaddr *)&address[i], addrlen, host,
+								 NI_MAXHOST, nullptr, 0, 0);
+		if (result == 0) {
+			std::cout << "Server name: " << host << std::endl;
+		} else {
+			std::cerr << "Failed to retrieve server name: "
+					  << gai_strerror(result) << std::endl;
+		}
+	}
 
 	for (size_t i = 0;
 		 i < this->config_file_parser->get_config_server_parser().size(); i++) {
