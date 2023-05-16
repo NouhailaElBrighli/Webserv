@@ -10,6 +10,7 @@ class ConfigServerParser {
 	bool						   run_status;
 	string						   config_server;
 	int							   port;
+	string						   port_str;
 	bool						   port_status;
 	vector<int>					   host_v;
 	string						   host_s;
@@ -27,6 +28,7 @@ class ConfigServerParser {
   public:
 	// Getters
 	const int							 &get_port() const;
+	const string						 &get_port_str() const;
 	const int							 &get_host(int i) const;
 	const string						 &get_host() const;
 	const string						 &get_server_name() const;
