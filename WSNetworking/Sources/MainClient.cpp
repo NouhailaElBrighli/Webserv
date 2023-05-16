@@ -29,7 +29,6 @@ MainClient::MainClient(int				   client_socket,
 		this->msg_status = e.what();
 		this->status	 = atoi(string(e.what()).substr(0, 3).c_str());
 		print_error(this->msg_status);
-		print_error(this->status);
 	}
 }
 
@@ -62,12 +61,12 @@ void MainClient::handle(int client_socket) {
 	if (body.length() > this->config_server_parser->get_client_max_body_size())
 		throw Error::RequestEntityTooLarge413();
 
-	cout << "data : " << endl << data << endl;
-	cout << "head : " << endl << head << endl;
-	cout << "body : " << endl << body << endl;
+	// cout << "data : " << endl << data << endl;
+	// cout << "head : " << endl << head << endl;
+	// cout << "body : " << endl << body << endl;
 
 	print_line("Request Parser");
-	// cout << *this->request_parser << endl;
+	// // cout << *this->request_parser << endl;
 
 	get_matched_location_for_request_uri();
 	is_method_allowded_in_location();

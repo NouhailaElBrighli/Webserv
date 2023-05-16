@@ -18,11 +18,20 @@ class MainServer {
 	fd_set					current_sockets, ready_sockets;
 	bool					launch_status;
 
+  public:
+	// Methods
+	void print_info();
+
   private:
 	// Getters
 	ListeningSocket			get_listen_socket(int index) const;
 	vector<ListeningSocket> get_listen_socket() const;
 	string					get_request(int client_socket, string key);
+
+  public:
+	// Constructors and destructor
+	MainServer(ConfigFileParser *config_file_parser, int backlog);
+	~MainServer();
 
   private:
 	// Methods
@@ -37,10 +46,6 @@ class MainServer {
 	void destroy_client(int i);
 
   public:
-	// Constructors and destructor
-	MainServer(ConfigFileParser *config_file_parser, int backlog);
-	~MainServer();
-
 	// Methods
 	void launch();
 };

@@ -418,7 +418,7 @@ void ConfigServerParser::check_status() {
 
 std::ostream &operator<<(std::ostream			  &out,
 						 const ConfigServerParser &config_server_parser) {
-	print_line("Parsed Server");
+	print_long_line("Parsed Server");
 
 	out << "port: " << config_server_parser.get_port() << endl;
 	out << "host: " << config_server_parser.get_host() << endl;
