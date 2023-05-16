@@ -35,6 +35,7 @@ MainClient::MainClient(int				   client_socket,
 MainClient::~MainClient() { delete request_parser; }
 
 // Methods
+// Methods
 void MainClient::handle(int client_socket) {
 	int	   n;
 	string data;
@@ -45,7 +46,7 @@ void MainClient::handle(int client_socket) {
 	while ((n = read(client_socket, buffer, MAXLINE)) > 0) {
 		buffer[n] = '\0';
 		data += buffer;
-		
+
 		if (data.find("\r\n\r\n") != string::npos)
 			break;
 	}
@@ -56,7 +57,7 @@ void MainClient::handle(int client_socket) {
 	}
 
 	head = data.substr(0, data.find("\r\n\r\n"));
-	// body need to be fill in external file
+	//! body need to be fill in external file
 	body = data.substr(data.find("\r\n\r\n") + 4);
 	if (body.length() > this->config_server_parser->get_client_max_body_size())
 		throw Error::RequestEntityTooLarge413();
@@ -66,7 +67,10 @@ void MainClient::handle(int client_socket) {
 	// cout << "body : " << endl << body << endl;
 
 	print_line("Request Parser");
-	// // cout << *this->request_parser << endl;
+	this->request_parser->run_head(head);
+	// if (body.length() > 0)
+	// 	this->request_parser->run_body(body);
+	// cout << *this->request_parser << endl;
 
 	get_matched_location_for_request_uri();
 	is_method_allowded_in_location();
