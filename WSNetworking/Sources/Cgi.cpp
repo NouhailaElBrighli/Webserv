@@ -6,7 +6,7 @@
 /*   By: hsaidi <hsaidi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:38:43 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/05/15 11:42:10 by hsaidi           ###   ########.fr       */
+/*   Updated: 2023/05/17 11:41:51 by hsaidi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,8 +45,13 @@ void Cgi::just_print()
 
 void Cgi::set_cgi_env()
 {
-	char *tmp;
-	string tmp_str;
-	cgi_env["AUTH_TYPE"] = this->main_client->get_request("Auth-Type");
+	if(this->main_client->get_request().find("Request-Type") != this->main_client->get_request().end())
+	{
+		this->cgi_env["REQUEST_METHOD"] = this->main_client->get_request()["Request-Type"];
+	}
+	setenv("REQUEST_METHOD", this->cgi_env["REQUEST_METHOD"].c_str(), 1);
+	setenv("SERVER_PROTOCOL", this->cgi_env["Protocol-Version"].c_str() 1);
+	setenv("PATH_INFO", this->cgi_env["Request-URI"].c_str(), 1);
+	
 }
 
