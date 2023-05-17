@@ -29,7 +29,6 @@ MainClient::MainClient(int				   client_socket,
 		this->msg_status = e.what();
 		this->status	 = atoi(string(e.what()).substr(0, 3).c_str());
 		print_error(this->msg_status);
-		print_error(this->status);
 	}
 }
 
@@ -42,6 +41,7 @@ void MainClient::handle(int client_socket) {
 	string head;
 	string body;
 
+	print_line("Client");
 	while ((n = read(client_socket, buffer, MAXLINE)) > 0) {
 		buffer[n] = '\0';
 		data += buffer;
@@ -61,14 +61,14 @@ void MainClient::handle(int client_socket) {
 	if (body.length() > this->config_server_parser->get_client_max_body_size())
 		throw Error::RequestEntityTooLarge413();
 
+	// cout << "data : " << endl << data << endl;
+	// cout << "head : " << endl << head << endl;
+	// cout << "body : " << endl << body << endl;
+
+	print_line("Request Parser");
 	this->request_parser->run_head(head);
 	// if (body.length() > 0)
 	// 	this->request_parser->run_body(body);
-
-	cout << "data : " << endl << data << endl;
-	cout << "head : " << endl << head << endl;
-	cout << "body : " << endl << body << endl;
-	print_line("Request Parser");
 	// cout << *this->request_parser << endl;
 	
 	get_matched_location_for_request_uri();
@@ -108,7 +108,7 @@ void MainClient::get_matched_location_for_request_uri() {
 			is_found = true;
 		}
 
-		print_line((*it)->get_location());
+		print_short_line((*it)->get_location());
 		cout << "root :			" << (*it)->get_root() << endl;
 		cout << "brut_file_name :	" << file_name << endl;
 		if (is_found == true) {

@@ -3,6 +3,10 @@
 // Getters
 const int &ConfigServerParser::get_port() const { return this->port; }
 
+const string &ConfigServerParser::get_port_str() const {
+	return this->port_str;
+}
+
 const int &ConfigServerParser::get_host(int i) const { return this->host_v[i]; }
 
 const string &ConfigServerParser::get_host() const { return this->host_s; }
@@ -200,6 +204,7 @@ void ConfigServerParser::set_port(string port, size_t pos) {
 		throw std::runtime_error(str_red("Port Error : " + port));
 	}
 	this->port		  = this->stringToInt(port);
+	this->port_str	  = port;
 	this->port_status = true;
 }
 
@@ -413,7 +418,7 @@ void ConfigServerParser::check_status() {
 
 std::ostream &operator<<(std::ostream			  &out,
 						 const ConfigServerParser &config_server_parser) {
-	print_line("Parsed Server");
+	print_long_line("Parsed Server");
 
 	out << "port: " << config_server_parser.get_port() << endl;
 	out << "host: " << config_server_parser.get_host() << endl;
