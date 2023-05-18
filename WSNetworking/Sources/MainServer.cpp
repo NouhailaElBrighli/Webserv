@@ -74,7 +74,7 @@ void MainServer::print_info() {
 				  6);
 		cout << C_CYAN << " |" << C_RES << endl;
 		cout << C_CYAN << "-----------------------------------------------"
-			 << endl;
+			 << C_RES << endl;
 	}
 }
 
@@ -220,8 +220,9 @@ void MainServer::init() {
 	std::memset(&this->read_sockets, 0, sizeof(this->read_sockets));
 
 	FD_ZERO(&this->current_sockets);
-	for (size_t i = 0; i < this->socket.size(); i++)
-		FD_SET(this->socket[i], &this->current_sockets);
+	for (map<int, int>::iterator it = this->socket.begin();
+		 it != this->socket.end(); it++)
+		FD_SET((*it).second, &this->current_sockets);
 	// max element of the socket map
 	this->max_socket = this->socket.rbegin()->second;
 }
@@ -265,19 +266,14 @@ void MainServer::launch() {
 		// time
 		this->read_sockets = this->current_sockets;
 
-	//! protect select from infinite loop
-	restart_select:
+		// restart_select:
 		print_long_line("select");
+
 		// select() will block until there is activity on one of the sockets
 		if (select(this->max_socket + 1, &this->read_sockets, NULL, NULL, NULL)
-			< 0) {
-			if (errno == EINTR) {
-				cout << "select() was interrupted" << endl;
-				goto restart_select;
-			} else {
-				throw std::runtime_error("select() failed");
-			}
-		}
+			== -1)
+			throw std::runtime_error(str_red("Error select : ")
+									 + strerror(errno));
 
 		// check if the listening socket is ready
 		for (int i = 3; i <= this->max_socket; i++) {
