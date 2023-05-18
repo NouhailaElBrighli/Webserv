@@ -12,15 +12,14 @@ class MainServer {
   private:
 	vector<ListeningSocket> listen_socket;
 	map<int, MainClient *>	clients;
-	vector<t_addrinfo *>	address;
-	vector<int>				socket;
+	map<int, int>			socket;
 	int						accept_socket, max_socket;
-	fd_set					current_sockets, ready_sockets;
+	fd_set					current_sockets, read_sockets;
 	bool					launch_status;
 
-  public:
-	// Methods
-	void print_info();
+  private:
+	// Attributes for print_info()
+	map<int, int> port_socket;
 
   private:
 	// Getters
@@ -35,9 +34,9 @@ class MainServer {
 
   private:
 	// Methods
+	int	 match_socket_server(int fd_socket);
 	void run_sockets();
-	int	 right_port(int client_socket);
-	int	 right_address(int fd_socket);
+	int	 right_server(int client_socket);
 	void accepter(int fd_socket);
 	void handle(int client_socket);
 	void responder(int client_socket);
@@ -47,6 +46,7 @@ class MainServer {
 
   public:
 	// Methods
+	void print_info();
 	void launch();
 };
 
