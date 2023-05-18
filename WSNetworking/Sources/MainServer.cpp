@@ -201,10 +201,7 @@ void MainServer::init() {
 
 void MainServer::destroy_client(int i) {
 	print_long_line("destroy client");
-	//! DON'T DESTROY CLIENT AND WAIT IT TO COMPLETE SENDING THE BODY
-	// Destroy the client
-	delete this->clients[i];
-	this->clients.erase(i);
+	// Check if the client is a master socket
 	cout << C_YELLOW << "current socket to be close: " << i << C_RES << endl;
 	for (map<int, int>::iterator it = this->socket.begin();
 		 it != this->socket.end(); it++) {
@@ -214,6 +211,11 @@ void MainServer::destroy_client(int i) {
 			return;
 		}
 	}
+	//! DON'T DESTROY CLIENT AND WAIT IT TO COMPLETE SENDING THE BODY
+
+	// Destroy the client
+	delete this->clients[i];
+	this->clients.erase(i);
 	FD_CLR(i, &this->current_sockets);
 	close(i);
 	cout << C_GREEN << "current socket closed: " << i << C_RES << endl;
