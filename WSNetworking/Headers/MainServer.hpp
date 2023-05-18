@@ -36,6 +36,7 @@ class MainServer {
 	// Methods
 	int	 match_socket_server(int fd_socket);
 	void run_sockets();
+	int	 right_port(int client_socket);
 	int	 right_server(int client_socket);
 	void accepter(int fd_socket);
 	void handle(int client_socket);

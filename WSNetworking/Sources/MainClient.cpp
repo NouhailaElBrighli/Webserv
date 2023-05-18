@@ -18,10 +18,27 @@ const string &MainClient::get_msg_status() const { return msg_status; }
 MainClient::MainClient() { std::memset(buffer, 0, MAXLINE + 1); }
 
 MainClient::MainClient(int				   client_socket,
-					   ConfigServerParser *config_server_parser)
+					   ConfigServerParser *config_server_parser, int port)
 	: config_server_parser(config_server_parser),
 	  request_parser(new RequestParser()), status(200),
-	  msg_status(Accurate::OK200().what()), client_socket(client_socket) {
+	  msg_status(Accurate::OK200().what()), client_socket(client_socket),
+	  port(port) {
+	std::memset(buffer, 0, MAXLINE + 1);
+	try {
+		this->handle(client_socket);
+	} catch (const std::exception &e) {
+		this->msg_status = e.what();
+		this->status	 = atoi(string(e.what()).substr(0, 3).c_str());
+		print_error(this->msg_status);
+	}
+}
+
+MainClient::MainClient(int client_socket, ConfigFileParser *config_file_parser,
+					   int port)
+	: config_file_parser(config_file_parser),
+	  request_parser(new RequestParser()), status(200),
+	  msg_status(Accurate::OK200().what()), client_socket(client_socket),
+	  port(port) {
 	std::memset(buffer, 0, MAXLINE + 1);
 	try {
 		this->handle(client_socket);
@@ -35,6 +52,22 @@ MainClient::MainClient(int				   client_socket,
 MainClient::~MainClient() { delete request_parser; }
 
 // Methods
+int MainClient::get_right_config_server_parser_from_name_sever(
+	string name_server) {
+	int i = 0;
+
+	name_server = name_server.substr(0, name_server.find(":"));
+	cout << "name_server: " << name_server << endl;
+	for (size_t it = 0;
+		 it < config_file_parser->get_config_server_parser().size(); it++) {
+		if (config_file_parser->get_config_server_parser(it)->get_server_name()
+			== name_server)
+			return i;
+		i++;
+	}
+	return 0;
+}
+
 void MainClient::handle(int client_socket) {
 	int	   n;
 	string data;
@@ -56,6 +89,18 @@ void MainClient::handle(int client_socket) {
 	}
 
 	head = data.substr(0, data.find("\r\n\r\n"));
+
+	print_line("Request Parser");
+	this->request_parser->run_head(head);
+	cout << *this->request_parser << endl;
+
+	// get the right config server parser if not set in constructor
+	if (this->port != -1)
+		this->config_server_parser
+			= config_file_parser->get_config_server_parser(
+				get_right_config_server_parser_from_name_sever(
+					this->get_request("Host")));
+
 	//! body need to be fill in external file
 	body = data.substr(data.find("\r\n\r\n") + 4);
 	if (body.length() > this->config_server_parser->get_client_max_body_size())
@@ -64,12 +109,8 @@ void MainClient::handle(int client_socket) {
 	// cout << "data : " << endl << data << endl;
 	// cout << "head : " << endl << head << endl;
 	// cout << "body : " << endl << body << endl;
-
-	print_line("Request Parser");
-	this->request_parser->run_head(head);
 	// if (body.length() > 0)
 	// 	this->request_parser->run_body(body);
-	// cout << *this->request_parser << endl;
 
 	get_matched_location_for_request_uri();
 	is_method_allowded_in_location();

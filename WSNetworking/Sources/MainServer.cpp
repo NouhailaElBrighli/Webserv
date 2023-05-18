@@ -119,8 +119,7 @@ void MainServer::run_sockets() {
 			= this->get_listen_socket(i).get_socket_listen();
 }
 
-int MainServer::right_server(int client_socket) {
-	int			  port;
+int MainServer::right_port(int client_socket) {
 	socklen_t	  addr_len;
 	t_sockaddr_in addr;
 
@@ -131,15 +130,31 @@ int MainServer::right_server(int client_socket) {
 		throw std::runtime_error(str_red("Error getting socket information"));
 
 	// Extract the port number
-	port = ntohs(addr.sin_port);
+	return (ntohs(addr.sin_port));
+}
+
+int MainServer::right_server(int client_socket) {
+	int port;
+	int first_server  = 0;
+	int mutiple_ports = 0;
+
+	// Extract the port number
+	port = right_port(client_socket);
 	// Check if the port is in the config file and get the index
 	for (size_t i = 0;
 		 i < this->config_file_parser->get_config_server_parser().size(); i++) {
 		if (this->config_file_parser->get_config_server_parser(i)->get_port()
-			== port)
-			return i;
+			== port) {
+			mutiple_ports++;
+			first_server = i;
+		}
 	}
-	throw std::runtime_error(str_red("Error port not found"));
+	if (mutiple_ports == 1)
+		return first_server;
+	else if (mutiple_ports > 1)
+		throw std::runtime_error(str_cyan("Multiple ports found"));
+	else if (mutiple_ports == 0)
+		throw std::runtime_error(str_red("Error port not found"));
 	return -1;
 }
 
@@ -159,13 +174,26 @@ void MainServer::handle(int client_socket) {
 	int i;
 
 	print_long_line("handle");
-	if ((i = this->right_server(client_socket)) != -1) {
-		MainClient *mainClient = new MainClient(
-			client_socket,
-			this->config_file_parser->get_config_server_parser(i));
-		this->clients[client_socket] = mainClient;
-		print_long_line("add new client");
-		return;
+	try {
+		if ((i = this->right_server(client_socket)) != -1) {
+			MainClient *mainClient = new MainClient(
+				client_socket,
+				this->config_file_parser->get_config_server_parser(i), -1);
+			this->clients[client_socket] = mainClient;
+			print_long_line("add new client");
+			return;
+		}
+	} catch (const std::exception &e) {
+		if (string(e.what()).find("Multiple")) {
+			cout << e.what() << endl;
+			MainClient *mainClient = new MainClient(
+				client_socket, this->config_file_parser,
+				this->port_socket[this->right_port(client_socket)]);
+			this->clients[client_socket] = mainClient;
+			print_long_line("add new client");
+			return;
+		} else
+			throw std::runtime_error(e.what());
 	}
 }
 
@@ -233,7 +261,8 @@ void MainServer::launch() {
 		FD_ZERO(&this->read_sockets);
 		std::memset(&this->read_sockets, 0, sizeof(this->read_sockets));
 
-		// because `select` will modify the set, we need to reset it each time
+		// because `select` will modify the set, we need to reset it each
+		// time
 		this->read_sockets = this->current_sockets;
 
 	//! protect select from infinite loop
