@@ -148,7 +148,6 @@ void MainServer::accepter(int fd_socket) {
 	socklen_t	addrlen = sizeof(address);
 
 	print_long_line("accepter");
-	resolveAddress();
 	this->accept_socket = accept(fd_socket, (t_sockaddr *)&address, &addrlen);
 	if (this->accept_socket == -1)
 		throw std::runtime_error(str_red("Error accept"));
