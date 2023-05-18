@@ -1,1 +1,47 @@
 git add .; git commit; git push origin hajar
+/*
+
+resp sTArT 
+check method 
+-> check file or folder
+{
+	if folder 
+		{
+			check permision 
+			-> check default index
+			-> check autoindex
+		}
+	if file
+	{
+		check permision 
+		-> check cgi
+	}
+} 
+-> check permision 
+-> check index 
+-> check autoindex
+*/
+
+//throw std::runtime_error(str_red("cgi error"));
+
+// void setEnvironmentVariable(const std::string& key, const std::string& value) {
+//     std::string envVar = key + "=" + value;
+//     putenv(const_cast<char*>(envVar.c_str()));
+// }
+
+// void setupCGIEnvironment(const std::map<std::string, std::string>& requestMap) {
+//     for (std::map<std::string, std::string>::const_iterator it = requestMap.begin(); it != requestMap.end(); ++it) {
+//         std::string key = "HTTP_" + it->first;
+//         std::string value = it->second;
+
+//         setEnvironmentVariable(key, value);
+//     }
+
+//setenv():
+// + name is a C-style string representing the name of the environment variable.
+// +value is a C-style string representing the value to be assigned to 
+// the environment variable.
+// +overwrite is an integer flag indicating whether the environment variable
+//  should be overwritten if it already exists. 
+// A non-zero value indicates that it should be overwritten, 
+// while a value of 0 means it should not be overwritten
