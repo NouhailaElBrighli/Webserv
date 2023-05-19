@@ -24,13 +24,8 @@ MainClient::MainClient(int				   client_socket,
 	  msg_status(Accurate::OK200().what()), client_socket(client_socket),
 	  port(port) {
 	std::memset(buffer, 0, MAXLINE + 1);
-	try {
-		this->handle(client_socket);
-	} catch (const std::exception &e) {
-		this->msg_status = e.what();
-		this->status	 = atoi(string(e.what()).substr(0, 3).c_str());
-		print_error(this->msg_status);
-	}
+
+	this->start_handle();
 }
 
 MainClient::MainClient(int client_socket, ConfigFileParser *config_file_parser,
@@ -40,24 +35,28 @@ MainClient::MainClient(int client_socket, ConfigFileParser *config_file_parser,
 	  msg_status(Accurate::OK200().what()), client_socket(client_socket),
 	  port(port) {
 	std::memset(buffer, 0, MAXLINE + 1);
-	try {
-		this->handle(client_socket);
-	} catch (const std::exception &e) {
-		this->msg_status = e.what();
-		this->status	 = atoi(string(e.what()).substr(0, 3).c_str());
-		print_error(this->msg_status);
-	}
+
+	this->start_handle();
 }
 
 MainClient::~MainClient() { delete request_parser; }
 
 // Methods
+void MainClient::start_handle() {
+	try {
+		this->handle(this->client_socket);
+	} catch (const std::exception &e) {
+		this->msg_status = e.what();
+		this->status	 = std::atoi(string(e.what()).substr(0, 3).c_str());
+		print_error(this->msg_status);
+	}
+}
+
 int MainClient::get_right_config_server_parser_from_name_sever(
 	string name_server) {
 	int i = 0;
 
 	name_server = name_server.substr(0, name_server.find(":"));
-	cout << "name_server: " << name_server << endl;
 	for (size_t it = 0;
 		 it < config_file_parser->get_config_server_parser().size(); it++) {
 		if (config_file_parser->get_config_server_parser(it)->get_server_name()
@@ -65,6 +64,7 @@ int MainClient::get_right_config_server_parser_from_name_sever(
 			return i;
 		i++;
 	}
+	// else return the first one
 	return 0;
 }
 
@@ -74,7 +74,7 @@ void MainClient::handle(int client_socket) {
 	string head;
 	string body;
 
-	print_line("Client");
+	print_line("MainClient");
 	while ((n = read(client_socket, buffer, MAXLINE)) > 0) {
 		buffer[n] = '\0';
 		data += buffer;
@@ -90,7 +90,6 @@ void MainClient::handle(int client_socket) {
 
 	head = data.substr(0, data.find("\r\n\r\n"));
 
-	print_line("Request Parser");
 	this->request_parser->run_head(head);
 	cout << *this->request_parser << endl;
 
@@ -149,19 +148,13 @@ void MainClient::get_matched_location_for_request_uri() {
 			is_found = true;
 		}
 
-		print_short_line((*it)->get_location());
-		cout << "root :			" << (*it)->get_root() << endl;
-		cout << "brut_file_name :	" << file_name << endl;
 		if (is_found == true) {
 			if (file_name[0] == '/')
 				file_name.erase(0, 1);
 
 			for (size_t i = 0; i < (*it)->get_index().size(); i++) {
-				if (file_name == (*it)->get_index(i)) {
-					cout << C_GREEN << "file_name :		" << file_name << C_RES
-						 << endl;
+				if (file_name == (*it)->get_index(i))
 					return;
-				}
 			}
 		}
 	}

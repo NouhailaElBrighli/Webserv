@@ -40,6 +40,21 @@ MainServer::~MainServer() {
 }
 
 // Methods
+void MainServer::launch() {
+	if (this->launch_status)
+		return;
+	this->launch_status = true;
+	// Create a listening socket for each port
+	this->run_sockets();
+	// Print the server information
+	this->print_info();
+	// Initialize the reading sockets
+	this->init_reading_sockets();
+	// Run the server
+	this->routine();
+}
+
+// Print the server information
 void MainServer::print_info() {
 	cout << C_CYAN << "-----------------------------------------------" << endl
 		 << C_CYAN << "| " << C_YELLOW;
@@ -78,6 +93,7 @@ void MainServer::print_info() {
 	}
 }
 
+// Create sockets for each port
 void MainServer::run_sockets() {
 	// Create a listening socket for each port
 	size_t j = 0;
@@ -119,6 +135,7 @@ void MainServer::run_sockets() {
 			= this->get_listen_socket(i).get_socket_listen();
 }
 
+// Tools for matching socket with server of config file
 int MainServer::right_port(int client_socket) {
 	socklen_t	  addr_len;
 	t_sockaddr_in addr;
@@ -158,16 +175,28 @@ int MainServer::right_server(int client_socket) {
 	return -1;
 }
 
+// Initialize the reading sockets
+void MainServer::init_reading_sockets() {
+	FD_ZERO(&this->read_sockets);
+	std::memset(&this->read_sockets, 0, sizeof(this->read_sockets));
+
+	FD_ZERO(&this->current_sockets);
+	std::memset(&this->current_sockets, 0, sizeof(this->current_sockets));
+	for (map<int, int>::iterator it = this->socket.begin();
+		 it != this->socket.end(); it++)
+		FD_SET((*it).second, &this->current_sockets);
+	// max element of the socket map
+	this->max_socket = this->socket.rbegin()->second;
+}
+
+// Routine methods
 void MainServer::accepter(int fd_socket) {
 	t_sockaddr *address;
 	socklen_t	addrlen = sizeof(address);
 
-	print_long_line("accepter");
 	this->accept_socket = accept(fd_socket, (t_sockaddr *)&address, &addrlen);
 	if (this->accept_socket == -1)
 		throw std::runtime_error(str_red("Error accept"));
-	cout << "fd_socket : " << fd_socket << endl;
-	cout << "accept_socket : " << this->accept_socket << endl;
 }
 
 void MainServer::handle(int client_socket) {
@@ -180,17 +209,14 @@ void MainServer::handle(int client_socket) {
 				client_socket,
 				this->config_file_parser->get_config_server_parser(i), -1);
 			this->clients[client_socket] = mainClient;
-			print_long_line("add new client");
 			return;
 		}
 	} catch (const std::exception &e) {
 		if (string(e.what()).find("Multiple")) {
-			cout << e.what() << endl;
 			MainClient *mainClient = new MainClient(
 				client_socket, this->config_file_parser,
 				this->port_socket[this->right_port(client_socket)]);
 			this->clients[client_socket] = mainClient;
-			print_long_line("add new client");
 			return;
 		} else
 			throw std::runtime_error(e.what());
@@ -198,8 +224,6 @@ void MainServer::handle(int client_socket) {
 }
 
 void MainServer::responder(int client_socket) {
-	print_long_line("responder");
-
 	if (this->clients[client_socket]->get_status() < 400) {
 		string accurate = "HTTP/1.1 ";
 		accurate += this->clients[client_socket]->get_msg_status();
@@ -215,29 +239,14 @@ void MainServer::responder(int client_socket) {
 	}
 }
 
-void MainServer::init() {
-	FD_ZERO(&this->read_sockets);
-	std::memset(&this->read_sockets, 0, sizeof(this->read_sockets));
-
-	FD_ZERO(&this->current_sockets);
-	for (map<int, int>::iterator it = this->socket.begin();
-		 it != this->socket.end(); it++)
-		FD_SET((*it).second, &this->current_sockets);
-	// max element of the socket map
-	this->max_socket = this->socket.rbegin()->second;
-}
-
 void MainServer::destroy_client(int i) {
 	print_long_line("destroy client");
 	// Check if the client is a master socket
 	cout << C_YELLOW << "current socket to be close: " << i << C_RES << endl;
-	for (map<int, int>::iterator it = this->socket.begin();
-		 it != this->socket.end(); it++) {
-		if (it->second == i) {
-			cout << C_RED << "current socket mustn't be close: " << i << C_RES
-				 << endl;
-			return;
-		}
+	if (this->socket[i] == i) {
+		cout << C_RED << "current socket mustn't be close: " << i << C_RES
+			 << endl;
+		return;
 	}
 	//! DON'T DESTROY CLIENT AND WAIT IT TO COMPLETE SENDING THE BODY
 
@@ -249,26 +258,16 @@ void MainServer::destroy_client(int i) {
 	cout << C_GREEN << "current socket closed: " << i << C_RES << endl;
 }
 
-void MainServer::launch() {
-	if (this->launch_status)
-		return;
-	this->launch_status = true;
-	this->run_sockets();
-	this->print_info();
-	this->init();
+// Main routine
+void MainServer::routine() {
 	while (true) {
-		print_long_line("Waiting for connection...");
-
-		FD_ZERO(&this->read_sockets);
-		std::memset(&this->read_sockets, 0, sizeof(this->read_sockets));
-
 		// because `select` will modify the set, we need to reset it each
 		// time
+		FD_ZERO(&this->read_sockets);
+		std::memset(&this->read_sockets, 0, sizeof(this->read_sockets));
 		this->read_sockets = this->current_sockets;
 
-		// restart_select:
-		print_long_line("select");
-
+		print_long_line("select wait for client");
 		// select() will block until there is activity on one of the sockets
 		if (select(this->max_socket + 1, &this->read_sockets, NULL, NULL, NULL)
 			== -1)

@@ -32,23 +32,31 @@ class MainServer {
 	MainServer(ConfigFileParser *config_file_parser, int backlog);
 	~MainServer();
 
-  private:
 	// Methods
-	int	 match_socket_server(int fd_socket);
+	void launch();
+
+  private:
+	// Print the server information
+	void print_info();
+
+	// Create sockets for each port
 	void run_sockets();
-	int	 right_port(int client_socket);
-	int	 right_server(int client_socket);
+
+	// Tools for matching socket with server of config file
+	int right_port(int client_socket);
+	int right_server(int client_socket);
+
+	// Initialize the reading sockets
+	void init_reading_sockets();
+
+	// Routine methods
 	void accepter(int fd_socket);
 	void handle(int client_socket);
 	void responder(int client_socket);
-
-	void init();
 	void destroy_client(int i);
 
-  public:
-	// Methods
-	void print_info();
-	void launch();
+	// Main routine
+	void routine();
 };
 
 #endif	// MAINSERVER_HPP
