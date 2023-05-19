@@ -6,7 +6,7 @@
 /*   By: hsaidi <hsaidi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:38:43 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/05/18 21:01:11 by hsaidi           ###   ########.fr       */
+/*   Updated: 2023/05/19 11:15:38 by hsaidi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,23 +78,44 @@ void Cgi::just_print()
 			// cout << "root : " << (*it)->get_root() << endl;
 			// cout << "cgi_ext_path : " << (*it)->get_cgi_ext_path(".py") << endl;
 			// cout << "cgi_ext_path : " << (*it)->get_cgi_ext_path(".sh") << endl;
-			// cout << "--------------------------------------------------------\n";
 		}
 		// getFileType(this->filename);
-		set_cgi_env();
 	}
+	set_cgi_env();
 
 }
 
 // setting the cgi_env map
 void Cgi::set_cgi_env()
 {
-	this->cgi_env["REQUEST_METHOD = "] = this->main_client->get_request("Request-Type");
-	cout<< "ppppppppppp |" <<this->cgi_env["REQUEST_METHOD ="] << endl;
+	std::string script_file ="file1.php";
+	cgi_env["REQUEST_METHOD="] = this->main_client->get_request("Request-Type");
+	cgi_env["PATH_INFO="] = this->main_client->get_request("Request-URI");
+	cgi_env["QUERY_STRING="] = this->main_client->get_request("Query-String");
+	cgi_env["HTTP_COOKIE="] = this->main_client->get_request("Cookie");
+	cgi_env["SCRIPT_FILENAME="] = this->main_client->get_request("Request-URI");
+	cgi_env["SERVER_PROTOCOL="] = this->main_client->get_request("Protocol-Version");
+	cgi_env["GETWAY_INTERFACE="] = "CGI/1.1";
+	cgi_env["REDIRECT_STATUS="] = "true";
+	cgi_env["REQUEST_URI="] = this->main_client->get_request("Request-URI");
+	cgi_env["HTTP_HOST="] = this->main_client->get_request("Host");
+	cgi_env["SERVER_SOFTWARE="] = "WEBSERVER";
+	if (this->main_client->get_request("Request-Type") == "POST")
+	{
+		cgi_env["CONTENT_LENGTH="] = this->main_client->get_request("Content-Length");
+		cgi_env["CONTENT_TYPE="] = this->main_client->get_request("Content-Type");
+	}
+	cout << "------------------- Printing the env variables -------------------------------------\n";
+    std::map<std::string, std::string>::const_iterator it;
+    for (it = cgi_env.begin(); it != cgi_env.end(); ++it) {
+        const std::string& key = it->first;
+        const std::string& value = it->second;
+        std::cout << key << value << std::endl;
+    }
+
 
 }
 
-// i just need to put the env in the map and then i will pass it to the execve 
 //fork and execve 
 
 
