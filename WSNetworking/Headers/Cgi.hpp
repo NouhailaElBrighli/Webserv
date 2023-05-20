@@ -6,7 +6,7 @@
 /*   By: hsaidi <hsaidi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:33:49 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/05/19 11:15:12 by hsaidi           ###   ########.fr       */
+/*   Updated: 2023/05/19 12:04:20 by hsaidi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,6 @@ class Cgi
         MainClient *main_client;
         vector<ConfigLocationParser *> config_location_parser;
         map<string, string> cgi_env;
-        // std::string &filename;
 
     public:
         Cgi(MainClient *main_client, vector<ConfigLocationParser *>config_location_parser);
@@ -29,8 +28,10 @@ class Cgi
         ~Cgi();
         void just_print();
         void set_cgi_env();
-        // int getFileType(const std::string& filename);
-        // void readFileContents(std::string &filename) ;
+        std::string filename;
+        std::string script;// need to add the path of the script
+        void readFileContents() ;
+        void getFileType(const std::string filename);
     // class CgiException : public std::exception
     // {
     //     private:

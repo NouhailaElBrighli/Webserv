@@ -6,7 +6,7 @@
 /*   By: hsaidi <hsaidi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:38:43 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/05/19 11:15:38 by hsaidi           ###   ########.fr       */
+/*   Updated: 2023/05/19 12:02:58 by hsaidi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,47 +18,46 @@ Cgi::Cgi(MainClient *main_client, vector<ConfigLocationParser *>config_location_
 	this->config_location_parser = config_location_parser;
 	
 }
-// Cgi::Cgi(std::string &filename) {
-// 	this->filename = filename;
-// }
 Cgi::~Cgi(){}
 
 
 //****** i commented this function because i will fixes something tomorrow ****
 
-// void Cgi::readFileContents(std::string &filename) 
-// {
-//     std::ifstream file(filename.c_str());
-//     if (file.is_open()) {
-//         std::string line;
-//         while (getline(file, line)) {
-//             std::cout << line << std::endl;
-//         }
-//         file.close();
-//     } else {
-//         std::cout << "Failed to open file: " << filename << std::endl;
-//     }
-// }
+void Cgi::readFileContents() 
+{
+	this->filename = "/Users/hsaidi/Desktop/teamserv/file1.php";
+    std::ifstream file(filename.c_str());
+    if (file.is_open()) {
+        std::string line;
+        while (getline(file, line)) {
+            std::cout << line << std::endl;
+        }
+        file.close();
+	// getFileType(filename);
+    } else {
+        std::cout << "Failed to open file: " << filename << std::endl;
+    }
+}
 
-// int Cgi::getFileType(const std::string& filename) {
-//     std::size_t dotPos = filename.rfind('.');
-//     if (dotPos != std::string::npos) {
-//         std::string extension = filename.substr(dotPos + 1);
+void Cgi::getFileType(const std::string filename) {
+    std::size_t dotPos = filename.rfind('.');
+    if (dotPos != std::string::npos) {
+        std::string extension = filename.substr(dotPos + 1);
 
-//         // Convert the extension to lowercase for case-insensitive comparison
-//         for (std::size_t i = 0; i < extension.length(); ++i) {
-//             extension[i] = std::tolower(extension[i]);
-//         }
+        // Convert the extension to lowercase for case-insensitive comparison
+        for (std::size_t i = 0; i < extension.length(); ++i) {
+            extension[i] = std::tolower(extension[i]);
+        }
 
-//         if (extension == "php") {
-//             return 1;
-//         } else if (extension == "py") {
-//             return 0;
-//         }
-//     }
-
-//     return -1;
-// }
+        if (extension == "php") {
+            cout << "**php**" << endl;
+        } else if (extension == "py") {
+			cout<< "**py**\n";
+    	}
+		else
+			std::cout << " can't accept this extention " << filename << std::endl;
+    }
+}
 
 void Cgi::just_print()
 {
@@ -112,8 +111,8 @@ void Cgi::set_cgi_env()
         const std::string& value = it->second;
         std::cout << key << value << std::endl;
     }
-
-
+	readFileContents();
+	cout << "-----------------------------------------------------------------------------------\n";
 }
 
 //fork and execve 
