@@ -168,7 +168,8 @@ void MainClient::get_matched_location_for_request_uri() {
 		if (is_found == true) {
 			if (file_name[0] == '/')
 				file_name.erase(0, 1);
-
+			if (file_name.length() == 0)
+				return;
 			for (size_t i = 0; i < (*it)->get_index().size(); i++) {
 				if (file_name == (*it)->get_index(i))
 					return;
