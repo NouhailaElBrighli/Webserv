@@ -10,6 +10,7 @@ class MainClient {
 	ConfigServerParser *config_server_parser;
 	RequestParser	   *request_parser;
 	int					status;
+	bool				send_recieve_status;  //! STATUS OF SENDING AND RECIEVING DATA
 	string				msg_status;
 	int					client_socket, port;
 	char				buffer[MAXLINE + 1];
@@ -25,12 +26,12 @@ class MainClient {
 	const int	 &get_status() const;
 	const string &get_msg_status() const;
 
+	const bool &get_send_recieve_status() const;
+
 	// Constructors and destructor
 	MainClient();
-	MainClient(int client_socket, ConfigServerParser *config_server_parser,
-			   int port);
-	MainClient(int client_socket, ConfigFileParser *config_file_parser,
-			   int port);
+	MainClient(int client_socket, ConfigServerParser *config_server_parser, int port);
+	MainClient(int client_socket, ConfigFileParser *config_file_parser, int port);
 	~MainClient();
 
   private:

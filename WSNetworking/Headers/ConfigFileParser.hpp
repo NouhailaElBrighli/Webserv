@@ -37,4 +37,4 @@ class ConfigFileParser {
 	void   parse_config_file();
 };
 
-#endif // CONFIGFILEPARSER_HPP
+#endif	// CONFIGFILEPARSER_HPP
