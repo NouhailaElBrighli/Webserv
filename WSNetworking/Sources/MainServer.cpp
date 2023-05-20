@@ -236,17 +236,7 @@ void MainServer::responder(int client_socket) {
 		error += this->clients[client_socket]->get_msg_status();
 		error += "\r\n\r\n";
 		send(client_socket, error.c_str(), error.length(), 0);
-	}
-	int i;
-	if ((i = this->right_port(client_socket)) != -1) {
-		Cgi cgi(this->clients[client_socket], this->config_file_parser->get_config_server_parser(i)->get_config_location_parser());
-	
-	try {
-		cgi.just_print();
-	} catch (const std::exception &e) {
-		throw std::runtime_error(e.what());
-	}    
-	}   
+	} 
 }     
 
 void MainServer::destroy_client(int i) {
