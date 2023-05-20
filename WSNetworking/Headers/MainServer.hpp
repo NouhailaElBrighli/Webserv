@@ -12,15 +12,14 @@ class MainServer {
   private:
 	vector<ListeningSocket> listen_socket;
 	map<int, MainClient *>	clients;
-	vector<t_addrinfo *>	address;
-	vector<int>				socket;
+	map<int, int>			socket;
 	int						accept_socket, max_socket;
-	fd_set					current_sockets, ready_sockets;
+	fd_set					current_sockets, read_sockets;
 	bool					launch_status;
 
-  public:
-	// Methods
-	void print_info();
+  private:
+	// Attributes for print_info()
+	map<int, int> port_socket;
 
   private:
 	// Getters
@@ -33,21 +32,31 @@ class MainServer {
 	MainServer(ConfigFileParser *config_file_parser, int backlog);
 	~MainServer();
 
-  private:
 	// Methods
+	void launch();
+
+  private:
+	// Print the server information
+	void print_info();
+
+	// Create sockets for each port
 	void run_sockets();
-	int	 right_port(int client_socket);
-	int	 right_address(int fd_socket);
+
+	// Tools for matching socket with server of config file
+	int right_port(int client_socket);
+	int right_server(int client_socket);
+
+	// Initialize the reading sockets
+	void init_reading_sockets();
+
+	// Routine methods
 	void accepter(int fd_socket);
 	void handle(int client_socket);
 	void responder(int client_socket);
-
-	void init();
 	void destroy_client(int i);
 
-  public:
-	// Methods
-	void launch();
+	// Main routine
+	void routine();
 };
 
 #endif	// MAINSERVER_HPP

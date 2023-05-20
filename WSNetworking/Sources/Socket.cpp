@@ -18,13 +18,19 @@ Socket::Socket(const char *host, const char *port) {
 		= socket(this->bind_address->ai_family, this->bind_address->ai_socktype,
 				 this->bind_address->ai_protocol);
 	if (this->socket_listen < 0)
-		throw std::runtime_error(str_red("Socket socket failed."));
+		throw std::runtime_error(str_red("Socket socket failed"));
 
-	int reuse  = 1;
-	int resock = setsockopt(this->socket_listen, SOL_SOCKET, SO_REUSEADDR,
-							&reuse, sizeof(reuse));
-	if (resock < 0)
-		throw std::runtime_error(str_red("Socket socket failed."));
+	int on	  = 1;
+	int reuse = setsockopt(this->socket_listen, SOL_SOCKET, SO_REUSEADDR, &on,
+						   sizeof(on));
+	if (reuse < 0)
+		throw std::runtime_error(str_red("Socket setsockopt failed"));
+#ifdef __APPLE__
+	int nosig = setsockopt(socket_listen, SOL_SOCKET, SO_NOSIGPIPE, (char *)&on,
+						   sizeof(on));
+	if (nosig < 0)
+		throw std::runtime_error(str_red("Socket setsockopt failed"));
+#endif
 }
 
 Socket::~Socket() {}

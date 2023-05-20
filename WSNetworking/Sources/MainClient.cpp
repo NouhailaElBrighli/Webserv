@@ -18,30 +18,63 @@ const string &MainClient::get_msg_status() const { return msg_status; }
 MainClient::MainClient() { std::memset(buffer, 0, MAXLINE + 1); }
 
 MainClient::MainClient(int				   client_socket,
-					   ConfigServerParser *config_server_parser)
+					   ConfigServerParser *config_server_parser, int port)
 	: config_server_parser(config_server_parser),
 	  request_parser(new RequestParser()), status(200),
-	  msg_status(Accurate::OK200().what()), client_socket(client_socket) {
+	  msg_status(Accurate::OK200().what()), client_socket(client_socket),
+	  port(port) {
 	std::memset(buffer, 0, MAXLINE + 1);
-	try {
-		this->handle(client_socket);
-	} catch (const std::exception &e) {
-		this->msg_status = e.what();
-		this->status	 = atoi(string(e.what()).substr(0, 3).c_str());
-		print_error(this->msg_status);
-	}
+
+	this->start_handle();
+}
+
+MainClient::MainClient(int client_socket, ConfigFileParser *config_file_parser,
+					   int port)
+	: config_file_parser(config_file_parser),
+	  request_parser(new RequestParser()), status(200),
+	  msg_status(Accurate::OK200().what()), client_socket(client_socket),
+	  port(port) {
+	std::memset(buffer, 0, MAXLINE + 1);
+
+	this->start_handle();
 }
 
 MainClient::~MainClient() { delete request_parser; }
 
 // Methods
+void MainClient::start_handle() {
+	try {
+		this->handle(this->client_socket);
+	} catch (const std::exception &e) {
+		this->msg_status = e.what();
+		this->status	 = std::atoi(string(e.what()).substr(0, 3).c_str());
+		print_error(this->msg_status);
+	}
+}
+
+int MainClient::get_right_config_server_parser_from_name_sever(
+	string name_server) {
+	int i = 0;
+
+	name_server = name_server.substr(0, name_server.find(":"));
+	for (size_t it = 0;
+		 it < config_file_parser->get_config_server_parser().size(); it++) {
+		if (config_file_parser->get_config_server_parser(it)->get_server_name()
+			== name_server)
+			return i;
+		i++;
+	}
+	// else return the first one
+	return 0;
+}
+
 void MainClient::handle(int client_socket) {
 	int	   n;
 	string data;
 	string head;
 	string body;
 
-	print_line("Client");
+	print_line("MainClient");
 	while ((n = read(client_socket, buffer, MAXLINE)) > 0) {
 		buffer[n] = '\0';
 		data += buffer;
@@ -56,6 +89,17 @@ void MainClient::handle(int client_socket) {
 	}
 
 	head = data.substr(0, data.find("\r\n\r\n"));
+
+	this->request_parser->run_head(head);
+	cout << *this->request_parser << endl;
+
+	// get the right config server parser if not set in constructor
+	if (this->port != -1)
+		this->config_server_parser
+			= config_file_parser->get_config_server_parser(
+				get_right_config_server_parser_from_name_sever(
+					this->get_request("Host")));
+
 	//! body need to be fill in external file
 	body = data.substr(data.find("\r\n\r\n") + 4);
 	if (body.length() > this->config_server_parser->get_client_max_body_size())
@@ -64,13 +108,10 @@ void MainClient::handle(int client_socket) {
 	// cout << "data : " << endl << data << endl;
 	// cout << "head : " << endl << head << endl;
 	// cout << "body : " << endl << body << endl;
-
-	print_line("Request Parser");
-	this->request_parser->run_head(head);
 	// if (body.length() > 0)
 	// 	this->request_parser->run_body(body);
 	// cout << *this->request_parser << endl;
-	
+
 	get_matched_location_for_request_uri();
 	is_method_allowded_in_location();
 
@@ -108,19 +149,13 @@ void MainClient::get_matched_location_for_request_uri() {
 			is_found = true;
 		}
 
-		print_short_line((*it)->get_location());
-		cout << "root :			" << (*it)->get_root() << endl;
-		cout << "brut_file_name :	" << file_name << endl;
 		if (is_found == true) {
 			if (file_name[0] == '/')
 				file_name.erase(0, 1);
 
 			for (size_t i = 0; i < (*it)->get_index().size(); i++) {
-				if (file_name == (*it)->get_index(i)) {
-					cout << C_GREEN << "file_name :		" << file_name << C_RES
-						 << endl;
+				if (file_name == (*it)->get_index(i))
 					return;
-				}
 			}
 		}
 	}

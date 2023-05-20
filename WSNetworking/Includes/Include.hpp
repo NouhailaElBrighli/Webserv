@@ -1,6 +1,7 @@
 #ifndef INCLUDE_HPP
 #define INCLUDE_HPP
 
+#include <iomanip>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <sys/select.h>
@@ -55,8 +56,9 @@
 #define str_cyan(str)                                                          \
 	(std::string(C_CYAN) + std::string(str) + std::string(C_RES))
 
-typedef struct addrinfo t_addrinfo;
-typedef struct sockaddr t_sockaddr;
+typedef struct addrinfo	   t_addrinfo;
+typedef struct sockaddr	   t_sockaddr;
+typedef struct sockaddr_in t_sockaddr_in;
 
 using std::cerr;
 using std::cout;
