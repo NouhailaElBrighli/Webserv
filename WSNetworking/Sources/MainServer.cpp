@@ -155,6 +155,14 @@ void MainServer::init_reading_sockets() {
 	this->max_socket = this->socket.rbegin()->second;
 }
 
+// Reset read sockets
+void MainServer::reset() {
+	// because `select` will modify the set, we need to reset it each time
+	FD_ZERO(&this->read_sockets);
+	std::memset(&this->read_sockets, 0, sizeof(this->read_sockets));
+	this->read_sockets = this->current_sockets;
+}
+
 // Routine methods
 void MainServer::accepter(int fd_socket) {
 	t_sockaddr *address;
@@ -214,11 +222,7 @@ void MainServer::destroy_client(int client_socket) {
 // Main routine
 void MainServer::routine() {
 	while (true) {
-		// because `select` will modify the set, we need to reset it each
-		// time
-		FD_ZERO(&this->read_sockets);
-		std::memset(&this->read_sockets, 0, sizeof(this->read_sockets));
-		this->read_sockets = this->current_sockets;
+		this->reset();
 
 		print_long_line("select wait for client");
 		// select() will block until there is activity on one of the sockets
