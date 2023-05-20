@@ -6,7 +6,7 @@
 /*   By: hsaidi <hsaidi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:38:43 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/05/20 11:10:59 by hsaidi           ###   ########.fr       */
+/*   Updated: 2023/05/20 18:54:26 by hsaidi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,8 +21,6 @@ Cgi::Cgi(MainClient *main_client, vector<ConfigLocationParser *>config_location_
 Cgi::~Cgi(){}
 
 
-//****** i commented this function because i will fixes something tomorrow ****
-
 void Cgi::readFileContents() 
 {
 	this->filename = "/Users/hsaidi/Desktop/teamserv/file1.php";
@@ -33,38 +31,48 @@ void Cgi::readFileContents()
             std::cout << line << std::endl;
         }
         file.close();
-	getFileType(filename);
+	// getFileType(filename);
     } else {
         std::cout << "Failed to open file: " << filename << std::endl;
     }
 }
 
-void Cgi::getFileType(const std::string filename) {
-    std::size_t dotPos = filename.rfind('.');
-    if (dotPos != std::string::npos) {
-        std::string extension = filename.substr(dotPos + 1);
+void Cgi::getFileType(const std::string& ext1, const std::string& ext2) 
+{
 
-        // Convert the extension to lowercase for case-insensitive comparison
-        for (std::size_t i = 0; i < extension.length(); ++i) {
-            extension[i] = std::tolower(extension[i]);
-        }
+    // std::size_t dotPos1 = ext1.rfind('.');
+    // std::size_t dotPos2 = ext2.rfind('.');
+    
+    // if (dotPos1 != std::string::npos && dotPos2 != std::string::npos) {
+    //     std::string extension1 = ext1.substr(dotPos1 + 1);
+    //     std::string extension2 = ext2.substr(dotPos2 + 1);
 
-        if (extension == "ph") {
-            cout << "**php**" << endl;
-        } else if (extension == "py") {
-			cout<< "**py**\n";
-    	}
-		else
-			std::cout << "---- can't accept this extention ----" << filename << std::endl;
-			//need to throw an error here
-    }
+	// cout << "---------------------------------here------------------------\n";
+    //     // Convert the extensions to lowercase for case-insensitive comparison
+    //     for (std::size_t i = 0; i < extension1.length(); ++i) {
+    //         extension1[i] = std::tolower(extension1[i]);
+    //     }
+
+    //     for (std::size_t i = 0; i < extension2.length(); ++i) {
+    //         extension2[i] = std::tolower(extension2[i]);
+    //     }
+
+    //     if (extension2 == "php") {
+    //         cout << "**php**" << endl;
+    //     } else if (extension1 == "py") {
+	// 		cout<< "**py**\n";
+    // 	} else {
+	// 		std::cout << "---- can't accept these extensions ----" << std::endl;
+	// 		// need to throw an error here
+	// 	}
+    // }
 }
+
 
 void Cgi::just_print()
 {
 	std::cout << "hello from cgi" << std::endl;
 	// cout << "->>>  " << this->main_client->get_request("Request-Type") <<std::endl;
-	cout << "---------------------------------------------------------\n";
 	for(map<string, string>::const_iterator it = this->main_client->get_request().begin(); it != this->main_client->get_request().end(); it++)
 	{
 		cout << it->first << " : " << it->second << endl;          
@@ -74,12 +82,11 @@ void Cgi::just_print()
 	{   
 		if ((*it)->get_location().find("cgi") != string::npos)
 		{
-			// cout << "location : " << (*it)->get_location() << endl;
-			// cout << "root : " << (*it)->get_root() << endl;
+			if((*it)->get_cgi_ext_path(".py") != "" || (*it)->get_cgi_ext_path(".php") != "" )
+			getFileType((*it)->get_cgi_ext_path(".py"),(*it)->get_cgi_ext_path(".php"));
 			// cout << "cgi_ext_path : " << (*it)->get_cgi_ext_path(".py") << endl;
-			// cout << "cgi_ext_path : " << (*it)->get_cgi_ext_path(".sh") << endl;
+			// cout << "cgi_ext_path : " << (*it)->get_cgi_ext_path(".php") << endl;
 		}
-		// getFileType(this->filename);
 	}
 	set_cgi_env();
 
@@ -90,7 +97,7 @@ void Cgi::set_cgi_env()
 {
 	std::string script_file ="file1.php";
 	cout << "---------------------------------------------------------\n";
-	readFileContents();
+	// readFileContents();
 	cgi_env["REQUEST_METHOD="] = this->main_client->get_request("Request-Type");
 	cgi_env["PATH_INFO="] = this->main_client->get_request("Request-URI");
 	cgi_env["QUERY_STRING="] = this->main_client->get_request("Query-String");
@@ -99,7 +106,7 @@ void Cgi::set_cgi_env()
 	cgi_env["SERVER_PROTOCOL="] = this->main_client->get_request("Protocol-Version");
 	cgi_env["GETWAY_INTERFACE="] = "CGI/1.1";
 	cgi_env["REDIRECT_STATUS="] = "true";
-	cgi_env["REQUEST_URI="] = this->main_client->get_request("Request-URI");
+	cgi_env["REQUEShT_URI="] = this->main_client->get_request("Request-URI");
 	cgi_env["HTTP_HOST="] = this->main_client->get_request("Host");
 	cgi_env["SERVER_SOFTWARE="] = "WEBSERVER";
 	if (this->main_client->get_request("Request-Type") == "POST")
@@ -115,9 +122,14 @@ void Cgi::set_cgi_env()
         std::cout << key << value << std::endl;
     }
 	cout << "-----------------------------------------------------------------------------------\n";
-	
+	// char *const av
+	// std::string 
+	// int pid = fork();
+	// if (pid == 0)
+	// {	
+	// }
 }
-
-//fork and execve 
+// perce the locationand stor the executable path 
+//fork and execve
 
 

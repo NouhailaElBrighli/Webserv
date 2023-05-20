@@ -142,7 +142,6 @@ void MainClient::handle(int client_socket) {
 	// }
 
 	Cgi cgi(this, this->config_server_parser->get_config_location_parser());
-	
 	try {
 		cgi.just_print();
 	} catch (const std::exception &e) {
