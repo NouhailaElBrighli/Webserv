@@ -6,7 +6,7 @@
 /*   By: hsaidi <hsaidi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:38:43 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/05/19 12:02:58 by hsaidi           ###   ########.fr       */
+/*   Updated: 2023/05/20 11:10:59 by hsaidi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@ void Cgi::readFileContents()
             std::cout << line << std::endl;
         }
         file.close();
-	// getFileType(filename);
+	getFileType(filename);
     } else {
         std::cout << "Failed to open file: " << filename << std::endl;
     }
@@ -49,13 +49,14 @@ void Cgi::getFileType(const std::string filename) {
             extension[i] = std::tolower(extension[i]);
         }
 
-        if (extension == "php") {
+        if (extension == "ph") {
             cout << "**php**" << endl;
         } else if (extension == "py") {
 			cout<< "**py**\n";
     	}
 		else
-			std::cout << " can't accept this extention " << filename << std::endl;
+			std::cout << "---- can't accept this extention ----" << filename << std::endl;
+			//need to throw an error here
     }
 }
 
@@ -88,6 +89,8 @@ void Cgi::just_print()
 void Cgi::set_cgi_env()
 {
 	std::string script_file ="file1.php";
+	cout << "---------------------------------------------------------\n";
+	readFileContents();
 	cgi_env["REQUEST_METHOD="] = this->main_client->get_request("Request-Type");
 	cgi_env["PATH_INFO="] = this->main_client->get_request("Request-URI");
 	cgi_env["QUERY_STRING="] = this->main_client->get_request("Query-String");
@@ -111,8 +114,8 @@ void Cgi::set_cgi_env()
         const std::string& value = it->second;
         std::cout << key << value << std::endl;
     }
-	readFileContents();
 	cout << "-----------------------------------------------------------------------------------\n";
+	
 }
 
 //fork and execve 
