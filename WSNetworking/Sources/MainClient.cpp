@@ -52,6 +52,22 @@ void MainClient::start_handle() {
 	}
 }
 
+void MainClient::responder(int client_socket) {
+	if (this->get_status() < 400) {
+		string accurate = "HTTP/1.1 ";
+		accurate += this->get_msg_status();
+		accurate += "\r\nContent-type: text/html\r\n\r\n";
+		accurate += "Hello From Server\nYou are Host : ";
+		accurate += this->get_request("Host") + "\r\n\r\n";
+		send(client_socket, accurate.c_str(), accurate.length(), 0);
+	} else {
+		string error = "HTTP/1.1 ";
+		error += this->get_msg_status();
+		error += "\r\n\r\n";
+		send(client_socket, error.c_str(), error.length(), 0);
+	}
+}
+
 int MainClient::get_right_config_server_parser_from_name_sever(
 	string name_server) {
 	int i = 0;
@@ -115,6 +131,7 @@ void MainClient::handle(int client_socket) {
 	get_matched_location_for_request_uri();
 	is_method_allowded_in_location();
 
+	this->responder(client_socket);
 	// if (this->get_request("Request-Type") == "GET") {
 	// 	this->parse_get(reauest_pasrer->get_request());
 	// } else if (this->get_request("Request-Type") == "POST") {
@@ -160,7 +177,8 @@ void MainClient::get_matched_location_for_request_uri() {
 		if (is_found == true) {
 			if (file_name[0] == '/')
 				file_name.erase(0, 1);
-
+			if (file_name.length() == 0)
+				return;
 			for (size_t i = 0; i < (*it)->get_index().size(); i++) {
 				if (file_name == (*it)->get_index(i))
 					return;

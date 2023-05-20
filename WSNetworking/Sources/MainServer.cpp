@@ -16,11 +16,11 @@ static void print_int(int integer, size_t width) {
 }
 
 // Getters
-ListeningSocket MainServer::get_listen_socket(int index) const {
+ListenSocket MainServer::get_listen_socket(int index) const {
 	return listen_socket[index];
 }
 
-vector<ListeningSocket> MainServer::get_listen_socket() const {
+vector<ListenSocket> MainServer::get_listen_socket() const {
 	return listen_socket;
 }
 
@@ -101,38 +101,30 @@ void MainServer::run_sockets() {
 		 i < config_file_parser->get_config_server_parser().size(); i++) {
 		try {
 			listen_socket.push_back(
-				ListeningSocket(config_file_parser->get_config_server_parser(i)
-									->get_host()
-									.c_str(),
-								config_file_parser->get_config_server_parser(i)
-									->get_port_str()
-									.c_str(),
-								backlog));
+				ListenSocket(config_file_parser->get_config_server_parser(i)
+								 ->get_host()
+								 .c_str(),
+							 config_file_parser->get_config_server_parser(i)
+								 ->get_port_str()
+								 .c_str(),
+							 backlog));
 			this->port_socket[config_file_parser->get_config_server_parser(i)
 								  ->get_port()]
 				= listen_socket[j].get_socket_listen();
 			j++;
 		} catch (const std::exception &e) {
-			if (i == 0)
-				throw std::runtime_error(
-					str_red("Error: " + string(e.what()))
-					+ str_red(" on port "
-							  + config_file_parser->get_config_server_parser(i)
-									->get_port_str()));
-			else if (i > 0
-					 && !((string(e.what()).find("Binding")) != string::npos))
-				throw std::runtime_error(
-					str_red("Error: " + string(e.what()))
-					+ str_red(" on port "
-							  + config_file_parser->get_config_server_parser(i)
-									->get_port_str()));
+			if (this->port_socket[config_file_parser
+									  ->get_config_server_parser(i)
+									  ->get_port()]
+				== 0)
+				throw std::runtime_error(e.what());
 		}
-	}
 
-	// fill the address and socket maps
-	for (size_t i = 0; i < this->get_listen_socket().size(); i++)
-		this->socket[this->get_listen_socket(i).get_socket_listen()]
-			= this->get_listen_socket(i).get_socket_listen();
+		// fill the address and socket maps
+		for (size_t i = 0; i < this->get_listen_socket().size(); i++)
+			this->socket[this->get_listen_socket(i).get_socket_listen()]
+				= this->get_listen_socket(i).get_socket_listen();
+	}
 }
 
 // Tools for matching socket with server of config file
@@ -199,10 +191,10 @@ void MainServer::accepter(int fd_socket) {
 		throw std::runtime_error(str_red("Error accept"));
 }
 
-void MainServer::handle(int client_socket) {
+void MainServer::handler(int client_socket) {
 	int i;
 
-	print_long_line("handle");
+	print_long_line("handler");
 	try {
 		if ((i = this->right_server(client_socket)) != -1) {
 			MainClient *mainClient = new MainClient(
@@ -222,22 +214,6 @@ void MainServer::handle(int client_socket) {
 			throw std::runtime_error(e.what());
 	}
 }
-
-void MainServer::responder(int client_socket) {
-	if (this->clients[client_socket]->get_status() < 400) {
-		string accurate = "HTTP/1.1 ";
-		accurate += this->clients[client_socket]->get_msg_status();
-		accurate += "\r\nContent-type: text/html\r\n\r\n";
-		accurate += "Hello From Server\nYou are Host : ";
-		accurate += this->get_request(client_socket, "Host") + "\r\n\r\n";
-		send(client_socket, accurate.c_str(), accurate.length(), 0);
-	} else {
-		string error = "HTTP/1.1 ";
-		error += this->clients[client_socket]->get_msg_status();
-		error += "\r\n\r\n";
-		send(client_socket, error.c_str(), error.length(), 0);
-	} 
-}     
 
 void MainServer::destroy_client(int i) {
 	print_long_line("destroy client");
@@ -289,8 +265,7 @@ void MainServer::routine() {
 				} else {
 					try {
 						// handle the client's request
-						this->handle(i);
-						this->responder(i);
+						this->handler(i);
 					} catch (const std::exception &e) {
 						cerr << e.what() << endl;
 					}

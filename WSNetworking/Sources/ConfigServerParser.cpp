@@ -198,10 +198,15 @@ bool ConfigServerParser::find_compare(string &line, const string &str) {
 void ConfigServerParser::set_port(string port, size_t pos) {
 	port = port.substr(0, port.length() - 1);
 	if (this->port_status == true || port.empty() == true
-		|| checkType(port) != 1 || port.length() > 5 || stringToInt(port) < 0
-		|| stringToInt(port) > 65535 || this->config_server[pos - 1] != ';'
+		|| checkType(port) != 1 || this->config_server[pos - 1] != ';'
 		|| !std::isalnum(this->config_server[pos - 2])) {
 		throw std::runtime_error(str_red("Port Error : " + port));
+	}
+	if (port.length() < 4 || port.length() > 5 || stringToInt(port) < 1024
+		|| stringToInt(port) > 65535) {
+		throw std::runtime_error(
+			str_red("Port Error : " + port
+					+ " => Port must be between 1024 and 65535"));
 	}
 	this->port		  = this->stringToInt(port);
 	this->port_str	  = port;

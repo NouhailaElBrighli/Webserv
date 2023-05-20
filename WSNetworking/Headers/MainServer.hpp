@@ -10,12 +10,12 @@ class MainServer {
 	int				  backlog;
 
   private:
-	vector<ListeningSocket> listen_socket;
-	map<int, MainClient *>	clients;
-	map<int, int>			socket;
-	int						accept_socket, max_socket;
-	fd_set					current_sockets, read_sockets;
-	bool					launch_status;
+	vector<ListenSocket>   listen_socket;
+	map<int, MainClient *> clients;
+	map<int, int>		   socket;
+	int					   accept_socket, max_socket;
+	fd_set				   current_sockets, read_sockets;
+	bool				   launch_status;
 
   private:
 	// Attributes for print_info()
@@ -23,9 +23,9 @@ class MainServer {
 
   private:
 	// Getters
-	ListeningSocket			get_listen_socket(int index) const;
-	vector<ListeningSocket> get_listen_socket() const;
-	string					get_request(int client_socket, string key);
+	ListenSocket		 get_listen_socket(int index) const;
+	vector<ListenSocket> get_listen_socket() const;
+	string				 get_request(int client_socket, string key);
 
   public:
 	// Constructors and destructor
@@ -51,8 +51,7 @@ class MainServer {
 
 	// Routine methods
 	void accepter(int fd_socket);
-	void handle(int client_socket);
-	void responder(int client_socket);
+	void handler(int client_socket);
 	void destroy_client(int i);
 
 	// Main routine
