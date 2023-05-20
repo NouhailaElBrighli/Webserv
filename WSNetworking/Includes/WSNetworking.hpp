@@ -19,8 +19,8 @@ class MainServer;
 
 // Sockets Prototypes
 class Socket;
-class BindingSocket;
-class ListeningSocket;
+class BindSocket;
+class ListenSocket;
 
 // Include
 #include "Include.hpp"
@@ -44,8 +44,8 @@ class ListeningSocket;
 // Sockets
 #include "Socket.hpp"
 
-#include "BindingSocket.hpp"
+#include "BindSocket.hpp"
 
-#include "ListeningSocket.hpp"
+#include "ListenSocket.hpp"
 
-#endif // WSNETWORKING_HPP
+#endif	// WSNETWORKING_HPP

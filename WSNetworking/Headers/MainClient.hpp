@@ -38,6 +38,7 @@ class MainClient {
 	void start_handle();
 	int	 get_right_config_server_parser_from_name_sever(string name_server);
 	void handle(int client_socket);
+	void responder(int client_socket);
 	void get_matched_location_for_request_uri();
 	void is_method_allowded_in_location();
 };

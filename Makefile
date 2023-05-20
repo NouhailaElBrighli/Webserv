@@ -39,8 +39,8 @@ SRCS		+= \
 
 SRCS		+= \
 	$(MAIN_DIR)/Sources/Socket.cpp					\
-	$(MAIN_DIR)/Sources/BindingSocket.cpp			\
-	$(MAIN_DIR)/Sources/ListeningSocket.cpp
+	$(MAIN_DIR)/Sources/BindSocket.cpp			\
+	$(MAIN_DIR)/Sources/ListenSocket.cpp
 
 # *************************************************************************** # 
 #                                   FOLDERS                                   #
