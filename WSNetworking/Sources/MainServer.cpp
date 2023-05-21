@@ -16,13 +16,9 @@ static void print_int(int integer, size_t width) {
 }
 
 // Getters
-ListenSocket MainServer::get_listen_socket(int index) const {
-	return listen_socket[index];
-}
+ListenSocket MainServer::get_listen_socket(int index) const { return listen_socket[index]; }
 
-vector<ListenSocket> MainServer::get_listen_socket() const {
-	return listen_socket;
-}
+vector<ListenSocket> MainServer::get_listen_socket() const { return listen_socket; }
 
 string MainServer::get_request(int client_socket, string key) {
 	return this->clients[client_socket]->get_request(key);
@@ -56,8 +52,8 @@ void MainServer::launch() {
 
 // Print the server information
 void MainServer::print_info() {
-	cout << C_CYAN << "-----------------------------------------------" << endl
-		 << C_CYAN << "| " << C_YELLOW;
+	cout << C_CYAN << "-----------------------------------------------" << endl;
+	cout << C_CYAN << "| " << C_YELLOW;
 	print_str("Server Name", 11);
 	cout << C_CYAN << " | " << C_GREEN;
 	print_str("Host", 11);
@@ -68,28 +64,19 @@ void MainServer::print_info() {
 	cout << C_CYAN << " |" << C_RES << endl;
 	cout << C_CYAN << "-----------------------------------------------" << endl;
 
-	for (size_t i = 0;
-		 i < this->config_file_parser->get_config_server_parser().size(); i++) {
+	for (size_t i = 0; i < this->config_file_parser->get_config_server_parser().size(); i++) {
 		cout << C_CYAN << "| " << C_YELLOW;
-		print_str(this->config_file_parser->get_config_server_parser(i)
-					  ->get_server_name(),
-				  11);
+		print_str(this->config_file_parser->get_config_server_parser(i)->get_server_name(), 11);
 		cout << C_CYAN << " | " << C_GREEN;
-		print_str(
-			this->config_file_parser->get_config_server_parser(i)->get_host(),
-			11);
+		print_str(this->config_file_parser->get_config_server_parser(i)->get_host(), 11);
 		cout << C_CYAN << " | " << C_RED;
-		print_str(this->config_file_parser->get_config_server_parser(i)
-					  ->get_port_str(),
-				  6);
+		print_str(this->config_file_parser->get_config_server_parser(i)->get_port_str(), 6);
 		cout << C_CYAN << " | " << C_PURPLE;
-		print_int(this->port_socket[this->config_file_parser
-										->get_config_server_parser(i)
-										->get_port()],
-				  6);
+		print_int(
+			this->port_socket[this->config_file_parser->get_config_server_parser(i)->get_port()],
+			6);
 		cout << C_CYAN << " |" << C_RES << endl;
-		cout << C_CYAN << "-----------------------------------------------"
-			 << C_RES << endl;
+		cout << C_CYAN << "-----------------------------------------------" << C_RES << endl;
 	}
 }
 
@@ -97,26 +84,16 @@ void MainServer::print_info() {
 void MainServer::run_sockets() {
 	// Create a listening socket for each port
 	size_t j = 0;
-	for (size_t i = 0;
-		 i < config_file_parser->get_config_server_parser().size(); i++) {
+	for (size_t i = 0; i < config_file_parser->get_config_server_parser().size(); i++) {
 		try {
-			listen_socket.push_back(
-				ListenSocket(config_file_parser->get_config_server_parser(i)
-								 ->get_host()
-								 .c_str(),
-							 config_file_parser->get_config_server_parser(i)
-								 ->get_port_str()
-								 .c_str(),
-							 backlog));
-			this->port_socket[config_file_parser->get_config_server_parser(i)
-								  ->get_port()]
+			listen_socket.push_back(ListenSocket(
+				config_file_parser->get_config_server_parser(i)->get_host().c_str(),
+				config_file_parser->get_config_server_parser(i)->get_port_str().c_str(), backlog));
+			this->port_socket[config_file_parser->get_config_server_parser(i)->get_port()]
 				= listen_socket[j].get_socket_listen();
 			j++;
 		} catch (const std::exception &e) {
-			if (this->port_socket[config_file_parser
-									  ->get_config_server_parser(i)
-									  ->get_port()]
-				== 0)
+			if (this->port_socket[config_file_parser->get_config_server_parser(i)->get_port()] == 0)
 				throw std::runtime_error(e.what());
 		}
 
@@ -150,10 +127,8 @@ int MainServer::right_server(int client_socket) {
 	// Extract the port number
 	port = right_port(client_socket);
 	// Check if the port is in the config file and get the index
-	for (size_t i = 0;
-		 i < this->config_file_parser->get_config_server_parser().size(); i++) {
-		if (this->config_file_parser->get_config_server_parser(i)->get_port()
-			== port) {
+	for (size_t i = 0; i < this->config_file_parser->get_config_server_parser().size(); i++) {
+		if (this->config_file_parser->get_config_server_parser(i)->get_port() == port) {
 			mutiple_ports++;
 			first_server = i;
 		}
@@ -174,11 +149,18 @@ void MainServer::init_reading_sockets() {
 
 	FD_ZERO(&this->current_sockets);
 	std::memset(&this->current_sockets, 0, sizeof(this->current_sockets));
-	for (map<int, int>::iterator it = this->socket.begin();
-		 it != this->socket.end(); it++)
+	for (map<int, int>::iterator it = this->socket.begin(); it != this->socket.end(); it++)
 		FD_SET((*it).second, &this->current_sockets);
 	// max element of the socket map
 	this->max_socket = this->socket.rbegin()->second;
+}
+
+// Reset read sockets
+void MainServer::reset() {
+	// because `select` will modify the set, we need to reset it each time
+	FD_ZERO(&this->read_sockets);
+	std::memset(&this->read_sockets, 0, sizeof(this->read_sockets));
+	this->read_sockets = this->current_sockets;
 }
 
 // Routine methods
@@ -198,16 +180,16 @@ void MainServer::handler(int client_socket) {
 	try {
 		if ((i = this->right_server(client_socket)) != -1) {
 			MainClient *mainClient = new MainClient(
-				client_socket,
-				this->config_file_parser->get_config_server_parser(i), -1);
+				client_socket, this->config_file_parser->get_config_server_parser(i),
+				this->port_socket[this->right_port(client_socket)], true);
 			this->clients[client_socket] = mainClient;
 			return;
 		}
 	} catch (const std::exception &e) {
 		if (string(e.what()).find("Multiple")) {
-			MainClient *mainClient = new MainClient(
-				client_socket, this->config_file_parser,
-				this->port_socket[this->right_port(client_socket)]);
+			MainClient *mainClient
+				= new MainClient(client_socket, this->config_file_parser,
+								 this->port_socket[this->right_port(client_socket)], false);
 			this->clients[client_socket] = mainClient;
 			return;
 		} else
@@ -215,40 +197,38 @@ void MainServer::handler(int client_socket) {
 	}
 }
 
-void MainServer::destroy_client(int i) {
+void MainServer::destroy_client(int client_socket) {
 	print_long_line("destroy client");
 	// Check if the client is a master socket
-	cout << C_YELLOW << "current socket to be close: " << i << C_RES << endl;
-	if (this->socket[i] == i) {
-		cout << C_RED << "current socket mustn't be close: " << i << C_RES
+	cout << C_YELLOW << "current socket to be close: " << client_socket << C_RES << endl;
+	if (this->clients[client_socket]->get_send_recieve_status() == true) {
+		cout << C_RED << "current client '" << client_socket
+			 << "' mustn't be destroy, because it's still sending or recieving data." << C_RES
 			 << endl;
 		return;
 	}
-	//! DON'T DESTROY CLIENT AND WAIT IT TO COMPLETE SENDING THE BODY
-
+	if (this->socket[client_socket] == client_socket) {
+		cout << C_RED << "current socket '" << client_socket
+			 << "' mustn't be close, because it's a master socket." << C_RES << endl;
+		return;
+	}
 	// Destroy the client
-	delete this->clients[i];
-	this->clients.erase(i);
-	FD_CLR(i, &this->current_sockets);
-	close(i);
-	cout << C_GREEN << "current socket closed: " << i << C_RES << endl;
+	delete this->clients[client_socket];
+	this->clients.erase(client_socket);
+	FD_CLR(client_socket, &this->current_sockets);
+	close(client_socket);
+	cout << C_GREEN << "current socket closed: " << client_socket << C_RES << endl;
 }
 
 // Main routine
 void MainServer::routine() {
 	while (true) {
-		// because `select` will modify the set, we need to reset it each
-		// time
-		FD_ZERO(&this->read_sockets);
-		std::memset(&this->read_sockets, 0, sizeof(this->read_sockets));
-		this->read_sockets = this->current_sockets;
+		this->reset();
 
 		print_long_line("select wait for client");
 		// select() will block until there is activity on one of the sockets
-		if (select(this->max_socket + 1, &this->read_sockets, NULL, NULL, NULL)
-			== -1)
-			throw std::runtime_error(str_red("Error select : ")
-									 + strerror(errno));
+		if (select(this->max_socket + 1, &this->read_sockets, NULL, NULL, NULL) == -1)
+			throw std::runtime_error(str_red("Error select : ") + strerror(errno));
 
 		// check if the listening socket is ready
 		for (int i = 3; i <= this->max_socket; i++) {

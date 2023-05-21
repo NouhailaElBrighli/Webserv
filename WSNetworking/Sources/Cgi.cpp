@@ -6,7 +6,7 @@
 /*   By: hsaidi <hsaidi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:38:43 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/05/21 17:32:42 by hsaidi           ###   ########.fr       */
+/*   Updated: 2023/05/21 20:11:29 by hsaidi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,6 +58,22 @@ int Cgi::getFileType(const std::string& filename)
 	return -1;
 }
 
+// Function to convert a std::map<std::string, std::string> to a char**
+char* const* Cgi::mapToCharConstArray(const std::map<std::string, std::string>& cgi_env) {
+    char** envp = new char*[cgi_env.size() + 1]; // +1 for the terminating null pointer
+    int i = 0;
+    
+    for (std::map<std::string, std::string>::const_iterator it = cgi_env.begin(); it != cgi_env.end(); ++it) {
+        std::string envVar = it->first + "=" + it->second;
+        envp[i] = new char[envVar.size() + 1];
+        std::strcpy(envp[i], envVar.c_str());
+        ++i;
+    }
+    
+    envp[i] = NULL; // Terminating null pointer
+    
+    return const_cast<char* const*>(reinterpret_cast<char**>(envp));
+}
 
 void Cgi::just_print()
 {
@@ -81,8 +97,8 @@ void Cgi::just_print()
 			else
 				cout << "---- can't accept these extensions ----" << std::endl;
 			cout << "---------------------------------here------------------------\n";
-			cout << "cgi_ext_path : " << (*it)->get_cgi_ext_path(".py") << endl;
-			cout << "cgi_ext_path : " << (*it)->get_cgi_ext_path(".php") << endl;
+			// cout << "cgi_ext_path : " << (*it)->get_cgi_ext_path(".py") << endl;
+			// cout << "cgi_ext_path : " << (*it)->get_cgi_ext_path(".php") << endl;
 		}
 	}           
 	std::ifstream checl_script(this->script.c_str());
@@ -121,10 +137,19 @@ void Cgi::set_cgi_env()
         const std::string& key = it->first;
         const std::string& value = it->second;
         std::cout << key << value << std::endl;
-    }
+    }	
+
+	const char  *av[] = { const_cast<char*>(script.c_str()), this->filename.c_str(), NULL};
+	this->env = mapToCharConstArray(cgi_env);
 	cout << "-----------------------------------------------------------------------------------\n";
 	cout<< "script : " << this->script << endl;
 	cout<< "filename : " << this->filename << endl;
+	int pid = fork();
+	if (pid == 0)
+	{
+		execve(av[0], av, env);
+	}
+
 }
 // perce the locationand stor the executable path 
 //fork and execve

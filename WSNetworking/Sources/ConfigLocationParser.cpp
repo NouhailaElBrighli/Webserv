@@ -1,9 +1,7 @@
 #include "ConfigLocationParser.hpp"
 
 // Getters
-const string &ConfigLocationParser::get_location() const {
-	return this->location;
-}
+const string &ConfigLocationParser::get_location() const { return this->location; }
 
 const bool &ConfigLocationParser::get_autoindex() const {
 	if (this->autoindex_status == false)
@@ -111,8 +109,7 @@ vector<string> ConfigLocationParser::split_methods(const string &str) {
 		if (str_mth.length() <= 6)
 			vect_mth.push_back(str_mth);
 		else
-			throw std::runtime_error(
-				str_red("Allow methods Bad Input : " + str));
+			throw std::runtime_error(str_red("Allow methods Bad Input : " + str));
 	}
 	if (vect_mth.size() > 3)
 		throw std::runtime_error(str_red("Allow methods Bad Input : " + str));
@@ -125,10 +122,8 @@ vector<string> ConfigLocationParser::stringToMethods(string host) {
 
 	vect_mth = this->split_methods(host);
 	for (size_t i = 0; i < vect_mth.size(); i++) {
-		if (vect_mth[i] != "GET" && vect_mth[i] != "POST"
-			&& vect_mth[i] != "DELETE")
-			throw std::runtime_error(
-				str_red("Allow Methods Bad Input : " + host));
+		if (vect_mth[i] != "GET" && vect_mth[i] != "POST" && vect_mth[i] != "DELETE")
+			throw std::runtime_error(str_red("Allow Methods Bad Input : " + host));
 	}
 
 	return vect_mth;
@@ -145,8 +140,7 @@ bool ConfigLocationParser::find_compare(string &line, const string &str) {
 // Setters
 void ConfigLocationParser::set_location(string location, size_t pos) {
 	location = location.substr(0, location.size() - 2);
-	if (this->location_status == true || location.empty()
-		|| this->config_location[pos - 1] != '{'
+	if (this->location_status == true || location.empty() || this->config_location[pos - 1] != '{'
 		|| this->config_location[pos - 2] != ' ' || location[0] != '/'
 		|| location[location.size() - 1] == '/')
 		throw std::runtime_error(str_red("location Error : " + location));
@@ -157,8 +151,7 @@ void ConfigLocationParser::set_location(string location, size_t pos) {
 
 void ConfigLocationParser::set_autoindex(string autoindex, size_t pos) {
 	autoindex = autoindex.substr(0, autoindex.size() - 1);
-	if (this->autoindex_status == true || autoindex.empty()
-		|| this->config_location[pos - 1] != ';'
+	if (this->autoindex_status == true || autoindex.empty() || this->config_location[pos - 1] != ';'
 		|| !std::isalnum(this->config_location[pos - 2]))
 		throw std::runtime_error(str_red("autoindex Error : " + autoindex));
 
@@ -174,22 +167,19 @@ void ConfigLocationParser::set_autoindex(string autoindex, size_t pos) {
 
 void ConfigLocationParser::set_root(string root, size_t pos) {
 	root = root.substr(0, root.size() - 1);
-	if (this->root_status == true || root.empty()
-		|| this->config_location[pos - 1] != ';' || root[0] != '/'
-		|| (root.length() > 2 && !std::isalnum(this->config_location[pos - 2])))
+	if (this->root_status == true || root.empty() || this->config_location[pos - 1] != ';'
+		|| root[0] != '/' || (root.length() > 2 && !std::isalnum(this->config_location[pos - 2])))
 		throw std::runtime_error(str_red("root Error : " + root));
 
 	struct stat dir_info;
 
 	if (stat(root.c_str(), &dir_info) != 0)
 		// Failed to stat directory
-		throw std::runtime_error(
-			str_red("root Error => '" + root + "' does not exist"));
+		throw std::runtime_error(str_red("root Error => '" + root + "' does not exist"));
 
 	if (S_ISREG(dir_info.st_mode))
 		// File is a regular file
-		throw std::runtime_error(
-			str_red("root Error => '" + root + "' is a regular file"));
+		throw std::runtime_error(str_red("root Error => '" + root + "' is a regular file"));
 
 	if (S_ISDIR(dir_info.st_mode)) {
 		// File is a directory
@@ -199,8 +189,8 @@ void ConfigLocationParser::set_root(string root, size_t pos) {
 	}
 
 	// File is not a directory or a regular file
-	throw std::runtime_error(str_red(
-		"root Error => '" + root + "' is not a directory or a regular file"));
+	throw std::runtime_error(
+		str_red("root Error => '" + root + "' is not a directory or a regular file"));
 }
 
 void ConfigLocationParser::set_index(string index, size_t pos) {
@@ -208,8 +198,7 @@ void ConfigLocationParser::set_index(string index, size_t pos) {
 	std::stringstream ss_index(index);
 	string			  str_idx;
 
-	if (this->index_status == true || index.empty()
-		|| this->config_location[pos - 1] != ';'
+	if (this->index_status == true || index.empty() || this->config_location[pos - 1] != ';'
 		|| !std::isalnum(this->config_location[pos - 2]))
 		throw std::runtime_error(str_red("index Error : " + index));
 
@@ -222,8 +211,7 @@ void ConfigLocationParser::set_index(string index, size_t pos) {
 void ConfigLocationParser::set_return(string return_, size_t pos) {
 	string return_save = return_;
 	return_			   = return_.substr(0, return_.size() - 1);
-	if (this->return_status == true || return_.empty()
-		|| this->config_location[pos - 1] != ';'
+	if (this->return_status == true || return_.empty() || this->config_location[pos - 1] != ';'
 		|| !std::isalnum(this->config_location[pos - 2]))
 		throw std::runtime_error(str_red("return Error : " + return_));
 
@@ -233,8 +221,7 @@ void ConfigLocationParser::set_return(string return_, size_t pos) {
 
 void ConfigLocationParser::set_file_body(string file_body, size_t pos) {
 	file_body = file_body.substr(0, file_body.size() - 1);
-	if (this->file_body_status == true || file_body.empty()
-		|| this->config_location[pos - 1] != ';'
+	if (this->file_body_status == true || file_body.empty() || this->config_location[pos - 1] != ';'
 		|| !std::isalnum(this->config_location[pos - 2]))
 		throw std::runtime_error(str_red("file_body Error : " + file_body));
 
@@ -244,8 +231,7 @@ void ConfigLocationParser::set_file_body(string file_body, size_t pos) {
 
 void ConfigLocationParser::set_methods(string methods, size_t pos) {
 	methods = methods.substr(0, methods.size() - 1);
-	if (this->methods_status == true || methods.empty()
-		|| this->config_location[pos - 1] != ';'
+	if (this->methods_status == true || methods.empty() || this->config_location[pos - 1] != ';'
 		|| !std::isalnum(this->config_location[pos - 2]))
 		throw std::runtime_error(str_red("methods Error : " + methods));
 
@@ -255,36 +241,31 @@ void ConfigLocationParser::set_methods(string methods, size_t pos) {
 
 void ConfigLocationParser::set_cgi_ext_path(string cgi_ext_path, size_t pos) {
 	string cgi_ext_path_input = cgi_ext_path;
-	string cgi_ext_path_str;
-	string error_page_path;
+	string cgi_ext, cgi_path;
 
 	if (cgi_ext_path.empty() == true) {
-		throw std::runtime_error(
-			str_red("Error CGI Ext Path : " + cgi_ext_path_input));
+		throw std::runtime_error(str_red("Error CGI Ext Path : " + cgi_ext_path_input));
 	}
 
-	cgi_ext_path_str = cgi_ext_path.substr(0, cgi_ext_path.find(" "));
-	if (cgi_ext_path_str.empty() == true) {
-		throw std::runtime_error(
-			str_red("Error CGI Ext Path : " + cgi_ext_path_input));
+	cgi_ext = cgi_ext_path.substr(0, cgi_ext_path.find(" "));
+	if (cgi_ext.empty() == true) {
+		throw std::runtime_error(str_red("Error CGI Ext Path : " + cgi_ext_path_input));
 	}
 	cgi_ext_path.erase(0, cgi_ext_path.find(" ") + 1);
 
 	if (cgi_ext_path.find(" ") != string::npos
 		&& cgi_ext_path[cgi_ext_path.find(" ") + 1] != '\0') {
-		throw std::runtime_error(
-			str_red("Error CGI Ext Path : " + cgi_ext_path_input));
+		throw std::runtime_error(str_red("Error CGI Ext Path : " + cgi_ext_path_input));
 	}
 
-	error_page_path = cgi_ext_path.substr(0, cgi_ext_path.size() - 1);
-	if (error_page_path.empty() == true || this->config_location[pos - 1] != ';'
+	cgi_path = cgi_ext_path.substr(0, cgi_ext_path.size() - 1);
+	if (cgi_path.empty() == true || this->config_location[pos - 1] != ';'
 		|| !std::isalnum(this->config_location[pos - 2])) {
-		throw std::runtime_error(
-			str_red("Error CGI Ext Path : " + cgi_ext_path_input));
+		throw std::runtime_error(str_red("Error CGI Ext Path : " + cgi_ext_path_input));
 	}
 
-	this->cgi_ext_path[cgi_ext_path_str] = error_page_path;
-	this->cgi_ext_path_status			 = true;
+	this->cgi_ext_path[cgi_ext] = cgi_path;
+	this->cgi_ext_path_status	= true;
 }
 
 // Methods
@@ -296,8 +277,7 @@ void ConfigLocationParser::parse_config_location() {
 		line = config_location.substr(0, pos);
 
 		if (this->find_compare(line, "location"))
-			this->set_location(line.substr(line.find(" ") + 1, line.find("{")),
-							   pos);
+			this->set_location(line.substr(line.find(" ") + 1, line.find("{")), pos);
 
 		else if (this->find_compare(line, "autoindex"))
 			this->set_autoindex(line.substr(line.find(" ") + 1), pos);
@@ -321,8 +301,7 @@ void ConfigLocationParser::parse_config_location() {
 			this->set_cgi_ext_path(line.substr(line.find(" ") + 1), pos);
 
 		else
-			throw std::runtime_error(
-				str_red("Error : unknown directive '" + line + "'"));
+			throw std::runtime_error(str_red("Error : unknown directive '" + line + "'"));
 
 		config_location.erase(0, pos + 1);
 	}
@@ -338,21 +317,16 @@ void ConfigLocationParser::check_status() {
 
 	if (this->location.find("cgi") != string::npos) {
 		if (!this->cgi_ext_path_status)
-			throw std::runtime_error(
-				str_red("Error : cgi_ext_path is missing"));
+			throw std::runtime_error(str_red("Error : cgi_ext_path is missing"));
 
 		if (this->index_status)
-			throw std::runtime_error(
-				str_red("Error : index is unnecessary in cgi location"));
+			throw std::runtime_error(str_red("Error : index is unnecessary in cgi location"));
 		if (this->return_status)
-			throw std::runtime_error(
-				str_red("Error : return is unnecessary in cgi location"));
+			throw std::runtime_error(str_red("Error : return is unnecessary in cgi location"));
 		if (this->file_body_status)
-			throw std::runtime_error(
-				str_red("Error : file_body is unnecessary in cgi location"));
+			throw std::runtime_error(str_red("Error : file_body is unnecessary in cgi location"));
 		if (this->methods_status)
-			throw std::runtime_error(
-				str_red("Error : methods is unnecessary in cgi location"));
+			throw std::runtime_error(str_red("Error : methods is unnecessary in cgi location"));
 	} else {
 		if (!this->index_status)
 			throw std::runtime_error(str_red("Error : index is missing"));
@@ -364,8 +338,8 @@ void ConfigLocationParser::check_status() {
 			throw std::runtime_error(str_red("Error : methods is missing"));
 
 		if (this->cgi_ext_path_status)
-			throw std::runtime_error(str_red(
-				"Error : cgi_ext_path is unnecessary in non-cgi location"));
+			throw std::runtime_error(
+				str_red("Error : cgi_ext_path is unnecessary in non-cgi location"));
 	}
 }
 
@@ -385,8 +359,7 @@ std::ostream &operator<<(std::ostream &os, const ConfigLocationParser &clp) {
 		os << "return : " << clp.get_return() << std::endl;
 	for (size_t i = 0; i < clp.get_methods().size(); i++)
 		os << "methods : " << clp.get_methods()[i] << std::endl;
-	for (std::map<string, string>::const_iterator it
-		 = clp.get_cgi_ext_path().begin();
+	for (std::map<string, string>::const_iterator it = clp.get_cgi_ext_path().begin();
 		 it != clp.get_cgi_ext_path().end(); it++)
 		os << "cgi_ext_path : " << it->first << " " << it->second << std::endl;
 

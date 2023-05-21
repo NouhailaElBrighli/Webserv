@@ -11,9 +11,11 @@ class MainClient {
 	ConfigServerParser *config_server_parser;
 	RequestParser	   *request_parser;
 	int					status;
+	bool				send_recieve_status;  //! STATUS OF SENDING AND RECIEVING DATA
 	string				msg_status;
 	int					client_socket, port;
 	char				buffer[MAXLINE + 1];
+	bool				server_parser_set;
 
 	MainClient(const MainClient &);
 	MainClient &operator=(const MainClient &);
@@ -26,18 +28,19 @@ class MainClient {
 	const int	 &get_status() const;
 	const string &get_msg_status() const;
 
+	const bool &get_send_recieve_status() const;
+
 	// Constructors and destructor
 	MainClient();
-	MainClient(int client_socket, ConfigServerParser *config_server_parser,
-			   int port);
-	MainClient(int client_socket, ConfigFileParser *config_file_parser,
-			   int port);
+	MainClient(int client_socket, ConfigServerParser *config_server_parser, int port,
+			   bool server_parser_set);
+	MainClient(int client_socket, ConfigFileParser *config_file_parser, int port, bool server_parser_set);
 	~MainClient();
 
   private:
 	// Methods
 	void start_handle();
-	int	 get_right_config_server_parser_from_name_sever(string name_server);
+	int	 get_right_server(string name_server);
 	void handle(int client_socket);
 	void responder(int client_socket);
 	void get_matched_location_for_request_uri();

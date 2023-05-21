@@ -6,8 +6,7 @@ ListenSocket::ListenSocket(const char *host, const char *port, int backlog)
 	// Start listen for connections
 	this->listen_sock = listen(this->socket_listen, backlog);
 	if (this->listen_sock < 0)
-		throw std::runtime_error(
-			str_red("Error: Listen socket failed on port " + this->port));
+		throw std::runtime_error(str_red("Error: Listen socket failed on port " + this->port));
 }
 
 ListenSocket::~ListenSocket() {}

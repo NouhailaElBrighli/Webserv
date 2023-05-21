@@ -50,9 +50,10 @@ class MainServer {
 	void init_reading_sockets();
 
 	// Routine methods
+	void reset();
 	void accepter(int fd_socket);
 	void handler(int client_socket);
-	void destroy_client(int i);
+	void destroy_client(int client_socket);
 
 	// Main routine
 	void routine();

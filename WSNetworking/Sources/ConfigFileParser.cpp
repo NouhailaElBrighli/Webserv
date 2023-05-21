@@ -10,11 +10,13 @@ ConfigServerParser *ConfigFileParser::get_config_server_parser(int index) const 
 }
 
 // Constructors and copy constructor and copy assignment operator and destructor
-ConfigFileParser::ConfigFileParser(string config_file_path) : parse_status(false), config_file(config_file_path.c_str()), config_file_path(config_file_path), config_file_content_status(false) {
-}
+ConfigFileParser::ConfigFileParser(string config_file_path)
+	: parse_status(false), config_file(config_file_path.c_str()),
+	  config_file_path(config_file_path), config_file_content_status(false) {}
 
 ConfigFileParser::~ConfigFileParser() {
-	for (vector<ConfigServerParser *>::iterator it = this->config_server_parser.begin(); it != this->config_server_parser.end(); it++) {
+	for (vector<ConfigServerParser *>::iterator it = this->config_server_parser.begin();
+		 it != this->config_server_parser.end(); it++) {
 		delete *it;
 	}
 }
@@ -41,12 +43,12 @@ void ConfigFileParser::read_config_file() {
 	string line;
 	while (std::getline(this->config_file, line)) {
 		if (line.empty() || line[0] == '#') {
-			continue; // skip empty lines and comments
+			continue;  // skip empty lines and comments
 		}
 
 		size_t pos = line.find_first_not_of(' ');
 		if (pos == string::npos) {
-			continue; // skip lines with only whitespace
+			continue;  // skip lines with only whitespace
 		}
 
 		line = line.substr(pos);
@@ -81,7 +83,8 @@ size_t ConfigFileParser::get_start_end_server(size_t pos, string delimiter) {
 	}
 
 	if (this->config_file_content[count] == '\0') {
-		throw std::runtime_error(str_red("Missing closing bracket in file: " + this->config_file_path));
+		throw std::runtime_error(
+			str_red("Missing closing bracket in file: " + this->config_file_path));
 	}
 
 	return count;
@@ -106,7 +109,8 @@ void ConfigFileParser::split_config_file() {
 }
 
 void ConfigFileParser::parse_config_file() {
-	for (vector<string>::iterator it = this->config_file_server.begin(); it != this->config_file_server.end(); it++) {
+	for (vector<string>::iterator it = this->config_file_server.begin();
+		 it != this->config_file_server.end(); it++) {
 		ConfigServerParser *config_server_parser = new ConfigServerParser(*it);
 		try {
 			config_server_parser->parse_config_server();
@@ -119,7 +123,8 @@ void ConfigFileParser::parse_config_file() {
 }
 
 void ConfigFileParser::print_parsed_config_file() {
-	for (vector<ConfigServerParser *>::iterator it = this->config_server_parser.begin(); it != this->config_server_parser.end(); it++) {
+	for (vector<ConfigServerParser *>::iterator it = this->config_server_parser.begin();
+		 it != this->config_server_parser.end(); it++) {
 		cout << **it;
 	}
 }
