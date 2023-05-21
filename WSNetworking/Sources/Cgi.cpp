@@ -6,7 +6,7 @@
 /*   By: hsaidi <hsaidi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:38:43 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/05/20 18:54:26 by hsaidi           ###   ########.fr       */
+/*   Updated: 2023/05/21 17:32:42 by hsaidi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,86 +23,87 @@ Cgi::~Cgi(){}
 
 void Cgi::readFileContents() 
 {
-	this->filename = "/Users/hsaidi/Desktop/teamserv/file1.php";
+	cout<<"*****in readFileContents***\n";
+	this->filename = "/Users/hsaidi/Desktop/teamserv/files/file1.php";
     std::ifstream file(filename.c_str());
     if (file.is_open()) {
         std::string line;
-        while (getline(file, line)) {
-            std::cout << line << std::endl;
-        }
-        file.close();
-	// getFileType(filename);
+	getFileType(filename);
     } else {
         std::cout << "Failed to open file: " << filename << std::endl;
+		// i need to send 404 error here 
     }
 }
 
-void Cgi::getFileType(const std::string& ext1, const std::string& ext2) 
+
+int Cgi::getFileType(const std::string& filename) 
 {
+	cout<<"*****in getFileType***\n";
+    std::size_t dotPos = filename.rfind('.');
+    if (dotPos != std::string::npos) {
+        std::string extension = filename.substr(dotPos + 1);
 
-    // std::size_t dotPos1 = ext1.rfind('.');
-    // std::size_t dotPos2 = ext2.rfind('.');
-    
-    // if (dotPos1 != std::string::npos && dotPos2 != std::string::npos) {
-    //     std::string extension1 = ext1.substr(dotPos1 + 1);
-    //     std::string extension2 = ext2.substr(dotPos2 + 1);
+        // Convert the extension to lowercase for case-insensitive comparison
+        for (std::size_t i = 0; i < extension.length(); ++i) {
+            extension[i] = std::tolower(extension[i]);
+        }
 
-	// cout << "---------------------------------here------------------------\n";
-    //     // Convert the extensions to lowercase for case-insensitive comparison
-    //     for (std::size_t i = 0; i < extension1.length(); ++i) {
-    //         extension1[i] = std::tolower(extension1[i]);
-    //     }
-
-    //     for (std::size_t i = 0; i < extension2.length(); ++i) {
-    //         extension2[i] = std::tolower(extension2[i]);
-    //     }
-
-    //     if (extension2 == "php") {
-    //         cout << "**php**" << endl;
-    //     } else if (extension1 == "py") {
-	// 		cout<< "**py**\n";
-    // 	} else {
-	// 		std::cout << "---- can't accept these extensions ----" << std::endl;
-	// 		// need to throw an error here
-	// 	}
-    // }
+        if (extension == "php") 
+			return 2;
+		else if (extension == "py")
+			return 1;
+		else
+			cout << "---- can't accept these extensions ----" << std::endl;
+    }
+	return -1;
 }
 
 
 void Cgi::just_print()
 {
+	cout<<"*****in just_print***\n";
 	std::cout << "hello from cgi" << std::endl;
 	// cout << "->>>  " << this->main_client->get_request("Request-Type") <<std::endl;
 	for(map<string, string>::const_iterator it = this->main_client->get_request().begin(); it != this->main_client->get_request().end(); it++)
 	{
 		cout << it->first << " : " << it->second << endl;          
 	}
+	readFileContents();
 	for (vector<ConfigLocationParser *>::const_iterator it
 			= this->config_location_parser.begin(); it != this->config_location_parser.end(); it++)
 	{   
 		if ((*it)->get_location().find("cgi") != string::npos)
 		{
-			if((*it)->get_cgi_ext_path(".py") != "" || (*it)->get_cgi_ext_path(".php") != "" )
-			getFileType((*it)->get_cgi_ext_path(".py"),(*it)->get_cgi_ext_path(".php"));
-			// cout << "cgi_ext_path : " << (*it)->get_cgi_ext_path(".py") << endl;
-			// cout << "cgi_ext_path : " << (*it)->get_cgi_ext_path(".php") << endl;
+			if (getFileType(this->filename) == 1)
+				this->script = (*it)->get_cgi_ext_path(".py");
+			else if (getFileType(this->filename) == 2)
+				this->script = (*it)->get_cgi_ext_path(".php");
+			else
+				cout << "---- can't accept these extensions ----" << std::endl;
+			cout << "---------------------------------here------------------------\n";
+			cout << "cgi_ext_path : " << (*it)->get_cgi_ext_path(".py") << endl;
+			cout << "cgi_ext_path : " << (*it)->get_cgi_ext_path(".php") << endl;
 		}
+	}           
+	std::ifstream checl_script(this->script.c_str());
+	if (checl_script.is_open())
+	{
+		set_cgi_env();
 	}
-	set_cgi_env();
-
+	else
+		cout << "---- can't open the script ----" << std::endl;
+		// i need to send 404 error here
 }
-
 // setting the cgi_env map
 void Cgi::set_cgi_env()
 {
-	std::string script_file ="file1.php";
 	cout << "---------------------------------------------------------\n";
-	// readFileContents();
+	cout<<"*****in set_cgi_env***\n";
 	cgi_env["REQUEST_METHOD="] = this->main_client->get_request("Request-Type");
 	cgi_env["PATH_INFO="] = this->main_client->get_request("Request-URI");
 	cgi_env["QUERY_STRING="] = this->main_client->get_request("Query-String");
 	cgi_env["HTTP_COOKIE="] = this->main_client->get_request("Cookie");
-	cgi_env["SCRIPT_FILENAME="] = this->main_client->get_request("Request-URI");
+	cgi_env["SCRIPT_FILENAME="] = this->filename;
 	cgi_env["SERVER_PROTOCOL="] = this->main_client->get_request("Protocol-Version");
 	cgi_env["GETWAY_INTERFACE="] = "CGI/1.1";
 	cgi_env["REDIRECT_STATUS="] = "true";
@@ -122,12 +123,8 @@ void Cgi::set_cgi_env()
         std::cout << key << value << std::endl;
     }
 	cout << "-----------------------------------------------------------------------------------\n";
-	// char *const av
-	// std::string 
-	// int pid = fork();
-	// if (pid == 0)
-	// {	
-	// }
+	cout<< "script : " << this->script << endl;
+	cout<< "filename : " << this->filename << endl;
 }
 // perce the locationand stor the executable path 
 //fork and execve

@@ -142,11 +142,7 @@ void MainClient::handle(int client_socket) {
 	// }
 
 	Cgi cgi(this, this->config_server_parser->get_config_location_parser());
-	try {
-		cgi.just_print();
-	} catch (const std::exception &e) {
-		throw std::runtime_error(e.what());
-	}
+	cgi.just_print();
 }
 
 void MainClient::get_matched_location_for_request_uri() {

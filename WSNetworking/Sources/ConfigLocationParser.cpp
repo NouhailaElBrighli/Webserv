@@ -276,7 +276,7 @@ void ConfigLocationParser::set_cgi_ext_path(string cgi_ext_path, size_t pos) {
 			str_red("Error CGI Ext Path : " + cgi_ext_path_input));
 	}
 
-	error_page_path = cgi_ext_path.substr(0, cgi_ext_path.size());
+	error_page_path = cgi_ext_path.substr(0, cgi_ext_path.size() - 1);
 	if (error_page_path.empty() == true || this->config_location[pos - 1] != ';'
 		|| !std::isalnum(this->config_location[pos - 2])) {
 		throw std::runtime_error(

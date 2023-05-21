@@ -6,7 +6,7 @@
 /*   By: hsaidi <hsaidi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:33:49 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/05/20 18:42:49 by hsaidi           ###   ########.fr       */
+/*   Updated: 2023/05/21 13:18:22 by hsaidi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@ class Cgi
         std::string filename;
         std::string script;// need to add the path of the script
         void readFileContents() ;
-        void getFileType(const std::string& ext1, const std::string& ext2);
+       int getFileType(const std::string& filename);
 }; 
 
 #endif // CGI_HPP
