@@ -241,15 +241,14 @@ void ConfigLocationParser::set_methods(string methods, size_t pos) {
 
 void ConfigLocationParser::set_cgi_ext_path(string cgi_ext_path, size_t pos) {
 	string cgi_ext_path_input = cgi_ext_path;
-	string cgi_ext_path_str;
-	string error_page_path;
+	string cgi_ext, cgi_path;
 
 	if (cgi_ext_path.empty() == true) {
 		throw std::runtime_error(str_red("Error CGI Ext Path : " + cgi_ext_path_input));
 	}
 
-	cgi_ext_path_str = cgi_ext_path.substr(0, cgi_ext_path.find(" "));
-	if (cgi_ext_path_str.empty() == true) {
+	cgi_ext = cgi_ext_path.substr(0, cgi_ext_path.find(" "));
+	if (cgi_ext.empty() == true) {
 		throw std::runtime_error(str_red("Error CGI Ext Path : " + cgi_ext_path_input));
 	}
 	cgi_ext_path.erase(0, cgi_ext_path.find(" ") + 1);
@@ -259,14 +258,14 @@ void ConfigLocationParser::set_cgi_ext_path(string cgi_ext_path, size_t pos) {
 		throw std::runtime_error(str_red("Error CGI Ext Path : " + cgi_ext_path_input));
 	}
 
-	error_page_path = cgi_ext_path.substr(0, cgi_ext_path.size());
-	if (error_page_path.empty() == true || this->config_location[pos - 1] != ';'
+	cgi_path = cgi_ext_path.substr(0, cgi_ext_path.size() - 1);
+	if (cgi_path.empty() == true || this->config_location[pos - 1] != ';'
 		|| !std::isalnum(this->config_location[pos - 2])) {
 		throw std::runtime_error(str_red("Error CGI Ext Path : " + cgi_ext_path_input));
 	}
 
-	this->cgi_ext_path[cgi_ext_path_str] = error_page_path;
-	this->cgi_ext_path_status			 = true;
+	this->cgi_ext_path[cgi_ext] = cgi_path;
+	this->cgi_ext_path_status	= true;
 }
 
 // Methods

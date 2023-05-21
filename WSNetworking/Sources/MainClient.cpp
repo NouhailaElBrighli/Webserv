@@ -14,17 +14,21 @@ const bool &MainClient::get_send_recieve_status() const { return send_recieve_st
 // Constructors and destructor
 MainClient::MainClient() { std::memset(buffer, 0, MAXLINE + 1); }
 
-MainClient::MainClient(int client_socket, ConfigServerParser *config_server_parser, int port)
+MainClient::MainClient(int client_socket, ConfigServerParser *config_server_parser, int port,
+					   bool server_parser_set)
 	: config_server_parser(config_server_parser), request_parser(new RequestParser()), status(200),
-	  msg_status(Accurate::OK200().what()), client_socket(client_socket), port(port) {
+	  msg_status(Accurate::OK200().what()), client_socket(client_socket), port(port),
+	  server_parser_set(server_parser_set) {
 	std::memset(buffer, 0, MAXLINE + 1);
 
 	this->start_handle();
 }
 
-MainClient::MainClient(int client_socket, ConfigFileParser *config_file_parser, int port)
+MainClient::MainClient(int client_socket, ConfigFileParser *config_file_parser, int port,
+					   bool server_parser_set)
 	: config_file_parser(config_file_parser), request_parser(new RequestParser()), status(200),
-	  msg_status(Accurate::OK200().what()), client_socket(client_socket), port(port) {
+	  msg_status(Accurate::OK200().what()), client_socket(client_socket), port(port),
+	  server_parser_set(server_parser_set) {
 	std::memset(buffer, 0, MAXLINE + 1);
 
 	this->start_handle();
@@ -59,12 +63,18 @@ void MainClient::responder(int client_socket) {
 	}
 }
 
-int MainClient::get_right_config_server_parser_from_name_sever(string name_server) {
+int MainClient::get_right_server(string name_server) {
 	int i = 0;
+	// host:port
+	string host = name_server.substr(0, name_server.find(":"));
+	string port = name_server.substr(name_server.find(":") + 1, name_server.length());
 
-	name_server = name_server.substr(0, name_server.find(":"));
 	for (size_t it = 0; it < config_file_parser->get_config_server_parser().size(); it++) {
 		if (config_file_parser->get_config_server_parser(it)->get_server_name() == name_server)
+			return i;
+		else if (config_file_parser->get_config_server_parser(it)->get_host() == host
+				 && config_file_parser->get_config_server_parser(it)->get_port() == this->port
+				 && config_file_parser->get_config_server_parser(it)->get_port_str() == port)
 			return i;
 		i++;
 	}
@@ -98,9 +108,9 @@ void MainClient::handle(int client_socket) {
 	cout << *this->request_parser << endl;
 
 	// get the right config server parser if not set in constructor
-	if (this->port != -1)
+	if (this->server_parser_set == false)
 		this->config_server_parser = config_file_parser->get_config_server_parser(
-			get_right_config_server_parser_from_name_sever(this->get_request("Host")));
+			get_right_server(this->get_request("Host")));
 
 	//! body need to be fill in external file
 	body = data.substr(data.find("\r\n\r\n") + 4);

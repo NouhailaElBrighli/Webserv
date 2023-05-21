@@ -52,8 +52,8 @@ void MainServer::launch() {
 
 // Print the server information
 void MainServer::print_info() {
-	cout << C_CYAN << "-----------------------------------------------" << endl
-		 << C_CYAN << "| " << C_YELLOW;
+	cout << C_CYAN << "-----------------------------------------------" << endl;
+	cout << C_CYAN << "| " << C_YELLOW;
 	print_str("Server Name", 11);
 	cout << C_CYAN << " | " << C_GREEN;
 	print_str("Host", 11);
@@ -180,7 +180,8 @@ void MainServer::handler(int client_socket) {
 	try {
 		if ((i = this->right_server(client_socket)) != -1) {
 			MainClient *mainClient = new MainClient(
-				client_socket, this->config_file_parser->get_config_server_parser(i), -1);
+				client_socket, this->config_file_parser->get_config_server_parser(i),
+				this->port_socket[this->right_port(client_socket)], true);
 			this->clients[client_socket] = mainClient;
 			return;
 		}
@@ -188,7 +189,7 @@ void MainServer::handler(int client_socket) {
 		if (string(e.what()).find("Multiple")) {
 			MainClient *mainClient
 				= new MainClient(client_socket, this->config_file_parser,
-								 this->port_socket[this->right_port(client_socket)]);
+								 this->port_socket[this->right_port(client_socket)], false);
 			this->clients[client_socket] = mainClient;
 			return;
 		} else
