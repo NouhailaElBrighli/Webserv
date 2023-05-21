@@ -72,9 +72,11 @@ int MainClient::get_right_server(string name_server) {
 	for (size_t it = 0; it < config_file_parser->get_config_server_parser().size(); it++) {
 		if (config_file_parser->get_config_server_parser(it)->get_server_name() == name_server)
 			return i;
-		else if (config_file_parser->get_config_server_parser(it)->get_host() == host
-				 && config_file_parser->get_config_server_parser(it)->get_port() == this->port
-				 && config_file_parser->get_config_server_parser(it)->get_port_str() == port)
+	}
+	for (size_t it = 0; it < config_file_parser->get_config_server_parser().size(); it++) {
+		if (config_file_parser->get_config_server_parser(it)->get_host() == host
+			&& config_file_parser->get_config_server_parser(it)->get_port() == this->port
+			&& config_file_parser->get_config_server_parser(it)->get_port_str() == port)
 			return i;
 		i++;
 	}
