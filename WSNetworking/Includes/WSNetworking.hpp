@@ -22,6 +22,9 @@ class Socket;
 class BindingSocket;
 class ListeningSocket;
 
+// Response prototypes
+class Response;
+
 // Include
 #include "Include.hpp"
 
@@ -47,5 +50,8 @@ class ListeningSocket;
 #include "BindingSocket.hpp"
 
 #include "ListeningSocket.hpp"
+
+//response
+#include "Response.hpp"
 
 #endif // WSNETWORKING_HPP

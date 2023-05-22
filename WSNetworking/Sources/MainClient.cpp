@@ -41,48 +41,59 @@ void MainClient::handle(int client_socket) {
 	string data;
 	string head;
 	string body;
+	int count = 0; 
+	int bytes = 0;
 
 	print_line("Client");
-	while ((n = read(client_socket, buffer, MAXLINE)) > 0) {
-		buffer[n] = '\0';
-		data += buffer;
-
+	while (1)
+	{
+		bytes = recv(client_socket, buffer, MAXLINE, 0);
+		if (bytes == 0)
+			break;
+		if (bytes < 0)
+			throw Error::BadRequest400();
+		data.append(buffer, bytes);
 		if (data.find("\r\n\r\n") != string::npos)
 			break;
 	}
-
-	if (n < 0) {
-		print_error("Bad Request");
-		throw Error::BadRequest400();
-	}
-
 	head = data.substr(0, data.find("\r\n\r\n"));
-	//! body need to be fill in external file
 	body = data.substr(data.find("\r\n\r\n") + 4);
+`
+	std::string str = this->request_parser->get_request("Content-Length");
+	std::cout << "head -> " << head << std::endl;
+	std::stringstream ss(str);
+	ss >> n;
+	count = body.size();
+	while (1 && count != n && this->request_parser->get_request("Request-Type") != "GET")
+	{
+		bytes = recv(client_socket, buffer, MAXLINE, 0);
+		body.append(buffer, bytes);
+		count += bytes;
+		if (bytes < 0)
+			throw Error::BadRequest400();
+		if (count == n)
+			break;
+	}
+	
+	cout << *this->request_parser << endl;
+
+	//! body need to be fill in external file
 	if (body.length() > this->config_server_parser->get_client_max_body_size())
 		throw Error::RequestEntityTooLarge413();
-
-	// cout << "data : " << endl << data << endl;
-	// cout << "head : " << endl << head << endl;
-	// cout << "body : " << endl << body << endl;
-
-	print_line("Request Parser");
-	this->request_parser->run_head(head);
-	// if (body.length() > 0)
-	// 	this->request_parser->run_body(body);
-	// cout << *this->request_parser << endl;
-
+	// cout <<  C_PURPLE << "head : " << endl << head << C_RES << endl;
+	// cout << C_PURPLE << "body : " << endl << body << C_RES << endl;
 	get_matched_location_for_request_uri();
 	is_method_allowded_in_location();
 
-	// if (this->get_request("Request-Type") == "GET") {
-	// 	this->parse_get(reauest_pasrer->get_request());
-	// } else if (this->get_request("Request-Type") == "POST") {
-	// 	this->parse_post(reauest_pasrer->get_request(),
-	// 					 request_parser->get_body());
-	// } else if (this->get_request("Request-Type") == "DELETE") {
-	// 	this->parse_delete();
-	// }
+
+
+	if (this->request_parser->get_request("Request-Type") == "GET")
+	{
+		print_long_line("handle GET method");
+		Response *get = new Response();
+		// get->SetFile(this->request_parser->get_request("Request-URI"));
+	}
+
 }
 
 void MainClient::get_matched_location_for_request_uri() {
@@ -110,16 +121,16 @@ void MainClient::get_matched_location_for_request_uri() {
 		}
 
 		print_short_line((*it)->get_location());
-		cout << "root :			" << (*it)->get_root() << endl;
-		cout << "brut_file_name :	" << file_name << endl;
+		// cout << "root :			" << (*it)->get_root() << endl;
+		// cout << "brut_file_name :	" << file_name << endl;
 		if (is_found == true) {
 			if (file_name[0] == '/')
 				file_name.erase(0, 1);
 
 			for (size_t i = 0; i < (*it)->get_index().size(); i++) {
 				if (file_name == (*it)->get_index(i)) {
-					cout << C_GREEN << "file_name :		" << file_name << C_RES
-						 << endl;
+					// cout << C_GREEN << "file_name :		" << file_name << C_RES
+					// 	 << endl;
 					return;
 				}
 			}

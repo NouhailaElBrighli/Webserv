@@ -9,7 +9,7 @@ int main(int ac, char **av) {
 
 		try {
 			config_file_parser->parse();
-			config_file_parser->print_parsed_config_file();
+			// config_file_parser->print_parsed_config_file();
 
 			cout << str_green("Config File Parsed Successfully") << endl;
 		} catch (const std::exception &e) {

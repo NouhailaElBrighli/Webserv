@@ -25,7 +25,7 @@
 #include <string>
 #include <vector>
 
-#define MAXLINE 4097
+#define MAXLINE 30
 
 #define C_RES "\033[0m"
 #define C_RED "\033[1;31m"
