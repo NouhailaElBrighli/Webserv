@@ -201,7 +201,7 @@ void MainServer::destroy_client(int client_socket) {
 	print_long_line("destroy client");
 	// Check if the client is a master socket
 	cout << C_YELLOW << "current socket to be close: " << client_socket << C_RES << endl;
-	if (this->clients[client_socket]->get_send_recieve_status() == true) {
+	if (this->clients[client_socket]->get_send_receive_status() == true) {
 		cout << C_RED << "current client '" << client_socket
 			 << "' mustn't be destroy, because it's still sending or recieving data." << C_RES
 			 << endl;

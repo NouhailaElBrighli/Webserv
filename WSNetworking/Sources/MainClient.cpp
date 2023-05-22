@@ -9,7 +9,7 @@ const int &MainClient::get_status() const { return status; }
 
 const string &MainClient::get_msg_status() const { return msg_status; }
 
-const bool &MainClient::get_send_recieve_status() const { return send_recieve_status; }
+const bool &MainClient::get_send_receive_status() const { return send_receive_status; }
 
 // Constructors and destructor
 MainClient::MainClient() { std::memset(buffer, 0, MAXLINE + 1); }
@@ -17,8 +17,8 @@ MainClient::MainClient() { std::memset(buffer, 0, MAXLINE + 1); }
 MainClient::MainClient(int client_socket, ConfigServerParser *config_server_parser, int port,
 					   bool server_parser_set)
 	: config_server_parser(config_server_parser), request_parser(new RequestParser()), status(200),
-	  msg_status(Accurate::OK200().what()), client_socket(client_socket), port(port),
-	  server_parser_set(server_parser_set) {
+	  send_receive_status(true), msg_status(Accurate::OK200().what()),
+	  client_socket(client_socket), port(port), server_parser_set(server_parser_set) {
 	std::memset(buffer, 0, MAXLINE + 1);
 
 	this->start_handle();
@@ -27,8 +27,8 @@ MainClient::MainClient(int client_socket, ConfigServerParser *config_server_pars
 MainClient::MainClient(int client_socket, ConfigFileParser *config_file_parser, int port,
 					   bool server_parser_set)
 	: config_file_parser(config_file_parser), request_parser(new RequestParser()), status(200),
-	  msg_status(Accurate::OK200().what()), client_socket(client_socket), port(port),
-	  server_parser_set(server_parser_set) {
+	  send_receive_status(true), msg_status(Accurate::OK200().what()),
+	  client_socket(client_socket), port(port), server_parser_set(server_parser_set) {
 	std::memset(buffer, 0, MAXLINE + 1);
 
 	this->start_handle();
@@ -61,6 +61,7 @@ void MainClient::responder(int client_socket) {
 		error += "\r\n\r\n";
 		send(client_socket, error.c_str(), error.length(), 0);
 	}
+	this->send_receive_status = false;
 }
 
 int MainClient::get_right_server(string name_server) {
@@ -106,8 +107,16 @@ void MainClient::handle(int client_socket) {
 	}
 	head = data.substr(0, data.find("\r\n\r\n"));
 	body = data.substr(data.find("\r\n\r\n") + 4);
-`
-	std::string str = this->request_parser->get_request("Content-Length");
+
+	this->request_parser->run_head(head);
+	cout << *this->request_parser << endl;
+
+	// get the right config server parser if not set in constructor
+	if (this->server_parser_set == false)
+		this->config_server_parser = config_file_parser->get_config_server_parser(
+			get_right_server(this->get_request("Host")));
+
+	string str = this->request_parser->get_request("Content-Length");
 	std::cout << "head -> " << head << std::endl;
 	std::stringstream ss(str);
 	ss >> n;
@@ -122,17 +131,6 @@ void MainClient::handle(int client_socket) {
 		if (count == n)
 			break;
 	}
-	
-
-	head = data.substr(0, data.find("\r\n\r\n"));
-
-	this->request_parser->run_head(head);
-	cout << *this->request_parser << endl;
-
-	// get the right config server parser if not set in constructor
-	if (this->server_parser_set == false)
-		this->config_server_parser = config_file_parser->get_config_server_parser(
-			get_right_server(this->get_request("Host")));
 
 	//! body need to be fill in external file
 	if (body.length() > this->config_server_parser->get_client_max_body_size())
