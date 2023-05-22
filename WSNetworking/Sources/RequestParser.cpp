@@ -5,13 +5,9 @@ const string &RequestParser::get_head() const { return this->head; }
 
 const string &RequestParser::get_body() const { return this->body; }
 
-const map<string, string> &RequestParser::get_request() const {
-	return this->request;
-}
+const map<string, string> &RequestParser::get_request() const { return this->request; }
 
-const string &RequestParser::get_request(string key) {
-	return this->request[key];
-}
+const string &RequestParser::get_request(string key) { return this->request[key]; }
 
 // Setters
 void RequestParser::set_head(string &head) { this->head = head; }
@@ -50,9 +46,7 @@ void RequestParser::parse_head() {
 }
 
 void RequestParser::is_head_valid() {
-	cout << endl
-		 << C_GREEN << "head.length() : " << head.length() << C_RES << endl
-		 << endl;
+	cout << endl << C_GREEN << "head.length() : " << head.length() << C_RES << endl << endl;
 	if (head.empty())
 		throw Error::BadRequest400();
 }
@@ -64,13 +58,11 @@ void RequestParser::is_first_line_valid() {
 	if (this->request.size() != 3)
 		throw Error::NotImplemented501();
 
-	if (this->request["Request-Type"] != "GET"
-		&& this->request["Request-Type"] != "POST"
+	if (this->request["Request-Type"] != "GET" && this->request["Request-Type"] != "POST"
 		&& this->request["Request-Type"] != "DELETE")
 		throw Error::BadRequest400();
 
-	if (this->request["Request-URI"].find_first_not_of(allowed_chars)
-		!= string::npos)
+	if (this->request["Request-URI"].find_first_not_of(allowed_chars) != string::npos)
 		throw Error::BadRequest400();
 
 	if (this->request["Request-URI"].length() > 2048)
@@ -139,12 +131,10 @@ void RequestParser::parse_rest_lines() {
 }
 
 // Operators <<
-std::ostream &operator<<(std::ostream		 &out,
-						 const RequestParser &requestParser) {
+std::ostream &operator<<(std::ostream &out, const RequestParser &requestParser) {
 	out << "RequestParser {" << endl;
 	out << "	request: {" << endl;
-	for (map<string, string>::const_iterator it
-		 = requestParser.get_request().begin();
+	for (map<string, string>::const_iterator it = requestParser.get_request().begin();
 		 it != requestParser.get_request().end(); it++) {
 		cout << "		" << it->first << " : " << it->second << endl;
 	}

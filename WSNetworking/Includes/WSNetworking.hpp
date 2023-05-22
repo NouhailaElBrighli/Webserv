@@ -19,8 +19,8 @@ class MainServer;
 
 // Sockets Prototypes
 class Socket;
-class BindingSocket;
-class ListeningSocket;
+class BindSocket;
+class ListenSocket;
 
 // Response prototypes
 class Response;
@@ -47,9 +47,9 @@ class Response;
 // Sockets
 #include "Socket.hpp"
 
-#include "BindingSocket.hpp"
+#include "BindSocket.hpp"
 
-#include "ListeningSocket.hpp"
+#include "ListenSocket.hpp"
 
 //response
 #include "Response.hpp"

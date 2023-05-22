@@ -6,6 +6,7 @@
 class Socket {
 
   protected:
+	string		port;
 	t_addrinfo	hints;
 	t_addrinfo *bind_address;
 	int			socket_listen;

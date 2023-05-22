@@ -1,41 +1,89 @@
 #include "MainClient.hpp"
 
-#include <iomanip>
 // Getters
-const map<string, string> &MainClient::get_request() const {
-	return request_parser->get_request();
-}
+const map<string, string> &MainClient::get_request() const { return request_parser->get_request(); }
 
-const string &MainClient::get_request(string key) {
-	return request_parser->get_request(key);
-}
+const string &MainClient::get_request(string key) { return request_parser->get_request(key); }
 
 const int &MainClient::get_status() const { return status; }
 
 const string &MainClient::get_msg_status() const { return msg_status; }
 
+const bool &MainClient::get_send_recieve_status() const { return send_recieve_status; }
+
 // Constructors and destructor
 MainClient::MainClient() { std::memset(buffer, 0, MAXLINE + 1); }
 
-MainClient::MainClient(int				   client_socket,
-					   ConfigServerParser *config_server_parser)
-	: config_server_parser(config_server_parser),
-	  request_parser(new RequestParser()), status(200),
-	  msg_status(Accurate::OK200().what()), client_socket(client_socket) {
+MainClient::MainClient(int client_socket, ConfigServerParser *config_server_parser, int port,
+					   bool server_parser_set)
+	: config_server_parser(config_server_parser), request_parser(new RequestParser()), status(200),
+	  msg_status(Accurate::OK200().what()), client_socket(client_socket), port(port),
+	  server_parser_set(server_parser_set) {
 	std::memset(buffer, 0, MAXLINE + 1);
-	try {
-		this->handle(client_socket);
-	} catch (const std::exception &e) {
-		this->msg_status = e.what();
-		this->status	 = atoi(string(e.what()).substr(0, 3).c_str());
-		print_error(this->msg_status);
-	}
+
+	this->start_handle();
+}
+
+MainClient::MainClient(int client_socket, ConfigFileParser *config_file_parser, int port,
+					   bool server_parser_set)
+	: config_file_parser(config_file_parser), request_parser(new RequestParser()), status(200),
+	  msg_status(Accurate::OK200().what()), client_socket(client_socket), port(port),
+	  server_parser_set(server_parser_set) {
+	std::memset(buffer, 0, MAXLINE + 1);
+
+	this->start_handle();
 }
 
 MainClient::~MainClient() { delete request_parser; }
 
 // Methods
-// Methods
+void MainClient::start_handle() {
+	try {
+		this->handle(this->client_socket);
+	} catch (const std::exception &e) {
+		this->msg_status = e.what();
+		this->status	 = std::atoi(string(e.what()).substr(0, 3).c_str());
+		print_error(this->msg_status);
+	}
+}
+
+void MainClient::responder(int client_socket) {
+	if (this->get_status() < 400) {
+		string accurate = "HTTP/1.1 ";
+		accurate += this->get_msg_status();
+		accurate += "\r\nContent-type: text/html\r\n\r\n";
+		accurate += "Hello From Server\nYou are Host : ";
+		accurate += this->get_request("Host") + "\r\n\r\n";
+		send(client_socket, accurate.c_str(), accurate.length(), 0);
+	} else {
+		string error = "HTTP/1.1 ";
+		error += this->get_msg_status();
+		error += "\r\n\r\n";
+		send(client_socket, error.c_str(), error.length(), 0);
+	}
+}
+
+int MainClient::get_right_server(string name_server) {
+	int i = 0;
+	// host:port
+	string host = name_server.substr(0, name_server.find(":"));
+	string port = name_server.substr(name_server.find(":") + 1, name_server.length());
+
+	for (size_t it = 0; it < config_file_parser->get_config_server_parser().size(); it++) {
+		if (config_file_parser->get_config_server_parser(it)->get_server_name() == name_server)
+			return i;
+	}
+	for (size_t it = 0; it < config_file_parser->get_config_server_parser().size(); it++) {
+		if (config_file_parser->get_config_server_parser(it)->get_host() == host
+			&& config_file_parser->get_config_server_parser(it)->get_port() == this->port
+			&& config_file_parser->get_config_server_parser(it)->get_port_str() == port)
+			return i;
+		i++;
+	}
+	// else return the first one
+	return 0;
+}
+
 void MainClient::handle(int client_socket) {
 	int	   n;
 	string data;
@@ -75,7 +123,16 @@ void MainClient::handle(int client_socket) {
 			break;
 	}
 	
+
+	head = data.substr(0, data.find("\r\n\r\n"));
+
+	this->request_parser->run_head(head);
 	cout << *this->request_parser << endl;
+
+	// get the right config server parser if not set in constructor
+	if (this->server_parser_set == false)
+		this->config_server_parser = config_file_parser->get_config_server_parser(
+			get_right_server(this->get_request("Host")));
 
 	//! body need to be fill in external file
 	if (body.length() > this->config_server_parser->get_client_max_body_size())
@@ -86,7 +143,6 @@ void MainClient::handle(int client_socket) {
 	is_method_allowded_in_location();
 
 
-
 	if (this->request_parser->get_request("Request-Type") == "GET")
 	{
 		print_long_line("handle GET method");
@@ -94,6 +150,7 @@ void MainClient::handle(int client_socket) {
 		// get->SetFile(this->request_parser->get_request("Request-URI"));
 	}
 
+	this->responder(client_socket);
 }
 
 void MainClient::get_matched_location_for_request_uri() {
@@ -107,32 +164,25 @@ void MainClient::get_matched_location_for_request_uri() {
 
 		if ((*it)->get_location().find("cgi") != string::npos)
 			continue;
-		if (this->get_request("Request-URI").find((*it)->get_location())
-			!= string::npos) {
+		if (this->get_request("Request-URI").find((*it)->get_location()) != string::npos) {
 
 			file_name.erase(0, (*it)->get_location().length());
 			is_found = true;
 
-		} else if (this->get_request("Request-URI").find((*it)->get_root())
-				   != string::npos) {
+		} else if (this->get_request("Request-URI").find((*it)->get_root()) != string::npos) {
 
 			file_name.erase(0, (*it)->get_root().length());
 			is_found = true;
 		}
 
-		print_short_line((*it)->get_location());
-		// cout << "root :			" << (*it)->get_root() << endl;
-		// cout << "brut_file_name :	" << file_name << endl;
 		if (is_found == true) {
 			if (file_name[0] == '/')
 				file_name.erase(0, 1);
-
+			if (file_name.length() == 0)
+				return;
 			for (size_t i = 0; i < (*it)->get_index().size(); i++) {
-				if (file_name == (*it)->get_index(i)) {
-					// cout << C_GREEN << "file_name :		" << file_name << C_RES
-					// 	 << endl;
+				if (file_name == (*it)->get_index(i))
 					return;
-				}
 			}
 		}
 	}
@@ -144,10 +194,8 @@ void MainClient::is_method_allowded_in_location() {
 	for (vector<ConfigLocationParser *>::const_iterator it
 		 = config_server_parser->get_config_location_parser().begin();
 		 it != config_server_parser->get_config_location_parser().end(); it++) {
-		if (this->get_request("Request-URI").find((*it)->get_location())
-				!= string::npos
-			|| this->get_request("Request-URI").find((*it)->get_root())
-				   != string::npos) {
+		if (this->get_request("Request-URI").find((*it)->get_location()) != string::npos
+			|| this->get_request("Request-URI").find((*it)->get_root()) != string::npos) {
 			for (size_t i = 0; i < (*it)->get_methods().size(); i++) {
 				if ((*it)->get_methods(i) == this->get_request("Request-Type"))
 					return;
