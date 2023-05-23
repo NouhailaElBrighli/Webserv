@@ -108,9 +108,11 @@ void MainClient::handle(int client_socket) {
 	cout << *this->request_parser << endl;
 
 	// get the right config server parser if not set in constructor
-	if (this->server_parser_set == false)
+	if (this->server_parser_set == false) {
+		this->server_parser_set	   = true;
 		this->config_server_parser = config_file_parser->get_config_server_parser(
 			get_right_server(this->get_request("Host")));
+	}
 
 	if (this->request_parser->get_request("Request-Type") != "GET") {
 		std::cout << "head -> " << head << std::endl;
