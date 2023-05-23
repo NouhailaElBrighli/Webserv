@@ -173,10 +173,10 @@ void MainServer::accepter(int fd_socket) {
 		throw std::runtime_error(str_red("Error accept"));
 }
 
-void MainServer::handler(int client_socket) {
+void MainServer::create_client(int client_socket) {
 	int i;
 
-	print_long_line("handler");
+	print_long_line("create client");
 	try {
 		if ((i = this->right_server(client_socket)) != -1) {
 			MainClient *mainClient = new MainClient(
@@ -197,18 +197,27 @@ void MainServer::handler(int client_socket) {
 	}
 }
 
+void MainServer::handler(int client_socket) {
+	print_long_line("handler");
+
+	if (this->clients.find(client_socket) != this->clients.end()) {
+		this->clients[client_socket]->start_handle();
+	} else
+		this->create_client(client_socket);
+}
+
 void MainServer::destroy_client(int client_socket) {
 	print_long_line("destroy client");
 	// Check if the client is a master socket
 	cout << C_YELLOW << "current socket to be close: " << client_socket << C_RES << endl;
 	if (this->clients[client_socket]->get_send_receive_status() == true) {
-		cout << C_RED << "current client '" << client_socket
+		cout << C_GREEN << "current client '" << client_socket
 			 << "' mustn't be destroy, because it's still sending or recieving data." << C_RES
 			 << endl;
 		return;
 	}
 	if (this->socket[client_socket] == client_socket) {
-		cout << C_RED << "current socket '" << client_socket
+		cout << C_GREEN << "current socket '" << client_socket
 			 << "' mustn't be close, because it's a master socket." << C_RES << endl;
 		return;
 	}
@@ -217,7 +226,7 @@ void MainServer::destroy_client(int client_socket) {
 	this->clients.erase(client_socket);
 	FD_CLR(client_socket, &this->current_sockets);
 	close(client_socket);
-	cout << C_GREEN << "current socket closed: " << client_socket << C_RES << endl;
+	cout << C_RED << "current socket closed: " << client_socket << C_RES << endl;
 }
 
 // Main routine
