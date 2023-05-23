@@ -102,13 +102,15 @@ void MainClient::handle(int client_socket) {
 	}
 	head = data.substr(0, data.find("\r\n\r\n"));
 	//! BODY NEED TO BE FILL IN EXTERNAL FILE
-	body = data.substr(data.find("\r\n\r\n") + 4);
+	body = data.substr(
+		data.find("\r\n\r\n")
+		+ 4);  //! basic_string::substr: __pos (which is 3) > this->size() (which is 0)
 
-	this->request_parser->run_head(head);
+	this->request_parser->run_parse(head);	//* protected against the multiplexing
 	cout << *this->request_parser << endl;
 
 	// get the right config server parser if not set in constructor
-	if (this->server_parser_set == false) {
+	if (this->server_parser_set == false) {	 //* protected against the multiplexing
 		this->server_parser_set	   = true;
 		this->config_server_parser = config_file_parser->get_config_server_parser(
 			get_right_server(this->get_request("Host")));
@@ -135,7 +137,7 @@ void MainClient::handle(int client_socket) {
 		throw Error::RequestEntityTooLarge413();
 
 	get_matched_location_for_request_uri();
-	is_method_allowded_in_location();
+	is_method_allowed_in_location();
 
 	this->responder(client_socket);
 	this->send_receive_status = false;
@@ -178,7 +180,7 @@ void MainClient::get_matched_location_for_request_uri() {
 	throw Error::NotFound404();
 }
 
-void MainClient::is_method_allowded_in_location() {
+void MainClient::is_method_allowed_in_location() {
 	for (vector<ConfigLocationParser *>::const_iterator it
 		 = config_server_parser->get_config_location_parser().begin();
 		 it != config_server_parser->get_config_location_parser().end(); it++) {
