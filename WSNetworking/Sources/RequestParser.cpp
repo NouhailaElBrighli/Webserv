@@ -46,7 +46,13 @@ void RequestParser::parse_head() {
 }
 
 void RequestParser::is_head_valid() {
-	cout << endl << C_GREEN << "head.length() : " << head.length() << C_RES << endl << endl;
+	cout << endl;
+	if (head.length() == 0)
+		cout << C_RED << "head.length() : " << head.length();
+	else
+		cout << C_GREEN << "head.length() : " << head.length();
+	cout << C_RES << endl << endl;
+
 	if (head.empty())
 		throw Error::BadRequest400();
 }
