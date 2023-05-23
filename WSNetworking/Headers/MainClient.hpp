@@ -43,7 +43,7 @@ class MainClient {
 	void handle(int client_socket);
 	void responder(int client_socket);
 	void get_matched_location_for_request_uri();
-	void is_method_allowded_in_location();
+	void is_method_allowed_in_location();
 };
 
 #endif	// MAINCLIENT_HPP

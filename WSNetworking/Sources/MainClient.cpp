@@ -103,13 +103,14 @@ void MainClient::handle(int client_socket) {
 			break;
 	}
 	head = data.substr(0, data.find("\r\n\r\n"));
-	body = data.substr(data.find("\r\n\r\n") + 4);
-	this->request_parser->run_head(head);
 	//! BODY NEED TO BE FILL IN EXTERNAL FILE
+	body = data.substr(data.find("\r\n\r\n") + 4);
+
+	this->request_parser->run_head(head);
 	cout << *this->request_parser << endl;
 
 	// get the right config server parser if not set in constructor
-	if (this->server_parser_set == false) {
+	if (this->server_parser_set == false) {	 //* protected against the multiplexing
 		this->server_parser_set	   = true;
 		this->config_server_parser = config_file_parser->get_config_server_parser(
 			get_right_server(this->get_request("Host")));
@@ -138,12 +139,8 @@ void MainClient::handle(int client_socket) {
 
 	get_matched_location_for_request_uri();
 	is_method_allowded_in_location();
-	if (this->request_parser->get_request("Request-Type") == "GET")
-	{
-		print_long_line("handle GET method");
-		Response get;
-		get.SetVars(this->request_parser->get_request("Request-URI"), client_socket);
-	}
+
+	this->responder(client_socket);
 	this->send_receive_status = false;
 	// this->responder(client_socket);
 }
@@ -185,7 +182,7 @@ void MainClient::get_matched_location_for_request_uri() {
 	throw Error::NotFound404();
 }
 
-void MainClient::is_method_allowded_in_location() {
+void MainClient::is_method_allowed_in_location() {
 	for (vector<ConfigLocationParser *>::const_iterator it
 		 = config_server_parser->get_config_location_parser().begin();
 		 it != config_server_parser->get_config_location_parser().end(); it++) {
