@@ -115,39 +115,36 @@ void MainClient::handle(int client_socket) {
 	if (this->server_parser_set == false)
 		this->config_server_parser = config_file_parser->get_config_server_parser(
 			get_right_server(this->get_request("Host")));
-
-	string str = this->request_parser->get_request("Content-Length");
-	std::cout << "head -> " << head << std::endl;
-	std::stringstream ss(str);
-	ss >> n;
-	count = body.size();
-	while (1 && count != n && this->request_parser->get_request("Request-Type") != "GET")
+	if (this->request_parser->get_request("Request-Type") != "GET")
 	{
-		bytes = recv(client_socket, buffer, MAXLINE, 0);
-		body.append(buffer, bytes);
-		count += bytes;
-		if (bytes < 0)
-			throw Error::BadRequest400();
-		if (count == n)
-			break;
+		std::cout << "head -> " << head << std::endl;
+		string str = this->request_parser->get_request("Content-Length");
+		std::stringstream ss(str);
+		ss >> n;
+		count = body.size();
+		while (1 && count != n && this->request_parser->get_request("Request-Type") != "GET")
+		{
+			bytes = recv(client_socket, buffer, MAXLINE, 0);
+			body.append(buffer, bytes);
+			count += bytes;
+			if (bytes < 0)
+				throw Error::BadRequest400();
+			if (count == n)
+				break;
+		}
 	}
-
 	//! body need to be fill in external file
 	if (body.length() > this->config_server_parser->get_client_max_body_size())
 		throw Error::RequestEntityTooLarge413();
-	// cout <<  C_PURPLE << "head : " << endl << head << C_RES << endl;
-	// cout << C_PURPLE << "body : " << endl << body << C_RES << endl;
 	get_matched_location_for_request_uri();
 	is_method_allowded_in_location();
-
-
 	if (this->request_parser->get_request("Request-Type") == "GET")
 	{
 		print_long_line("handle GET method");
-		Response *get = new Response();
-		// get->SetFile(this->request_parser->get_request("Request-URI"));
+		Response get;
+		get.SetVars(this->request_parser->get_request("Request-URI"), client_socket);
 	}
-
+	this->send_receive_status = false;
 	this->responder(client_socket);
 }
 

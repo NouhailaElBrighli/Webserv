@@ -1,6 +1,7 @@
 #include "WSNetworking.hpp"
 
-int main(int ac, char **av) {
+
+int main(int ac, char **av, char **envp) {
 
 	if (ac == 2) {
 		cout << str_cyan("Run Config File Parser ...") << endl;

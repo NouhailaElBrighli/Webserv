@@ -42,6 +42,7 @@ class MainClient {
 	int	 get_right_server(string name_server);
 	void handle(int client_socket);
 	void responder(int client_socket);
+	void 
 	void get_matched_location_for_request_uri();
 	void is_method_allowded_in_location();
 };

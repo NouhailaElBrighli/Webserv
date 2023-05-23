@@ -3,18 +3,19 @@
 
 #include "WSNetworking.hpp"
 
-class Response
-{
-	private :
-		std::string	ContentType;
-		int			ContentLength;
-		std::string	header;
-	public :
-		Response();
-		~Response();
-		// SetContentType();
-		// SetContentLength();
-		void	SetFile(const std::string &RequestURI);
+class Response {
+  private:
+	std::string ContentType;
+	std::string	ContentLength;
+	std::string header;
+	std::string filename;
+
+  public:
+	Response();
+	~Response();
+	// SetContentType();
+	// SetContentLength();
+	void SetVars(const std::string &RequestURI, int client_socket);
 };
 
 #endif
