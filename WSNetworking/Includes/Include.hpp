@@ -7,8 +7,6 @@
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <unistd.h>
-// inet_ntop
-#include <arpa/inet.h>
 
 #include <cstdio>
 #include <cstdlib>
