@@ -10,7 +10,7 @@ class MainClient {
 	ConfigServerParser *config_server_parser;
 	RequestParser	   *request_parser;
 	int					status;
-	bool				send_receive_status;  //! STATUS OF SENDING AND RECIEVING DATA
+	bool				send_receive_status;  //! STATUS OF SENDING AND RECEIVING DATA
 	string				msg_status;
 	int					client_socket, port;
 	char				buffer[MAXLINE + 1];
