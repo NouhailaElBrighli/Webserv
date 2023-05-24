@@ -225,7 +225,7 @@ void MainServer::destroy_client(int client_socket) {
 	cout << C_YELLOW << "current socket to be close: " << client_socket << C_RES << endl;
 	if (this->clients[client_socket]->get_send_receive_status() == true) {
 		cout << C_RED << "current client '" << client_socket
-			 << "' mustn't be destroy, because it's still sending or recieving data." << C_RES
+			 << "' mustn't be destroy, because it's still sending or receiving data." << C_RES
 			 << endl;
 		return;
 	}
