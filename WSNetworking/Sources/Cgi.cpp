@@ -6,7 +6,7 @@
 /*   By: hsaidi <hsaidi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:38:43 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/05/21 20:11:29 by hsaidi           ###   ########.fr       */
+/*   Updated: 2023/05/25 20:31:33 by hsaidi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ Cgi::~Cgi(){}
 void Cgi::readFileContents() 
 {
 	cout<<"*****in readFileContents***\n";
-	this->filename = "/Users/hsaidi/Desktop/teamserv/files/file1.php";
+	this->filename = this->main_client->get_request("Request-URI");
     std::ifstream file(filename.c_str());
     if (file.is_open()) {
         std::string line;
@@ -53,33 +53,30 @@ int Cgi::getFileType(const std::string& filename)
 		else if (extension == "py")
 			return 1;
 		else
-			cout << "---- can't accept these extensions ----" << std::endl;
+			cout << "---- can't accept this extension ----" << std::endl;
     }
 	return -1;
 }
 
-// Function to convert a std::map<std::string, std::string> to a char**
 char* const* Cgi::mapToCharConstArray(const std::map<std::string, std::string>& cgi_env) {
-    char** envp = new char*[cgi_env.size() + 1]; // +1 for the terminating null pointer
+    char** envp = new char*[cgi_env.size() + 1];
     int i = 0;
-    
-    for (std::map<std::string, std::string>::const_iterator it = cgi_env.begin(); it != cgi_env.end(); ++it) {
-        std::string envVar = it->first + "=" + it->second;
-        envp[i] = new char[envVar.size() + 1];
-        std::strcpy(envp[i], envVar.c_str());
+	string envVar;
+
+	for (std::map<std::string, std::string>::const_iterator it = cgi_env.begin(); it != cgi_env.end(); ++it) 
+	{
+	    envVar = it->first + "=" + it->second;
+        envp[i] = strdup(envVar.c_str());
         ++i;
     }
-    
-    envp[i] = NULL; // Terminating null pointer
-    
-    return const_cast<char* const*>(reinterpret_cast<char**>(envp));
+    envp[i] = NULL; 
+    return const_cast<char* const*>(envp);
 }
 
 void Cgi::just_print()
 {
 	cout<<"*****in just_print***\n";
 	std::cout << "hello from cgi" << std::endl;
-	// cout << "->>>  " << this->main_client->get_request("Request-Type") <<std::endl;
 	for(map<string, string>::const_iterator it = this->main_client->get_request().begin(); it != this->main_client->get_request().end(); it++)
 	{
 		cout << it->first << " : " << it->second << endl;          
@@ -97,8 +94,6 @@ void Cgi::just_print()
 			else
 				cout << "---- can't accept these extensions ----" << std::endl;
 			cout << "---------------------------------here------------------------\n";
-			// cout << "cgi_ext_path : " << (*it)->get_cgi_ext_path(".py") << endl;
-			// cout << "cgi_ext_path : " << (*it)->get_cgi_ext_path(".php") << endl;
 		}
 	}           
 	std::ifstream checl_script(this->script.c_str());
@@ -121,11 +116,12 @@ void Cgi::set_cgi_env()
 	cgi_env["HTTP_COOKIE="] = this->main_client->get_request("Cookie");
 	cgi_env["SCRIPT_FILENAME="] = this->filename;
 	cgi_env["SERVER_PROTOCOL="] = this->main_client->get_request("Protocol-Version");
-	cgi_env["GETWAY_INTERFACE="] = "CGI/1.1";
-	cgi_env["REDIRECT_STATUS="] = "true";
-	cgi_env["REQUEShT_URI="] = this->main_client->get_request("Request-URI");
+	cgi_env["GATEWAY_INTERFACE="] = "CGI/1.1";
+	cgi_env["REDIRECT_STATUS="] = "200";
+	cgi_env["REQUEST_URI="] = this->main_client->get_request("Request-URI");
 	cgi_env["HTTP_HOST="] = this->main_client->get_request("Host");
 	cgi_env["SERVER_SOFTWARE="] = "WEBSERVER";
+	cgi_env["CONTENT_TYPE="] ="text/html";
 	if (this->main_client->get_request("Request-Type") == "POST")
 	{
 		cgi_env["CONTENT_LENGTH="] = this->main_client->get_request("Content-Length");
@@ -139,17 +135,43 @@ void Cgi::set_cgi_env()
         std::cout << key << value << std::endl;
     }	
 
-	const char  *av[] = { const_cast<char*>(script.c_str()), this->filename.c_str(), NULL};
+	const char  *av[] = {script.c_str(), this->filename.c_str(), NULL};
+	char *const *av2 = const_cast<char *const *>(av);
 	this->env = mapToCharConstArray(cgi_env);
+	cout<<"------ppp---->"<<this->env[0]<<endl;
+	for()
 	cout << "-----------------------------------------------------------------------------------\n";
 	cout<< "script : " << this->script << endl;
 	cout<< "filename : " << this->filename << endl;
+	output_file = open("output.txt", O_WRONLY | O_CREAT | O_TRUNC, 0666);
 	int pid = fork();
-	if (pid == 0)
+	if(pid < 0)
 	{
-		execve(av[0], av, env);
+		cout << "fork failed" << endl;
+		// i need to send 500 error here
 	}
-
+	// else if (pid > 0)
+	// {
+	// 	waitpid(pid, NULL, 0);
+	// }
+	else if (pid == 0)
+	{
+		dup2(output_file, 1);
+		close(output_file);
+		// dup2(input_file, 0);
+		// close(input_file);
+		cerr<<"------> " << av2[0]<<endl;
+		cerr<<"------> " << av2[1]<<endl;
+		execve(av[0], av2, NULL);
+	}
+	waitpid(pid, NULL, 0);
+	// close(input_file);
+	// if (pid == 0)
+	// {
+		// dup2(this->output_file, 1);
+		// dup2(this->input_file, 0);
+		// execve(av[0], av2, const_cast<char *const *>(&cgi_env[0]));
+	// }
 }
 // perce the locationand stor the executable path 
 //fork and execve
