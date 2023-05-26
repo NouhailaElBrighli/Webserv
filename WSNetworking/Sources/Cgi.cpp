@@ -6,7 +6,7 @@
 /*   By: hsaidi <hsaidi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:38:43 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/05/25 20:31:33 by hsaidi           ###   ########.fr       */
+/*   Updated: 2023/05/26 11:43:06 by hsaidi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,7 +65,7 @@ char* const* Cgi::mapToCharConstArray(const std::map<std::string, std::string>& 
 
 	for (std::map<std::string, std::string>::const_iterator it = cgi_env.begin(); it != cgi_env.end(); ++it) 
 	{
-	    envVar = it->first + "=" + it->second;
+	    envVar = it->first + it->second;
         envp[i] = strdup(envVar.c_str());
         ++i;
     }
@@ -109,7 +109,6 @@ void Cgi::just_print()
 void Cgi::set_cgi_env()
 {
 	cout << "---------------------------------------------------------\n";
-	cout<<"*****in set_cgi_env***\n";
 	cgi_env["REQUEST_METHOD="] = this->main_client->get_request("Request-Type");
 	cgi_env["PATH_INFO="] = this->main_client->get_request("Request-URI");
 	cgi_env["QUERY_STRING="] = this->main_client->get_request("Query-String");
@@ -120,8 +119,7 @@ void Cgi::set_cgi_env()
 	cgi_env["REDIRECT_STATUS="] = "200";
 	cgi_env["REQUEST_URI="] = this->main_client->get_request("Request-URI");
 	cgi_env["HTTP_HOST="] = this->main_client->get_request("Host");
-	cgi_env["SERVER_SOFTWARE="] = "WEBSERVER";
-	cgi_env["CONTENT_TYPE="] ="text/html";
+	cgi_env["CONTENT_TYPE="] =this->main_client->get_request("Content-Type");
 	if (this->main_client->get_request("Request-Type") == "POST")
 	{
 		cgi_env["CONTENT_LENGTH="] = this->main_client->get_request("Content-Length");
@@ -132,18 +130,20 @@ void Cgi::set_cgi_env()
     for (it = cgi_env.begin(); it != cgi_env.end(); ++it) {
         const std::string& key = it->first;
         const std::string& value = it->second;
-        std::cout << key << value << std::endl;
-    }	
+        std::cout <<"|________|"<< key << value << "|________|"<< std::endl;
+    }
 
 	const char  *av[] = {script.c_str(), this->filename.c_str(), NULL};
 	char *const *av2 = const_cast<char *const *>(av);
 	this->env = mapToCharConstArray(cgi_env);
 	cout<<"------ppp---->"<<this->env[0]<<endl;
-	for()
+	for (size_t i = 0; cgi_env.size() > i; i++)
+		cout <<"|"<< this->env[i] <<"|"<< endl;
 	cout << "-----------------------------------------------------------------------------------\n";
 	cout<< "script : " << this->script << endl;
 	cout<< "filename : " << this->filename << endl;
 	output_file = open("output.txt", O_WRONLY | O_CREAT | O_TRUNC, 0666);
+	input_file = open("input.txt", O_WRONLY | O_CREAT | O_TRUNC, 0666);
 	int pid = fork();
 	if(pid < 0)
 	{
@@ -158,11 +158,11 @@ void Cgi::set_cgi_env()
 	{
 		dup2(output_file, 1);
 		close(output_file);
-		// dup2(input_file, 0);
-		// close(input_file);
+		dup2(input_file, 0);
+		close(input_file);
 		cerr<<"------> " << av2[0]<<endl;
 		cerr<<"------> " << av2[1]<<endl;
-		execve(av[0], av2, NULL);
+		execve(av[0], av2, this->env);
 	}
 	waitpid(pid, NULL, 0);
 	// close(input_file);
