@@ -15,7 +15,6 @@ class MainClient {
 	int					client_socket, port;
 	char				buffer[MAXLINE + 1];
 	bool				server_parser_set;
-
 	MainClient(const MainClient &);
 	MainClient &operator=(const MainClient &);
 
@@ -33,7 +32,8 @@ class MainClient {
 	MainClient(int client_socket, ConfigFileParser *config_file_parser, int port,
 			   bool server_parser_set);
 	~MainClient();
-
+	std::string	Header_reading(int client_socket);
+	std::string	&Body_reading(int client_socket, std::string &body);
 	// Methods
 	void start_handle();
 

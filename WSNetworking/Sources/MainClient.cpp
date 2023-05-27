@@ -36,28 +36,21 @@ MainClient::~MainClient() { delete request_parser; }
 void MainClient::start_handle() {
 	try {
 		this->handle(this->client_socket);
+		Response Response;
+		if (this->request_parser->get_request("Request-Type") == "GET")
+			Response.Get(this->request_parser->get_request("Request-URI"), client_socket);
 	} catch (const std::exception &e) {
+		std::cout << "catch exception :" << e.what() << std::endl;
 		this->msg_status = e.what();
-		this->status	 = std::atoi(string(e.what()).substr(0, 3).c_str());
+		std::stringstream ss(this->msg_status);
+		ss >> this->status; // !whyyyyyyyyyyyyy
+		Response Error;
+		Error.SetError(this->msg_status);
+		send(client_socket, Error.GetHeader().c_str(), Error.GetHeader().size(), 0);
+		std::cout << Error << std::endl;
+		this->send_receive_status = false;
 		print_error(this->msg_status);
 	}
-}
-
-void MainClient::responder(int client_socket) {
-	if (this->status < 400) {
-		string accurate = "HTTP/1.1 ";
-		accurate += this->msg_status;
-		accurate += "\r\nContent-type: text/html\r\n\r\n";
-		accurate += "Hello From Server\nYou are Host : ";
-		accurate += this->get_request("Host") + "\r\n\r\n";
-		send(client_socket, accurate.c_str(), accurate.length(), 0);
-	} else {
-		string error = "HTTP/1.1 ";
-		error += this->msg_status;
-		error += "\r\n\r\n";
-		send(client_socket, error.c_str(), error.length(), 0);
-	}
-	this->send_receive_status = false;
 }
 
 int MainClient::get_right_server(string name_server) {
@@ -82,15 +75,11 @@ int MainClient::get_right_server(string name_server) {
 	return 0;
 }
 
-void MainClient::handle(int client_socket) {
-	int	   n;
-	string data;
-	string head;
-	string body;
-	int count = 0; 
-	int bytes = 0;
+std::string	MainClient::Header_reading(int client_socket)
+{
+	int		bytes;
+	std::string	data;
 
-	print_line("Client");
 	while (1)
 	{
 		bytes = recv(client_socket, buffer, MAXLINE, 0);
@@ -102,47 +91,60 @@ void MainClient::handle(int client_socket) {
 		if (data.find("\r\n\r\n") != string::npos)
 			break;
 	}
+	return (data);
+}
+
+std::string	&MainClient::Body_reading(int client_socket, std::string &body)
+{
+	int	   n, bytes, count;
+	string str = this->request_parser->get_request("Content-Length");
+	std::stringstream ss(str);
+	ss >> n;
+	count = body.size();
+	while (1 && count != n)
+	{
+		bytes = recv(client_socket, buffer, MAXLINE, 0);
+		body.append(buffer, bytes);
+		count += bytes;
+		if (bytes < 0)
+			throw Error::BadRequest400();
+		if (count == n)
+			break;
+	}
+	return(body);
+}
+
+
+void MainClient::handle(int client_socket) {
+	int	   n;
+	string data;
+	string head;
+	string body;
+	int count = 0; 
+	int bytes = 0;
+
+	print_line("Client");
+	data = this->Header_reading(client_socket);
 	head = data.substr(0, data.find("\r\n\r\n"));
 	//! BODY NEED TO BE FILL IN EXTERNAL FILE
 	body = data.substr(data.find("\r\n\r\n") + 4);
+	this->request_parser->run_parse(head);
+	// cout << *this->request_parser << endl;
+	if (this->request_parser->get_request("Request-Type") == "POST") // !protect by status
+		this->Body_reading(client_socket, body);
 
-	this->request_parser->run_head(head);
-	cout << *this->request_parser << endl;
-
+	//! check_if_uri_dir
 	// get the right config server parser if not set in constructor
 	if (this->server_parser_set == false) {	 //* protected against the multiplexing
 		this->server_parser_set	   = true;
 		this->config_server_parser = config_file_parser->get_config_server_parser(
 			get_right_server(this->get_request("Host")));
 	}
-	if (this->request_parser->get_request("Request-Type") != "GET")
-	{
-		std::cout << "head -> " << head << std::endl;
-		string str = this->request_parser->get_request("Content-Length");
-		std::stringstream ss(str);
-		ss >> n;
-		count = body.size();
-		while (1 && count != n && this->request_parser->get_request("Request-Type") != "GET")
-		{
-			bytes = recv(client_socket, buffer, MAXLINE, 0);
-			body.append(buffer, bytes);
-			count += bytes;
-			if (bytes < 0)
-				throw Error::BadRequest400();
-			if (count == n)
-				break;
-		}
-	}
-
+	get_matched_location_for_request_uri();
+	is_method_allowed_in_location();
 	if (body.length() > this->config_server_parser->get_client_max_body_size())
 		throw Error::RequestEntityTooLarge413();
-
-	get_matched_location_for_request_uri();
-	is_method_allowded_in_location();
-
-	this->responder(client_socket);
 	this->send_receive_status = false;
-	// this->responder(client_socket);
 }
 
 void MainClient::get_matched_location_for_request_uri() {
@@ -179,7 +181,10 @@ void MainClient::get_matched_location_for_request_uri() {
 		}
 	}
 	// File is not a found
-	throw Error::NotFound404();
+	this->msg_status = "404";
+	std::stringstream ss(msg_status);
+	ss >> status;
+	throw Error::NotFound404();//!here
 }
 
 void MainClient::is_method_allowed_in_location() {
