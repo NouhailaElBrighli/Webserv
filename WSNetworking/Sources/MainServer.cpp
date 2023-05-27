@@ -60,7 +60,7 @@ void MainServer::launch() {
 
 // Print the server information
 void MainServer::print_info() {
-	cout << C_CYAN << "---------------------------------------------------------------" << endl;
+	cout << C_CYAN << string(63, '-') << endl;
 	cout << C_CYAN << "| " << C_BLUE;
 	print_str("N°", 7);
 	cout << C_CYAN << "| " << C_YELLOW;
@@ -72,7 +72,7 @@ void MainServer::print_info() {
 	cout << C_CYAN << " | " << C_PURPLE;
 	print_str("FD Socket", 9);
 	cout << C_CYAN << " |" << C_RES << endl;
-	cout << C_CYAN << "---------------------------------------------------------------" << endl;
+	cout << C_CYAN << string(63, '-') << endl;
 
 	for (size_t i = 0; i < this->config_file_parser->get_config_server_parser().size(); i++) {
 		cout << C_CYAN << "| " << C_BLUE;
@@ -88,8 +88,7 @@ void MainServer::print_info() {
 			this->port_socket[this->config_file_parser->get_config_server_parser(i)->get_port()],
 			9);
 		cout << C_CYAN << " |" << C_RES << endl;
-		cout << C_CYAN << "---------------------------------------------------------------" << C_RES
-			 << endl;
+		cout << C_CYAN << string(63, '-') << endl;
 	}
 }
 
