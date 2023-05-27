@@ -6,7 +6,7 @@
 /*   By: hsaidi <hsaidi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:38:43 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/05/26 11:43:06 by hsaidi           ###   ########.fr       */
+/*   Updated: 2023/05/27 18:50:56 by hsaidi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,6 @@
 Cgi::Cgi(MainClient *main_client, vector<ConfigLocationParser *>config_location_parser){
 	this->main_client = main_client;
 	this->config_location_parser = config_location_parser;
-	
 }
 Cgi::~Cgi(){}
 
@@ -35,18 +34,11 @@ void Cgi::readFileContents()
     }
 }
 
-
 int Cgi::getFileType(const std::string& filename) 
 {
-	cout<<"*****in getFileType***\n";
     std::size_t dotPos = filename.rfind('.');
     if (dotPos != std::string::npos) {
         std::string extension = filename.substr(dotPos + 1);
-
-        // Convert the extension to lowercase for case-insensitive comparison
-        for (std::size_t i = 0; i < extension.length(); ++i) {
-            extension[i] = std::tolower(extension[i]);
-        }
 
         if (extension == "php") 
 			return 2;
@@ -73,7 +65,7 @@ char* const* Cgi::mapToCharConstArray(const std::map<std::string, std::string>& 
     return const_cast<char* const*>(envp);
 }
 
-void Cgi::just_print()
+void Cgi::check_extention()
 {
 	cout<<"*****in just_print***\n";
 	std::cout << "hello from cgi" << std::endl;
@@ -93,7 +85,6 @@ void Cgi::just_print()
 				this->script = (*it)->get_cgi_ext_path(".php");
 			else
 				cout << "---- can't accept these extensions ----" << std::endl;
-			cout << "---------------------------------here------------------------\n";
 		}
 	}           
 	std::ifstream checl_script(this->script.c_str());
@@ -108,7 +99,6 @@ void Cgi::just_print()
 // setting the cgi_env map
 void Cgi::set_cgi_env()
 {
-	cout << "---------------------------------------------------------\n";
 	cgi_env["REQUEST_METHOD="] = this->main_client->get_request("Request-Type");
 	cgi_env["PATH_INFO="] = this->main_client->get_request("Request-URI");
 	cgi_env["QUERY_STRING="] = this->main_client->get_request("Query-String");
@@ -123,25 +113,24 @@ void Cgi::set_cgi_env()
 	if (this->main_client->get_request("Request-Type") == "POST")
 	{
 		cgi_env["CONTENT_LENGTH="] = this->main_client->get_request("Content-Length");
-		cgi_env["CONTENT_TYPE="] = this->main_client->get_request("Content-Type");
 	}
-	cout << "------------------- Printing the env variables -------------------------------------\n";
-    std::map<std::string, std::string>::const_iterator it;
-    for (it = cgi_env.begin(); it != cgi_env.end(); ++it) {
-        const std::string& key = it->first;
-        const std::string& value = it->second;
-        std::cout <<"|________|"<< key << value << "|________|"<< std::endl;
-    }
+	cout << "------------------- Printing the env variables ------------------------------------\n";
+    // std::map<std::string, std::string>::const_iterator it;
+    // for (it = cgi_env.begin(); it != cgi_env.end(); ++it) {
+    //     const std::string& key = it->first;
+    //     const std::string& value = it->second;
+    //     std::cout <<"|________|"<< key << value << "|________|"<< std::endl;
+    // }
 
 	const char  *av[] = {script.c_str(), this->filename.c_str(), NULL};
 	char *const *av2 = const_cast<char *const *>(av);
+
 	this->env = mapToCharConstArray(cgi_env);
-	cout<<"------ppp---->"<<this->env[0]<<endl;
+
 	for (size_t i = 0; cgi_env.size() > i; i++)
 		cout <<"|"<< this->env[i] <<"|"<< endl;
 	cout << "-----------------------------------------------------------------------------------\n";
-	cout<< "script : " << this->script << endl;
-	cout<< "filename : " << this->filename << endl;
+
 	output_file = open("output.txt", O_WRONLY | O_CREAT | O_TRUNC, 0666);
 	input_file = open("input.txt", O_WRONLY | O_CREAT | O_TRUNC, 0666);
 	int pid = fork();
@@ -150,30 +139,16 @@ void Cgi::set_cgi_env()
 		cout << "fork failed" << endl;
 		// i need to send 500 error here
 	}
-	// else if (pid > 0)
-	// {
-	// 	waitpid(pid, NULL, 0);
-	// }
 	else if (pid == 0)
 	{
 		dup2(output_file, 1);
 		close(output_file);
 		dup2(input_file, 0);
 		close(input_file);
-		cerr<<"------> " << av2[0]<<endl;
-		cerr<<"------> " << av2[1]<<endl;
 		execve(av[0], av2, this->env);
 	}
 	waitpid(pid, NULL, 0);
-	// close(input_file);
-	// if (pid == 0)
-	// {
-		// dup2(this->output_file, 1);
-		// dup2(this->input_file, 0);
 		// execve(av[0], av2, const_cast<char *const *>(&cgi_env[0]));
-	// }
 }
-// perce the locationand stor the executable path 
-//fork and execve
 
 

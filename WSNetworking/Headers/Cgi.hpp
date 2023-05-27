@@ -6,7 +6,7 @@
 /*   By: hsaidi <hsaidi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:33:49 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/05/24 11:33:14 by hsaidi           ###   ########.fr       */
+/*   Updated: 2023/05/27 11:29:06 by hsaidi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@ class Cgi
         std::string script;
         int output_file;
         int input_file;
-        void just_print();
+        void check_extention();
         void set_cgi_env();
         char *const *env;
         void readFileContents() ;

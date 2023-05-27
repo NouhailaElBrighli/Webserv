@@ -50,5 +50,6 @@ class ListenSocket;
 #include "ListenSocket.hpp"
 
 #include "Cgi.hpp"
+#include "Delete.hpp"
 
 #endif // WSNETWORKING_HPP

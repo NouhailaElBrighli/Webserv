@@ -137,7 +137,7 @@ void MainClient::handle(int client_socket) {
 	// }
 
 	Cgi cgi(this, this->config_server_parser->get_config_location_parser());
-	cgi.just_print();
+	cgi.check_extention();
 }
 
 void MainClient::get_matched_location_for_request_uri() {
