@@ -126,6 +126,13 @@ vector<string> ConfigLocationParser::stringToMethods(string host) {
 			throw std::runtime_error(str_red("Allow Methods Bad Input : " + host));
 	}
 
+	for (size_t i = 0; i < vect_mth.size(); i++) {
+		for (size_t j = i + 1; j < vect_mth.size(); j++) {
+			if (vect_mth[i] == vect_mth[j])
+				throw std::runtime_error(str_red("Allow Methods Bad Input : " + host));
+		}
+	}
+
 	return vect_mth;
 }
 
@@ -328,8 +335,6 @@ void ConfigLocationParser::check_status() {
 		if (this->methods_status)
 			throw std::runtime_error(str_red("Error : methods is unnecessary in cgi location"));
 	} else {
-		if (!this->index_status)
-			throw std::runtime_error(str_red("Error : index is missing"));
 		if (!this->return_status)
 			throw std::runtime_error(str_red("Error : return is missing"));
 		if (!this->file_body_status)

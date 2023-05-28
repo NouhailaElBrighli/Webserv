@@ -10,7 +10,7 @@ class MainClient {
 	ConfigServerParser *config_server_parser;
 	RequestParser	   *request_parser;
 	int					status;
-	bool				send_receive_status;  //! STATUS OF SENDING AND RECIEVING DATA
+	bool				send_receive_status;  //! STATUS OF SENDING AND RECEIVING DATA
 	string				msg_status;
 	int					client_socket, port;
 	char				buffer[MAXLINE + 1];
@@ -42,7 +42,7 @@ class MainClient {
 	int	 get_right_server(string name_server);
 	void handle(int client_socket);
 	void responder(int client_socket);
-	void get_matched_location_for_request_uri();
+	int  get_matched_location_for_request_uri();
 	void is_method_allowed_in_location();
 };
 

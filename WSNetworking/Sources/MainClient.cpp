@@ -40,7 +40,6 @@ void MainClient::start_handle() {
 		if (this->request_parser->get_request("Request-Type") == "GET")
 			Response.Get(this->request_parser->get_request("Request-URI"), client_socket);
 	} catch (const std::exception &e) {
-		std::cout << "catch exception :" << e.what() << std::endl;
 		this->msg_status = e.what();
 		std::stringstream ss(this->msg_status);
 		ss >> this->status; // !whyyyyyyyyyyyyy
@@ -114,7 +113,6 @@ std::string	&MainClient::Body_reading(int client_socket, std::string &body)
 	return(body);
 }
 
-
 void MainClient::handle(int client_socket) {
 	int	   n;
 	string data;
@@ -140,24 +138,29 @@ void MainClient::handle(int client_socket) {
 		this->config_server_parser = config_file_parser->get_config_server_parser(
 			get_right_server(this->get_request("Host")));
 	}
-	get_matched_location_for_request_uri();
+	int locate = get_matched_location_for_request_uri();
 	is_method_allowed_in_location();
+	if (this->config_server_parser->get_config_location_parser()[locate]->get_autoindex() == 0)
+		throw Error::Forbidden403();
 	if (body.length() > this->config_server_parser->get_client_max_body_size())
 		throw Error::RequestEntityTooLarge413();
 	this->send_receive_status = false;
 }
 
-void MainClient::get_matched_location_for_request_uri() {
+int MainClient::get_matched_location_for_request_uri() {
 	// get file name to compare with index
 	string file_name;
 	bool   is_found = false;
+	int locate = 0;
 	for (vector<ConfigLocationParser *>::const_iterator it
 		 = config_server_parser->get_config_location_parser().begin();
 		 it != config_server_parser->get_config_location_parser().end(); it++) {
 		file_name = this->get_request("Request-URI");
 
-		if ((*it)->get_location().find("cgi") != string::npos)
+		if ((*it)->get_location().find("cgi") != string::npos){
+			locate++;
 			continue;
+		}
 		if (this->get_request("Request-URI").find((*it)->get_location()) != string::npos) {
 
 			file_name.erase(0, (*it)->get_location().length());
@@ -173,13 +176,15 @@ void MainClient::get_matched_location_for_request_uri() {
 			if (file_name[0] == '/')
 				file_name.erase(0, 1);
 			if (file_name.length() == 0)
-				return;
+				return locate;
 			for (size_t i = 0; i < (*it)->get_index().size(); i++) {
 				if (file_name == (*it)->get_index(i))
-					return;
+					return locate;
 			}
 		}
+		locate++;
 	}
+
 	// File is not a found
 	this->msg_status = "404";
 	std::stringstream ss(msg_status);

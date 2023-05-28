@@ -7,52 +7,17 @@ Response::Response() {
 Response::~Response() {
 }
 
-void Response::SetVars(const std::string &RequestURI, int client_socket) {
-	std::stringstream ss(RequestURI);
-	std::string		  filename;
-	std::string		  data;
-
-	// std::string str;
-	while (getline(ss, filename, '/'))
-
-	this->filename = filename;
-	int start = filename.find('.');
-	// check if there is no extention
-	std::string extention = filename.substr(start, filename.size() - 1);
-	if (extention == ".html")
-		this->ContentType = "text/html";
-	else if (extention == ".css")
-		this->ContentType = "text/css";
-	else if (extention == ".jpg" || extention == ".jpeg")
-		this->ContentType = "image/jpeg";
-	else if (extention == ".png")
-		this->ContentType = "image/png";
-	else
-		this->ContentType = "text/plain";
-	std::ifstream RequestedFile(RequestURI);
-	if (!RequestedFile.is_open())
-		throw std::runtime_error("couldn't open the file");
-	getline(RequestedFile, this->body, '\0');
-	int				  length = this->body.size();
-	std::stringstream num;
-	num << length;
-	this->ContentLength = num.str();
-	this->header = "HTTP/1.1 200 ok\r\nContent-Type: ";
-	this->header += this->ContentType;
-	this->header += "\r\nContent-Length: ";
-	this->header += ContentLength;
-	this->header += "\r\n\r\n";
-	this->header += body;
-}
 
 std::string Response::GetContentType() const
 {
 	return(this->ContentType);
 }
+
 std::string Response::GetContentLength() const
 {
 	return(this->ContentLength);
 }
+
 std::string Response::GetHeader() const
 {
 	return(this->header);
@@ -63,7 +28,7 @@ void	Response::Get(std::string request_URI, int client_socket)
 	print_long_line("Handle GET");
 	this->SetVars(request_URI, client_socket);
 	send(client_socket, header.c_str(), header.size(), 0);
-	std::cout << *this << std::endl;
+	// std::cout << *this << std::endl;
 }
 
 void 	Response::SetError(const std::string msg_status)
@@ -91,4 +56,59 @@ std::ostream &operator<<(std::ostream &out,const Response &obj)
 	out << "Header :" << std::endl;
 	out << obj.GetHeader() << std::endl;
 	return(out);
+}
+
+void Response::SetContentType()
+{
+	std::string extention;
+
+	int start = this->filename.find('.');
+	if (start != string::npos)
+	{
+		std::string extention = filename.substr(start, filename.size() - 1);
+		if (extention == ".html")
+			this->ContentType = "text/html";
+		else if (extention == ".css")
+			this->ContentType = "text/css";
+		else if (extention == ".jpg" || extention == ".jpeg")
+			this->ContentType = "image/jpeg";
+		else if (extention == ".png")
+			this->ContentType = "image/png";
+		else if (extention == ".mp4")
+			this->ContentType = "video/mp4";
+		else
+			this->ContentType = "text/plain";
+	}
+	else
+		this->ContentType = "text/plain";
+
+}
+
+void Response::SetContentLength(std::string RequestURI)
+{
+	std::ifstream RequestedFile(RequestURI, std::ios::binary);
+	if (!RequestedFile)
+		throw Error::Forbidden403();
+	std::string content((std::istreambuf_iterator<char>(RequestedFile)), std::istreambuf_iterator<char>());
+	this->body = content;
+	std::stringstream num;
+	num << this->body.size();
+	this->ContentLength = num.str();
+}
+
+
+void Response::SetVars(const std::string &RequestURI, int client_socket) 
+{
+	std::stringstream ss(RequestURI);
+	while (getline(ss, this->filename, '/'))
+
+	this->SetContentType();
+	this->SetContentLength(RequestURI);
+
+	this->header = "HTTP/1.1 200 ok\r\nContent-Type: ";
+	this->header += this->ContentType;
+	this->header += "\r\nContent-Length: ";
+	this->header += ContentLength;
+	this->header += "\r\n\r\n";
+	this->header += body;
 }

@@ -1,18 +1,26 @@
 #include "MainServer.hpp"
 
 // Static functions
-static string truncate(string str, size_t width) {
-	if (str.length() > width)
-		return str.substr(0, width - 1) + ".";
-	return str;
-}
-
 static void print_str(string str, size_t width) {
-	cout << std::left << std::setw(width) << truncate(str, width);
+	size_t strLength = str.length();
+	if (strLength >= width) {
+		cout << str.substr(0, width);
+	} else {
+		size_t padding = (width - strLength) / 2;
+		cout << std::setw(padding) << "" << str << std::setw(width - padding - strLength) << "";
+	}
 }
 
 static void print_int(int integer, size_t width) {
-	cout << std::left << std::setw(width) << integer;
+	std::ostringstream oss;
+	oss << integer;
+	std::string str = oss.str();
+
+	int padding		 = width - str.length();
+	int leftPadding	 = padding / 2;
+	int rightPadding = padding - leftPadding;
+
+	std::cout << std::setw(leftPadding) << "" << integer << std::setw(rightPadding) << "";
 }
 
 // Getters
@@ -52,31 +60,35 @@ void MainServer::launch() {
 
 // Print the server information
 void MainServer::print_info() {
-	cout << C_CYAN << "-----------------------------------------------" << endl;
+	cout << C_CYAN << string(63, '-') << endl;
+	cout << C_CYAN << "| " << C_BLUE;
+	print_str("N°", 7);
 	cout << C_CYAN << "| " << C_YELLOW;
-	print_str("Server Name", 11);
+	print_str("Server Name", 13);
 	cout << C_CYAN << " | " << C_GREEN;
-	print_str("Host", 11);
+	print_str("Host", 13);
 	cout << C_CYAN << " | " << C_RED;
-	print_str("Port", 6);
+	print_str("Port", 7);
 	cout << C_CYAN << " | " << C_PURPLE;
-	print_str("Socket", 6);
+	print_str("FD Socket", 9);
 	cout << C_CYAN << " |" << C_RES << endl;
-	cout << C_CYAN << "-----------------------------------------------" << endl;
+	cout << C_CYAN << string(63, '-') << endl;
 
 	for (size_t i = 0; i < this->config_file_parser->get_config_server_parser().size(); i++) {
+		cout << C_CYAN << "| " << C_BLUE;
+		print_int(static_cast<int>(i) + 1, 6);
 		cout << C_CYAN << "| " << C_YELLOW;
-		print_str(this->config_file_parser->get_config_server_parser(i)->get_server_name(), 11);
+		print_str(this->config_file_parser->get_config_server_parser(i)->get_server_name(), 13);
 		cout << C_CYAN << " | " << C_GREEN;
-		print_str(this->config_file_parser->get_config_server_parser(i)->get_host(), 11);
+		print_str(this->config_file_parser->get_config_server_parser(i)->get_host(), 13);
 		cout << C_CYAN << " | " << C_RED;
-		print_str(this->config_file_parser->get_config_server_parser(i)->get_port_str(), 6);
+		print_str(this->config_file_parser->get_config_server_parser(i)->get_port_str(), 7);
 		cout << C_CYAN << " | " << C_PURPLE;
 		print_int(
 			this->port_socket[this->config_file_parser->get_config_server_parser(i)->get_port()],
-			6);
+			9);
 		cout << C_CYAN << " |" << C_RES << endl;
-		cout << C_CYAN << "-----------------------------------------------" << C_RES << endl;
+		cout << C_CYAN << string(63, '-') << endl;
 	}
 }
 
@@ -211,8 +223,8 @@ void MainServer::destroy_client(int client_socket) {
 	// Check if the client is a master socket
 	cout << C_YELLOW << "current socket to be close: " << client_socket << C_RES << endl;
 	if (this->clients[client_socket]->get_send_receive_status() == true) {
-		cout << C_GREEN << "current client '" << client_socket
-			 << "' mustn't be destroy, because it's still sending or recieving data." << C_RES
+		cout << C_RED << "current client '" << client_socket
+			 << "' mustn't be destroy, because it's still sending or receiving data." << C_RES
 			 << endl;
 		return;
 	}
