@@ -229,7 +229,7 @@ void MainServer::destroy_client(int client_socket) {
 		return;
 	}
 	if (this->socket[client_socket] == client_socket) {
-		cout << C_RED << "current socket '" << client_socket
+		cout << C_GREEN << "current socket '" << client_socket
 			 << "' mustn't be close, because it's a master socket." << C_RES << endl;
 		return;
 	}
@@ -238,7 +238,7 @@ void MainServer::destroy_client(int client_socket) {
 	this->clients.erase(client_socket);
 	FD_CLR(client_socket, &this->current_sockets);
 	close(client_socket);
-	cout << C_GREEN << "current socket closed: " << client_socket << C_RES << endl;
+	cout << C_RED << "current socket closed: " << client_socket << C_RES << endl;
 }
 
 // Main routine

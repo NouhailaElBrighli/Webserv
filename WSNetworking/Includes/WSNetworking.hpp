@@ -1,6 +1,8 @@
 #ifndef WSNETWORKING_HPP
 #define WSNETWORKING_HPP
 
+
+
 // Clients Prototypes
 class MainClient;
 
@@ -21,6 +23,9 @@ class MainServer;
 class Socket;
 class BindSocket;
 class ListenSocket;
+
+// Response prototypes
+class Response;
 
 // Include
 #include "Include.hpp"
@@ -48,4 +53,7 @@ class ListenSocket;
 
 #include "ListenSocket.hpp"
 
-#endif	// WSNETWORKING_HPP
+//response
+#include "Response.hpp"
+
+#endif // WSNETWORKING_HPP
