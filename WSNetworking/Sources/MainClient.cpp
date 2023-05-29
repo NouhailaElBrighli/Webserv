@@ -40,6 +40,8 @@ void MainClient::start_handle() {
 		if (this->request_parser->get_request("Request-Type") == "GET")
 			Response.Get(this->request_parser->get_request("Request-URI"), client_socket);
 	} catch (const std::exception &e) {
+
+		std::cout << "Error:" << e.what() << std::endl;
 		this->msg_status = e.what();
 		std::stringstream ss(this->msg_status);
 		ss >> this->status; // !whyyyyyyyyyyyyy
@@ -127,10 +129,7 @@ void MainClient::handle(int client_socket) {
 	//! BODY NEED TO BE FILL IN EXTERNAL FILE
 	body = data.substr(data.find("\r\n\r\n") + 4);
 	this->request_parser->run_parse(head);
-	// cout << *this->request_parser << endl;
-	if (this->request_parser->get_request("Request-Type") == "POST") // !protect by status
-		this->Body_reading(client_socket, body);
-
+	cout << *this->request_parser << endl;	
 	//! check_if_uri_dir
 	// get the right config server parser if not set in constructor
 	if (this->server_parser_set == false) {	 //* protected against the multiplexing
@@ -138,6 +137,9 @@ void MainClient::handle(int client_socket) {
 		this->config_server_parser = config_file_parser->get_config_server_parser(
 			get_right_server(this->get_request("Host")));
 	}
+	if (this->request_parser->get_request("Request-Type") == "POST") // !protect by status
+		this->Body_reading(client_socket, body);
+
 	int locate = get_matched_location_for_request_uri();
 	is_method_allowed_in_location();
 	if (this->config_server_parser->get_config_location_parser()[locate]->get_autoindex() == 0)
