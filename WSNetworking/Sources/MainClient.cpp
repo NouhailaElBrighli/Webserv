@@ -10,21 +10,10 @@ const bool &MainClient::get_send_receive_status() const { return send_receive_st
 // Constructors and destructor
 MainClient::MainClient() { std::memset(buffer, 0, MAXLINE + 1); }
 
-MainClient::MainClient(int client_socket, ConfigServerParser *config_server_parser, int port,
-					   bool server_parser_set)
+MainClient::MainClient(int client_socket, ConfigServerParser *config_server_parser)
 	: config_server_parser(config_server_parser), request_parser(new RequestParser()), status(200),
-	  send_receive_status(true), msg_status(Accurate::OK200().what()), client_socket(client_socket),
-	  port(port), server_parser_set(server_parser_set) {
-	std::memset(buffer, 0, MAXLINE + 1);
-
-	this->start_handle();
-}
-
-MainClient::MainClient(int client_socket, ConfigFileParser *config_file_parser, int port,
-					   bool server_parser_set)
-	: config_file_parser(config_file_parser), request_parser(new RequestParser()), status(200),
-	  send_receive_status(true), msg_status(Accurate::OK200().what()), client_socket(client_socket),
-	  port(port), server_parser_set(server_parser_set) {
+	  send_receive_status(true), msg_status(Accurate::OK200().what()),
+	  client_socket(client_socket) {
 	std::memset(buffer, 0, MAXLINE + 1);
 
 	this->start_handle();
@@ -44,7 +33,7 @@ void MainClient::start_handle() {
 		std::cout << "Error:" << e.what() << std::endl;
 		this->msg_status = e.what();
 		std::stringstream ss(this->msg_status);
-		ss >> this->status; // !whyyyyyyyyyyyyy
+		ss >> this->status;	 // !whyyyyyyyyyyyyy -> becauseeeeeeeeee
 		Response Error;
 		Error.SetError(this->msg_status);
 		send(client_socket, Error.GetHeader().c_str(), Error.GetHeader().size(), 0);
@@ -54,35 +43,11 @@ void MainClient::start_handle() {
 	}
 }
 
-int MainClient::get_right_server(string name_server) {
-	int i = 0;
-	// host:port
-	string host = name_server.substr(0, name_server.find(":"));
-	string port = name_server.substr(name_server.find(":") + 1, name_server.length());
+std::string MainClient::Header_reading(int client_socket) {
+	int			bytes;
+	std::string data;
 
-	for (size_t it = 0; it < config_file_parser->get_config_server_parser().size(); it++) {
-		if (config_file_parser->get_config_server_parser(it)->get_server_name() == name_server
-			&& config_file_parser->get_config_server_parser(it)->get_port() == this->port)
-			return i;
-	}
-	for (size_t it = 0; it < config_file_parser->get_config_server_parser().size(); it++) {
-		if (config_file_parser->get_config_server_parser(it)->get_host() == host
-			&& config_file_parser->get_config_server_parser(it)->get_port() == this->port
-			&& config_file_parser->get_config_server_parser(it)->get_port_str() == port)
-			return i;
-		i++;
-	}
-	// else return the first one
-	return 0;
-}
-
-std::string	MainClient::Header_reading(int client_socket)
-{
-	int		bytes;
-	std::string	data;
-
-	while (1)
-	{
+	while (1) {
 		bytes = recv(client_socket, buffer, MAXLINE, 0);
 		if (bytes == 0)
 			break;
@@ -95,15 +60,13 @@ std::string	MainClient::Header_reading(int client_socket)
 	return (data);
 }
 
-std::string	&MainClient::Body_reading(int client_socket, std::string &body)
-{
-	int	   n, bytes, count;
-	string str = this->request_parser->get_request("Content-Length");
+std::string &MainClient::Body_reading(int client_socket, std::string &body) {
+	int				  n, bytes, count;
+	string			  str = this->request_parser->get_request("Content-Length");
 	std::stringstream ss(str);
 	ss >> n;
 	count = body.size();
-	while (1 && count != n)
-	{
+	while (1 && count != n) {
 		bytes = recv(client_socket, buffer, MAXLINE, 0);
 		body.append(buffer, bytes);
 		count += bytes;
@@ -112,7 +75,7 @@ std::string	&MainClient::Body_reading(int client_socket, std::string &body)
 		if (count == n)
 			break;
 	}
-	return(body);
+	return (body);
 }
 
 void MainClient::handle(int client_socket) {
@@ -120,8 +83,8 @@ void MainClient::handle(int client_socket) {
 	string data;
 	string head;
 	string body;
-	int count = 0; 
-	int bytes = 0;
+	int	   count = 0;
+	int	   bytes = 0;
 
 	print_line("Client");
 	data = this->Header_reading(client_socket);
@@ -129,15 +92,10 @@ void MainClient::handle(int client_socket) {
 	//! BODY NEED TO BE FILL IN EXTERNAL FILE
 	body = data.substr(data.find("\r\n\r\n") + 4);
 	this->request_parser->run_parse(head);
-	cout << *this->request_parser << endl;	
+	cout << *this->request_parser << endl;
 	//! check_if_uri_dir
 	// get the right config server parser if not set in constructor
-	if (this->server_parser_set == false) {	 //* protected against the multiplexing
-		this->server_parser_set	   = true;
-		this->config_server_parser = config_file_parser->get_config_server_parser(
-			get_right_server(this->get_request("Host")));
-	}
-	if (this->request_parser->get_request("Request-Type") == "POST") // !protect by status
+	if (this->request_parser->get_request("Request-Type") == "POST")  // !protect by status
 		this->Body_reading(client_socket, body);
 
 	int locate = get_matched_location_for_request_uri();
@@ -153,13 +111,13 @@ int MainClient::get_matched_location_for_request_uri() {
 	// get file name to compare with index
 	string file_name;
 	bool   is_found = false;
-	int locate = 0;
+	int	   locate	= 0;
 	for (vector<ConfigLocationParser *>::const_iterator it
 		 = config_server_parser->get_config_location_parser().begin();
 		 it != config_server_parser->get_config_location_parser().end(); it++) {
 		file_name = this->get_request("Request-URI");
 
-		if ((*it)->get_location().find("cgi") != string::npos){
+		if ((*it)->get_location().find("cgi") != string::npos) {
 			locate++;
 			continue;
 		}
@@ -191,7 +149,7 @@ int MainClient::get_matched_location_for_request_uri() {
 	this->msg_status = "404";
 	std::stringstream ss(msg_status);
 	ss >> status;
-	throw Error::NotFound404();//!here
+	throw Error::NotFound404();	 //! here
 }
 
 void MainClient::is_method_allowed_in_location() {

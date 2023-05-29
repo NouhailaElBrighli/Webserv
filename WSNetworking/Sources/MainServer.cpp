@@ -105,8 +105,7 @@ void MainServer::run_sockets() {
 				= listen_socket[j].get_socket_listen();
 			j++;
 		} catch (const std::exception &e) {
-			if (this->port_socket[config_file_parser->get_config_server_parser(i)->get_port()] == 0)
-				throw std::runtime_error(e.what());
+			throw std::runtime_error(e.what());
 		}
 
 		// fill the address and socket maps
@@ -133,24 +132,15 @@ int MainServer::right_port(int client_socket) {
 
 int MainServer::right_server(int client_socket) {
 	int port;
-	int first_server  = 0;
-	int mutiple_ports = 0;
+	int first_server = 0;
 
 	// Extract the port number
 	port = right_port(client_socket);
 	// Check if the port is in the config file and get the index
 	for (size_t i = 0; i < this->config_file_parser->get_config_server_parser().size(); i++) {
-		if (this->config_file_parser->get_config_server_parser(i)->get_port() == port) {
-			mutiple_ports++;
-			first_server = i;
-		}
+		if (this->config_file_parser->get_config_server_parser(i)->get_port() == port)
+			return i;
 	}
-	if (mutiple_ports == 1)
-		return first_server;
-	else if (mutiple_ports > 1)
-		throw std::runtime_error(str_cyan("Multiple ports found"));
-	else if (mutiple_ports == 0)
-		throw std::runtime_error(str_red("Error port not found"));
 	return -1;
 }
 
@@ -189,23 +179,11 @@ void MainServer::create_client(int client_socket) {
 	int i;
 
 	print_long_line("create client");
-	try {
-		if ((i = this->right_server(client_socket)) != -1) {
-			MainClient *mainClient = new MainClient(
-				client_socket, this->config_file_parser->get_config_server_parser(i),
-				this->port_socket[this->right_port(client_socket)], true);
-			this->clients[client_socket] = mainClient;
-			return;
-		}
-	} catch (const std::exception &e) {
-		if (string(e.what()).find("Multiple")) {
-			MainClient *mainClient
-				= new MainClient(client_socket, this->config_file_parser,
-								 this->port_socket[this->right_port(client_socket)], false);
-			this->clients[client_socket] = mainClient;
-			return;
-		} else
-			throw std::runtime_error(e.what());
+	if ((i = this->right_server(client_socket)) != -1) {
+		MainClient *mainClient
+			= new MainClient(client_socket, this->config_file_parser->get_config_server_parser(i));
+		this->clients[client_socket] = mainClient;
+		return;
 	}
 }
 
