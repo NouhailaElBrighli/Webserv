@@ -1,46 +1,31 @@
 #include "Response.hpp"
 
-Response::Response() {
-	
-}
+Response::Response() {}
 
-Response::~Response() {
-}
+Response::~Response() {}
 
+std::string Response::GetContentType() const { return (this->ContentType); }
 
-std::string Response::GetContentType() const
-{
-	return(this->ContentType);
-}
+std::string Response::GetContentLength() const { return (this->ContentLength); }
 
-std::string Response::GetContentLength() const
-{
-	return(this->ContentLength);
-}
+std::string Response::GetHeader() const { return (this->header); }
 
-std::string Response::GetHeader() const
-{
-	return(this->header);
-}
-
-void	Response::Get(std::string request_URI, int client_socket)
-{
+void Response::Get(std::string request_URI, int client_socket) {
 	print_long_line("Handle GET");
-	this->SetVars(request_URI, client_socket);
+	this->SetVars(request_URI);
 	send(client_socket, header.c_str(), header.size(), 0);
 	// std::cout << *this << std::endl;
 }
 
-void 	Response::SetError(const std::string msg_status)
-{
+void Response::SetError(const std::string msg_status) {
 	std::stringstream ss(msg_status);
 	std::stringstream num;
-	std::string error;
+	std::string		  error;
 	getline(ss, error, ' ');
 	getline(ss, error, '\0');
 	num << error.size();
 	this->ContentLength = num.str();
-	this->header = "HTTP/1.1 ";
+	this->header		= "HTTP/1.1 ";
 	this->header += msg_status;
 	this->header += "\r\nContent-Type: text/plain\r\n";
 	this->header += "Content-Length: ";
@@ -49,22 +34,19 @@ void 	Response::SetError(const std::string msg_status)
 	this->header += error;
 }
 
-std::ostream &operator<<(std::ostream &out,const Response &obj)
-{
+std::ostream &operator<<(std::ostream &out, const Response &obj) {
 	out << "ContentType:" << obj.GetContentType() << std::endl;
 	out << "ContentLength:" << obj.GetContentLength() << std::endl;
 	out << "Header :" << std::endl;
 	out << obj.GetHeader() << std::endl;
-	return(out);
+	return (out);
 }
 
-void Response::SetContentType()
-{
+void Response::SetContentType() {
 	std::string extention;
 
-	int start = this->filename.find('.');
-	if (start != string::npos)
-	{
+	size_t start = this->filename.find('.');
+	if (start != string::npos) {
 		std::string extention = filename.substr(start, filename.size() - 1);
 		if (extention == ".html")
 			this->ContentType = "text/html";
@@ -78,29 +60,26 @@ void Response::SetContentType()
 			this->ContentType = "video/mp4";
 		else
 			this->ContentType = "text/plain";
-	}
-	else
+	} else
 		this->ContentType = "text/plain";
-
 }
 
-void Response::SetContentLength(std::string RequestURI)
-{
-	std::ifstream RequestedFile(RequestURI, std::ios::binary);
+void Response::SetContentLength(std::string RequestURI) {
+	std::ifstream RequestedFile(RequestURI.c_str(), std::ios::binary);
 	if (!RequestedFile)
 		throw Error::Forbidden403();
-	std::string content((std::istreambuf_iterator<char>(RequestedFile)), std::istreambuf_iterator<char>());
+	std::string content((std::istreambuf_iterator<char>(RequestedFile)),
+						std::istreambuf_iterator<char>());
 	this->body = content;
 	std::stringstream num;
 	num << this->body.size();
 	this->ContentLength = num.str();
 }
 
-
-void Response::SetVars(const std::string &RequestURI, int client_socket) 
-{
+void Response::SetVars(const std::string &RequestURI) {
 	std::stringstream ss(RequestURI);
-	while (getline(ss, this->filename, '/'))
+	while (getline(ss, this->filename, '/')) {
+	}
 
 	this->SetContentType();
 	this->SetContentLength(RequestURI);

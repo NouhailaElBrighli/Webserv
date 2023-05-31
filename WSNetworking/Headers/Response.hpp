@@ -13,7 +13,7 @@ class Response {
   public:
 	Response();
 	~Response();
-	void SetVars(const std::string &RequestURI, int client_socket);
+	void SetVars(const std::string &RequestURI);
 	void SetContentType();
 	void SetContentLength(std::string RequestURI);
 	std::string GetContentType() const;

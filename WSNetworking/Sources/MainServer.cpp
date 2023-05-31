@@ -132,7 +132,6 @@ int MainServer::right_port(int client_socket) {
 
 int MainServer::right_server(int client_socket) {
 	int port;
-	int first_server = 0;
 
 	// Extract the port number
 	port = right_port(client_socket);

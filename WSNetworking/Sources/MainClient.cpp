@@ -79,12 +79,9 @@ std::string &MainClient::Body_reading(int client_socket, std::string &body) {
 }
 
 void MainClient::handle(int client_socket) {
-	int	   n;
 	string data;
 	string head;
 	string body;
-	int	   count = 0;
-	int	   bytes = 0;
 
 	print_line("Client");
 	data = this->Header_reading(client_socket);
