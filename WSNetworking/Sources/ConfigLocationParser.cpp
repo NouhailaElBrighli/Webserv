@@ -255,8 +255,13 @@ void ConfigLocationParser::set_cgi_ext_path(string cgi_ext_path, size_t pos) {
 	}
 
 	cgi_ext = cgi_ext_path.substr(0, cgi_ext_path.find(" "));
-	if (cgi_ext.empty() == true) {
+	if (cgi_ext.empty() == true || cgi_ext.length() == 1 || cgi_ext[0] != '.') {
 		throw std::runtime_error(str_red("Error CGI Ext Path : " + cgi_ext_path_input));
+	}
+	// check if cgi_ext is contain only characters
+	for (size_t i = 1; i < cgi_ext.length(); i++) {
+		if (!std::isalpha(cgi_ext[i]))
+			throw std::runtime_error(str_red("Error CGI Ext Path : " + cgi_ext_path_input));
 	}
 	cgi_ext_path.erase(0, cgi_ext_path.find(" ") + 1);
 
@@ -266,13 +271,15 @@ void ConfigLocationParser::set_cgi_ext_path(string cgi_ext_path, size_t pos) {
 	}
 
 	cgi_path = cgi_ext_path.substr(0, cgi_ext_path.size() - 1);
-	if (cgi_path.empty() == true || this->config_location[pos - 1] != ';'
+	if (cgi_path.empty() == true || this->config_location[pos - 1] != ';' || cgi_path[0] != '/'
 		|| !std::isalnum(this->config_location[pos - 2])) {
 		throw std::runtime_error(str_red("Error CGI Ext Path : " + cgi_ext_path_input));
 	}
 
-	this->cgi_ext_path[cgi_ext] = cgi_path;
-	this->cgi_ext_path_status	= true;
+	if (ConfigServerParser::check_file("CGI Ext Path", cgi_ext_path_input, cgi_path)) {
+		this->cgi_ext_path[cgi_ext] = cgi_path;
+		this->cgi_ext_path_status	= true;
+	}
 }
 
 // Methods
