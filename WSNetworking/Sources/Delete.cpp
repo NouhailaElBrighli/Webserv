@@ -6,55 +6,9 @@
 /*   By: hsaidi <hsaidi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/27 11:30:30 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/05/27 18:44:28 by hsaidi           ###   ########.fr       */
+/*   Updated: 2023/05/31 17:34:07 by hsaidi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
-
-// Map to store server resources
-// std::map<std::string, std::string> resources;
-
-// // Function to handle DELETE requests
-// void handleDeleteRequest(const std::string& resourcePath) {
-//     // Check if the resource exists
-//     if (resources.find(resourcePath) != resources.end()) {
-//         // Delete the resource
-//         resources.erase(resourcePath);
-
-//         // Set the appropriate response
-//         std::cout << "HTTP/1.1 204 No Content\r\n\r\n";
-//     } else {
-//         // Resource not found
-//         std::cout << "HTTP/1.1 404 Not Found\r\n\r\n";
-//         std::cout << "Resource not found\r\n";
-//     }
-// }
-
-// // Function to parse the HTTP request and handle it accordingly
-// void processRequest(const std::string& request) {
-//     // Parse the request to extract the method and resource path
-//     std::string method;
-//     std::string resourcePath;
-
-//     size_t methodEndPos = request.find(' ');
-//     if (methodEndPos != std::string::npos) {
-//         method = request.substr(0, methodEndPos);
-
-//         size_t pathStartPos = methodEndPos + 1;
-//         size_t pathEndPos = request.find(' ', pathStartPos);
-//         if (pathEndPos != std::string::npos) {
-//             resourcePath = request.substr(pathStartPos, pathEndPos - pathStartPos);
-
-//             // Handle the request based on the method
-//             if (method == "DELETE") {
-//                 handleDeleteRequest(resourcePath);
-//             } else {
-//                 // Unsupported method
-//                 std::cout << "HTTP/1.1 405 Method Not Allowed\r\n\r\n";
-//                 std::cout << "Unsupported method\r\n";
-//             }
-//         }
-//     }
-// }
 
 Delete::Delete(MainClient *main_client)
 {
@@ -101,3 +55,78 @@ void Delete::delete_file()
     else
         puts("File successfully deleted");
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// void Cgi::readFileContents() 
+// {
+//     std::cout << "*****in readFileContents***\n";
+//     std::string requestUri = this->main_client->get_request("Request-URI");
+//     std::string location, file;
+
+//     // Check if the Request-URI contains a location or root
+//     for (std::vector<ConfigLocationParser*>::const_iterator it = this->config_location_parser.begin();
+//          it != this->config_location_parser.end(); it++) {
+//         if (requestUri.find((*it)->get_location()) != std::string::npos) {
+//             location = (*it)->get_root(); // Replace location with root
+//             file = requestUri.substr((*it)->get_location().length());
+//             break;
+//         } else if (requestUri.find((*it)->get_root()) != std::string::npos) {
+//             location = (*it)->get_root();
+//             file = requestUri.substr(location.length());
+//             break;
+//         }
+//         else if (requestUri.find((*it)->get_root()) != std::string::npos) {
+//             location = (*it)->get_root();
+//             file = requestUri.substr(location.length());
+//             break;
+//         }
+//     }
+
+//     // If a location or root is found, update the filename
+//     if (!location.empty()) {
+//         this->filename = location + file;
+//     } else {
+//         this->filename = requestUri; // Use the original filename
+//     }
+
+//     std::ifstream fileStream(this->filename.c_str());
+//     if (fileStream.is_open())
+//     {
+//         std::string line;
+//         getFileType(this->filename);
+//     }
+//     else
+//     {
+//         std::cout << "Failed to open file: " << this->filename << std::endl;
+//         // Send a 404 error response
+//         std::cout << "HTTP/1.1 404 Not Found\r\n\r\n";
+//         std::cout << "File not found\r\n";
+//     }
+// }
+
+

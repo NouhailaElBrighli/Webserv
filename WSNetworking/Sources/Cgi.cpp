@@ -6,7 +6,7 @@
 /*   By: hsaidi <hsaidi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:38:43 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/05/27 18:50:56 by hsaidi           ###   ########.fr       */
+/*   Updated: 2023/05/31 17:34:12 by hsaidi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,17 +22,42 @@ Cgi::~Cgi(){}
 
 void Cgi::readFileContents() 
 {
-	cout<<"*****in readFileContents***\n";
-	this->filename = this->main_client->get_request("Request-URI");
-    std::ifstream file(filename.c_str());
-    if (file.is_open()) {
-        std::string line;
-	getFileType(filename);
-    } else {
-        std::cout << "Failed to open file: " << filename << std::endl;
-		// i need to send 404 error here 
+    std::cout << "*****in readFileContents***\n";
+    std::string requestUri = this->main_client->get_request("Request-URI");
+    std::string location, file;
+
+    // Check if the Request-URI contains a location or root
+    for (std::vector<ConfigLocationParser*>::const_iterator it = this->config_location_parser.begin();
+         it != this->config_location_parser.end(); it++) {
+        if ((*it)->get_location().length() <= requestUri.length()
+            && requestUri.substr(0, (*it)->get_location().length()) == (*it)->get_location()) {
+            location = (*it)->get_root(); // Replace location with root
+            file = requestUri.substr((*it)->get_location().length());
+            break;
+        } else if ((*it)->get_root().length() <= requestUri.length()
+                   && requestUri.substr(0, (*it)->get_root().length()) == (*it)->get_root()) {
+            location = (*it)->get_root();
+            file = requestUri.substr((*it)->get_root().length());
+            break;
+        }
     }
+
+    // If a location or root is found, update the filename
+    if (!location.empty()) {
+        if (!file.empty() && file[0] == '/')
+            file.erase(0, 1); // Remove leading slash if present
+        this->filename = location + '/' + file; // Add '/' between location and file
+    } else {
+        this->filename = requestUri; // Use the original filename
+    }
+
+    std::ifstream fileStream(this->filename.c_str());
+    if (fileStream.is_open())
+        getFileType(this->filename);
+    else
+        std::cout << "Failed to open file: " << this->filename << std::endl;
 }
+
 
 int Cgi::getFileType(const std::string& filename) 
 {
@@ -84,7 +109,7 @@ void Cgi::check_extention()
 			else if (getFileType(this->filename) == 2)
 				this->script = (*it)->get_cgi_ext_path(".php");
 			else
-				cout << "---- can't accept these extensions ----" << std::endl;
+				cout << "---- can't accept this extension ----" << std::endl;
 		}
 	}           
 	std::ifstream checl_script(this->script.c_str());
@@ -128,7 +153,7 @@ void Cgi::set_cgi_env()
 	this->env = mapToCharConstArray(cgi_env);
 
 	for (size_t i = 0; cgi_env.size() > i; i++)
-		cout <<"|"<< this->env[i] <<"|"<< endl;
+		cout <<"| "<< this->env[i] <<" |"<< endl;
 	cout << "-----------------------------------------------------------------------------------\n";
 
 	output_file = open("output.txt", O_WRONLY | O_CREAT | O_TRUNC, 0666);
