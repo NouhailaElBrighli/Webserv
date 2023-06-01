@@ -6,7 +6,7 @@
 /*   By: hsaidi <hsaidi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:38:43 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/05/31 17:34:12 by hsaidi           ###   ########.fr       */
+/*   Updated: 2023/06/01 12:23:05 by hsaidi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,9 +55,8 @@ void Cgi::readFileContents()
     if (fileStream.is_open())
         getFileType(this->filename);
     else
-        std::cout << "Failed to open file: " << this->filename << std::endl;
+    	std::cout << "Failed to open file: " << this->filename << std::endl;
 }
-
 
 int Cgi::getFileType(const std::string& filename) 
 {
@@ -70,7 +69,7 @@ int Cgi::getFileType(const std::string& filename)
 		else if (extension == "py")
 			return 1;
 		else
-			cout << "---- can't accept this extension ----" << std::endl;
+			throw Error::NotImplemented501();
     }
 	return -1;
 }
@@ -109,7 +108,7 @@ void Cgi::check_extention()
 			else if (getFileType(this->filename) == 2)
 				this->script = (*it)->get_cgi_ext_path(".php");
 			else
-				cout << "---- can't accept this extension ----" << std::endl;
+				throw Error::NotImplemented501();
 		}
 	}           
 	std::ifstream checl_script(this->script.c_str());
@@ -118,8 +117,10 @@ void Cgi::check_extention()
 		set_cgi_env();
 	}
 	else
+	{
 		cout << "---- can't open the script ----" << std::endl;
-		// i need to send 404 error here
+		throw Error::NotFound404();
+	}
 }
 // setting the cgi_env map
 void Cgi::set_cgi_env()
@@ -162,7 +163,7 @@ void Cgi::set_cgi_env()
 	if(pid < 0)
 	{
 		cout << "fork failed" << endl;
-		// i need to send 500 error here
+		return ;
 	}
 	else if (pid == 0)
 	{
