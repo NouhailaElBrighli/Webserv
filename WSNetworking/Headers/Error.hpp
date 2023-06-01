@@ -11,78 +11,78 @@ class Error {
 	// 4xx Client errors
 	class BadRequest400 : public std::exception {
 	  public:
-		virtual const char *what() const throw() { return "400Bad request"; }
+		virtual const char *what() const throw() { return "400 Bad request"; }
 	};
 
 	class Unauthorized401 : public std::exception {
 	  public:
-		virtual const char *what() const throw() { return "401Unauthorized"; }
+		virtual const char *what() const throw() { return "401 Unauthorized"; }
 	};
 
 	class Forbidden403 : public std::exception {
 	  public:
-		virtual const char *what() const throw() { return "403Forbidden"; }
+		virtual const char *what() const throw() { return "403 Forbidden"; }
 	};
 
 	class NotFound404 : public std::exception {
 	  public:
-		virtual const char *what() const throw() { return "404Not found"; }
+		virtual const char *what() const throw() { return "404 Not found"; }
 	};
 
 	class MethodNotAllowed405 : public std::exception {
 	  public:
-		virtual const char *what() const throw() { return "405Method not allowed"; }
+		virtual const char *what() const throw() { return "405 Method not allowed"; }
 	};
 
 	class NotAcceptable406 : public std::exception {
 	  public:
-		virtual const char *what() const throw() { return "406Not acceptable"; }
+		virtual const char *what() const throw() { return "406 Not acceptable"; }
 	};
 
 	class Conflict409 : public std::exception {
 	  public:
-		virtual const char *what() const throw() { return "409Conflict"; }
+		virtual const char *what() const throw() { return "409 Conflict"; }
 	};
 
 	class Gone410 : public std::exception {
 	  public:
-		virtual const char *what() const throw() { return "410Gone"; }
+		virtual const char *what() const throw() { return "410 Gone"; }
 	};
 
 	class PreconditionFailed412 : public std::exception {
 	  public:
-		virtual const char *what() const throw() { return "412Precondition failed"; }
+		virtual const char *what() const throw() { return "412 Precondition failed"; }
 	};
 
 	class RequestEntityTooLarge413 : public std::exception {
 	  public:
-		virtual const char *what() const throw() { return "413Request Entity Too Large"; }
+		virtual const char *what() const throw() { return "413 Request Entity Too Large"; }
 	};
 
 	class RequestURITooLong414 : public std::exception {
 	  public:
-		virtual const char *what() const throw() { return "414Request-URI too long"; }
+		virtual const char *what() const throw() { return "414 Request-URI too long"; }
 	};
 
 	class UnsupportedMediaType415 : public std::exception {
 	  public:
-		virtual const char *what() const throw() { return "415Unsupported media type"; }
+		virtual const char *what() const throw() { return "415 Unsupported media type"; }
 	};
 
 	// 5xx Server errors
 	class InternalServerError500 : public std::exception {
 	  public:
-		virtual const char *what() const throw() { return "500Internal server error"; }
+		virtual const char *what() const throw() { return "500 Internal server error"; }
 	};
 
 	class NotImplemented501 : public std::exception {
 	  public:
-		virtual const char *what() const throw() { return "501Not implemented"; }
+		virtual const char *what() const throw() { return "501 Not implemented"; }
 	};
 
 	class ServiceUnavailable503 : public std::exception {
 	  public:
-		virtual const char *what() const throw() { return "503Service unavailable"; }
+		virtual const char *what() const throw() { return "503 Service unavailable"; }
 	};
 };
 

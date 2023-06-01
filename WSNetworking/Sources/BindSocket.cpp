@@ -8,7 +8,8 @@ BindSocket::BindSocket(const char *host, const char *port) : Socket(host, port) 
 	freeaddrinfo(this->bind_address);
 	if (this->bind_sock == -1) {
 		close(this->socket_listen);
-		throw std::runtime_error(str_red("Error: Bind socket failed on port " + this->port));
+		throw std::runtime_error(
+			str_red("Error: Bind socket failed on " + this->host + ":" + this->port));
 	}
 }
 

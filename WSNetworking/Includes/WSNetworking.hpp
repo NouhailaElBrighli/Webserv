@@ -1,6 +1,8 @@
 #ifndef WSNETWORKING_HPP
 #define WSNETWORKING_HPP
 
+
+
 // Clients Prototypes
 class MainClient;
 class Cgi;
@@ -22,6 +24,9 @@ class MainServer;
 class Socket;
 class BindSocket;
 class ListenSocket;
+
+// Response prototypes
+class Response;
 
 // Include
 #include "Include.hpp"
@@ -49,7 +54,11 @@ class ListenSocket;
 
 #include "ListenSocket.hpp"
 
+// CGI
 #include "Cgi.hpp"
+
+//response
+#include "Response.hpp"
 #include "Delete.hpp"
 
 #endif // WSNETWORKING_HPP

@@ -219,6 +219,12 @@ void ConfigServerParser::set_server_name(string server_name, size_t pos) {
 		|| this->config_server[pos - 1] != ';' || !std::isalnum(this->config_server[pos - 2])) {
 		throw std::runtime_error(str_red("Server Name Error : " + server_name));
 	}
+	// check if server_name is contain only alphanumeric characters and the characters
+	for (size_t i = 0; i < server_name.length(); i++) {
+		if (!std::isalnum(server_name[i]) && server_name[i] != '_') {
+			throw std::runtime_error(str_red("Server Name Error : " + server_name));
+		}
+	}
 
 	this->server_name		 = server_name;
 	this->server_name_status = true;

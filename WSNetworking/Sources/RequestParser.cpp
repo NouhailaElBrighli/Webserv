@@ -3,8 +3,6 @@
 // Getters
 const string &RequestParser::get_head() const { return this->head; }
 
-const string &RequestParser::get_body() const { return this->body; }
-
 const map<string, string> &RequestParser::get_request() const { return this->request; }
 
 const string &RequestParser::get_request(string key) { return this->request[key]; }
@@ -12,31 +10,21 @@ const string &RequestParser::get_request(string key) { return this->request[key]
 // Setters
 void RequestParser::set_head(string &head) { this->head = head; }
 
-void RequestParser::set_body(string &body) { this->body = body; }
-
-// Constructors and copy constructor and copy assignment operator and destructor
-RequestParser::RequestParser() {}
-
-RequestParser::RequestParser(const RequestParser &requestParser)
-	: head(requestParser.head), request(requestParser.request) {}
-
-RequestParser &RequestParser::operator=(const RequestParser &requestParser) {
-	this->head	  = requestParser.head;
-	this->request = requestParser.request;
-	return *this;
-}
+// Constructors and destructor
+RequestParser::RequestParser() : parse_status(false) {}
 
 RequestParser::~RequestParser() {}
 
 // Methods
-void RequestParser::run_head(string &head) {
+void RequestParser::run_parse(string &head) {
+	if (this->parse_status == true)
+		return;
+	this->parse_status = true;
 	this->request.clear();
 	this->head.clear();
 	this->set_head(head);
 	this->parse_head();
 }
-
-// void RequestParser::run_body(string &head) {}
 
 void RequestParser::parse_head() {
 	this->is_head_valid();
@@ -46,7 +34,13 @@ void RequestParser::parse_head() {
 }
 
 void RequestParser::is_head_valid() {
-	cout << endl << C_GREEN << "head.length() : " << head.length() << C_RES << endl << endl;
+	cout << endl;
+	if (head.length() == 0)
+		cout << C_RED << "head.length() : " << head.length();
+	else
+		cout << C_GREEN << "head.length() : " << head.length();
+	cout << C_RES << endl << endl;
+
 	if (head.empty())
 		throw Error::BadRequest400();
 }

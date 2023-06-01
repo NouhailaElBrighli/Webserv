@@ -118,6 +118,19 @@ void ConfigFileParser::parse_config_file() {
 			delete config_server_parser;
 			throw std::runtime_error(e.what());
 		}
+
+		// check duplicate server_name in previews servers
+		for (vector<ConfigServerParser *>::iterator it2 = this->config_server_parser.begin();
+			 it2 != this->config_server_parser.end(); it2++) {
+			if (config_server_parser->get_server_name() == (*it2)->get_server_name()) {
+				string port_str = config_server_parser->get_port_str();
+				delete config_server_parser;
+				throw std::runtime_error(str_red("Duplicate server_name: '"
+												 + (*it2)->get_server_name()
+												 + "' in server with port: '" + port_str
+												 + "' in file: " + this->config_file_path));
+			}
+		}
 		this->config_server_parser.push_back(config_server_parser);
 	}
 }

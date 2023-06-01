@@ -7,15 +7,13 @@
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <unistd.h>
-// inet_ntop
-#include <arpa/inet.h>
 
+#include <climits>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <fcntl.h>
 #include <algorithm>
-#include <climits>
 #include <exception>
 #include <fstream>
 #include <iomanip>
@@ -26,7 +24,7 @@
 #include <string>
 #include <vector>
 
-#define MAXLINE 4097
+#define MAXLINE 1024
 
 #define C_RES "\033[0m"
 #define C_RED "\033[1;31m"

@@ -52,6 +52,7 @@ class MainServer {
 	// Routine methods
 	void reset();
 	void accepter(int fd_socket);
+	void create_client(int client_socket);
 	void handler(int client_socket);
 	void destroy_client(int client_socket);
 

@@ -1,18 +1,26 @@
 #include "MainServer.hpp"
 
 // Static functions
-static string truncate(string str, size_t width) {
-	if (str.length() > width)
-		return str.substr(0, width - 1) + ".";
-	return str;
-}
-
 static void print_str(string str, size_t width) {
-	cout << std::left << std::setw(width) << truncate(str, width);
+	size_t strLength = str.length();
+	if (strLength >= width) {
+		cout << str.substr(0, width);
+	} else {
+		size_t padding = (width - strLength) / 2;
+		cout << std::setw(padding) << "" << str << std::setw(width - padding - strLength) << "";
+	}
 }
 
 static void print_int(int integer, size_t width) {
-	cout << std::left << std::setw(width) << integer;
+	std::ostringstream oss;
+	oss << integer;
+	std::string str = oss.str();
+
+	int padding		 = width - str.length();
+	int leftPadding	 = padding / 2;
+	int rightPadding = padding - leftPadding;
+
+	std::cout << std::setw(leftPadding) << "" << integer << std::setw(rightPadding) << "";
 }
 
 // Getters
@@ -52,31 +60,35 @@ void MainServer::launch() {
 
 // Print the server information
 void MainServer::print_info() {
-	cout << C_CYAN << "-----------------------------------------------" << endl;
+	cout << C_CYAN << string(65, '-') << endl;
+	cout << C_CYAN << "| " << C_BLUE;
+	print_str("N°", 7);
 	cout << C_CYAN << "| " << C_YELLOW;
-	print_str("Server Name", 11);
+	print_str("Server Name", 13);
 	cout << C_CYAN << " | " << C_GREEN;
-	print_str("Host", 11);
+	print_str("Host", 15);
 	cout << C_CYAN << " | " << C_RED;
-	print_str("Port", 6);
+	print_str("Port", 7);
 	cout << C_CYAN << " | " << C_PURPLE;
-	print_str("Socket", 6);
+	print_str("FD Socket", 9);
 	cout << C_CYAN << " |" << C_RES << endl;
-	cout << C_CYAN << "-----------------------------------------------" << endl;
+	cout << C_CYAN << string(65, '-') << endl;
 
 	for (size_t i = 0; i < this->config_file_parser->get_config_server_parser().size(); i++) {
+		cout << C_CYAN << "| " << C_BLUE;
+		print_int(static_cast<int>(i) + 1, 6);
 		cout << C_CYAN << "| " << C_YELLOW;
-		print_str(this->config_file_parser->get_config_server_parser(i)->get_server_name(), 11);
+		print_str(this->config_file_parser->get_config_server_parser(i)->get_server_name(), 13);
 		cout << C_CYAN << " | " << C_GREEN;
-		print_str(this->config_file_parser->get_config_server_parser(i)->get_host(), 11);
+		print_str(this->config_file_parser->get_config_server_parser(i)->get_host(), 15);
 		cout << C_CYAN << " | " << C_RED;
-		print_str(this->config_file_parser->get_config_server_parser(i)->get_port_str(), 6);
+		print_str(this->config_file_parser->get_config_server_parser(i)->get_port_str(), 7);
 		cout << C_CYAN << " | " << C_PURPLE;
 		print_int(
 			this->port_socket[this->config_file_parser->get_config_server_parser(i)->get_port()],
-			6);
+			9);
 		cout << C_CYAN << " |" << C_RES << endl;
-		cout << C_CYAN << "-----------------------------------------------" << C_RES << endl;
+		cout << C_CYAN << string(65, '-') << endl;
 	}
 }
 
@@ -93,8 +105,7 @@ void MainServer::run_sockets() {
 				= listen_socket[j].get_socket_listen();
 			j++;
 		} catch (const std::exception &e) {
-			if (this->port_socket[config_file_parser->get_config_server_parser(i)->get_port()] == 0)
-				throw std::runtime_error(e.what());
+			throw std::runtime_error(e.what());
 		}
 
 		// fill the address and socket maps
@@ -121,24 +132,14 @@ int MainServer::right_port(int client_socket) {
 
 int MainServer::right_server(int client_socket) {
 	int port;
-	int first_server  = 0;
-	int mutiple_ports = 0;
 
 	// Extract the port number
 	port = right_port(client_socket);
 	// Check if the port is in the config file and get the index
 	for (size_t i = 0; i < this->config_file_parser->get_config_server_parser().size(); i++) {
-		if (this->config_file_parser->get_config_server_parser(i)->get_port() == port) {
-			mutiple_ports++;
-			first_server = i;
-		}
+		if (this->config_file_parser->get_config_server_parser(i)->get_port() == port)
+			return i;
 	}
-	if (mutiple_ports == 1)
-		return first_server;
-	else if (mutiple_ports > 1)
-		throw std::runtime_error(str_cyan("Multiple ports found"));
-	else if (mutiple_ports == 0)
-		throw std::runtime_error(str_red("Error port not found"));
 	return -1;
 }
 
@@ -173,42 +174,38 @@ void MainServer::accepter(int fd_socket) {
 		throw std::runtime_error(str_red("Error accept"));
 }
 
-void MainServer::handler(int client_socket) {
+void MainServer::create_client(int client_socket) {
 	int i;
 
-	print_long_line("handler");
-	try {
-		if ((i = this->right_server(client_socket)) != -1) {
-			MainClient *mainClient = new MainClient(
-				client_socket, this->config_file_parser->get_config_server_parser(i),
-				this->port_socket[this->right_port(client_socket)], true);
-			this->clients[client_socket] = mainClient;
-			return;
-		}
-	} catch (const std::exception &e) {
-		if (string(e.what()).find("Multiple")) {
-			MainClient *mainClient
-				= new MainClient(client_socket, this->config_file_parser,
-								 this->port_socket[this->right_port(client_socket)], false);
-			this->clients[client_socket] = mainClient;
-			return;
-		} else
-			throw std::runtime_error(e.what());
+	print_long_line("create client");
+	if ((i = this->right_server(client_socket)) != -1) {
+		MainClient *mainClient
+			= new MainClient(client_socket, this->config_file_parser->get_config_server_parser(i));
+		this->clients[client_socket] = mainClient;
+		return;
 	}
+}
+
+void MainServer::handler(int client_socket) {
+	print_long_line("handler");
+
+	if (this->clients.find(client_socket) != this->clients.end()) {
+		this->clients[client_socket]->start_handle();
+	} else
+		this->create_client(client_socket);
 }
 
 void MainServer::destroy_client(int client_socket) {
 	print_long_line("destroy client");
 	// Check if the client is a master socket
 	cout << C_YELLOW << "current socket to be close: " << client_socket << C_RES << endl;
-	if (this->clients[client_socket]->get_send_recieve_status() == true) {
+	if (this->clients[client_socket]->get_send_receive_status() == true) {
 		cout << C_RED << "current client '" << client_socket
-			 << "' mustn't be destroy, because it's still sending or recieving data." << C_RES
-			 << endl;
+			 << "' can't be closed now, until the response is done." << C_RES << endl;
 		return;
 	}
 	if (this->socket[client_socket] == client_socket) {
-		cout << C_RED << "current socket '" << client_socket
+		cout << C_GREEN << "current socket '" << client_socket
 			 << "' mustn't be close, because it's a master socket." << C_RES << endl;
 		return;
 	}
@@ -217,7 +214,7 @@ void MainServer::destroy_client(int client_socket) {
 	this->clients.erase(client_socket);
 	FD_CLR(client_socket, &this->current_sockets);
 	close(client_socket);
-	cout << C_GREEN << "current socket closed: " << client_socket << C_RES << endl;
+	cout << C_RED << "current socket closed: " << client_socket << C_RES << endl;
 }
 
 // Main routine
@@ -233,6 +230,7 @@ void MainServer::routine() {
 		// check if the listening socket is ready
 		for (int i = 3; i <= this->max_socket; i++) {
 			if (FD_ISSET(i, &this->read_sockets)) {
+				// check if the socket is a master socket
 				if (i == this->socket[i]) {
 					try {
 						this->accepter(i);

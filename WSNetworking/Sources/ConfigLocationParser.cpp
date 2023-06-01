@@ -126,6 +126,13 @@ vector<string> ConfigLocationParser::stringToMethods(string host) {
 			throw std::runtime_error(str_red("Allow Methods Bad Input : " + host));
 	}
 
+	for (size_t i = 0; i < vect_mth.size(); i++) {
+		for (size_t j = i + 1; j < vect_mth.size(); j++) {
+			if (vect_mth[i] == vect_mth[j])
+				throw std::runtime_error(str_red("Allow Methods Bad Input : " + host));
+		}
+	}
+
 	return vect_mth;
 }
 
@@ -248,8 +255,13 @@ void ConfigLocationParser::set_cgi_ext_path(string cgi_ext_path, size_t pos) {
 	}
 
 	cgi_ext = cgi_ext_path.substr(0, cgi_ext_path.find(" "));
-	if (cgi_ext.empty() == true) {
+	if (cgi_ext.empty() == true || cgi_ext.length() == 1 || cgi_ext[0] != '.') {
 		throw std::runtime_error(str_red("Error CGI Ext Path : " + cgi_ext_path_input));
+	}
+	// check if cgi_ext is contain only characters
+	for (size_t i = 1; i < cgi_ext.length(); i++) {
+		if (!std::isalpha(cgi_ext[i]))
+			throw std::runtime_error(str_red("Error CGI Ext Path : " + cgi_ext_path_input));
 	}
 	cgi_ext_path.erase(0, cgi_ext_path.find(" ") + 1);
 
@@ -259,13 +271,15 @@ void ConfigLocationParser::set_cgi_ext_path(string cgi_ext_path, size_t pos) {
 	}
 
 	cgi_path = cgi_ext_path.substr(0, cgi_ext_path.size() - 1);
-	if (cgi_path.empty() == true || this->config_location[pos - 1] != ';'
+	if (cgi_path.empty() == true || this->config_location[pos - 1] != ';' || cgi_path[0] != '/'
 		|| !std::isalnum(this->config_location[pos - 2])) {
 		throw std::runtime_error(str_red("Error CGI Ext Path : " + cgi_ext_path_input));
 	}
 
-	this->cgi_ext_path[cgi_ext] = cgi_path;
-	this->cgi_ext_path_status	= true;
+	if (ConfigServerParser::check_file("CGI Ext Path", cgi_ext_path_input, cgi_path)) {
+		this->cgi_ext_path[cgi_ext] = cgi_path;
+		this->cgi_ext_path_status	= true;
+	}
 }
 
 // Methods
@@ -328,8 +342,6 @@ void ConfigLocationParser::check_status() {
 		if (this->methods_status)
 			throw std::runtime_error(str_red("Error : methods is unnecessary in cgi location"));
 	} else {
-		if (!this->index_status)
-			throw std::runtime_error(str_red("Error : index is missing"));
 		if (!this->return_status)
 			throw std::runtime_error(str_red("Error : return is missing"));
 		if (!this->file_body_status)

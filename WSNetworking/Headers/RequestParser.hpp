@@ -7,7 +7,7 @@ class RequestParser {
 
   private:
 	string head;
-	string body;
+	bool   parse_status;
 	// the first line splited to three parts : the `Request-Type`, the
 	// `Request-URI`, and the `Protocol-Version`
 	map<string, string> request;
@@ -22,18 +22,13 @@ class RequestParser {
 
 	// Setters
 	void set_head(string &head);
-	void set_body(string &body);
 
-	// Constructors and copy constructor and copy assignment operator and
-	// destructor
+	// Constructors and destructor
 	RequestParser();
-	RequestParser(const RequestParser &requestParser);
-	RequestParser &operator=(const RequestParser &requestParser);
 	~RequestParser();
 
 	// Methods
-	void run_head(string &head);
-	// void run_body(string &head);
+	void run_parse(string &head);
 
   private:
 	// Methods
