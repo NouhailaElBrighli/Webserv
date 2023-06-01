@@ -13,6 +13,8 @@ std::string Response::GetHeader() const { return (this->header); }
 void Response::Get(std::string request_URI, int client_socket) {
 	print_long_line("Handle GET");
 	this->SetVars(request_URI);
+	if (this->ContentType == "cgi")
+		return;
 	send(client_socket, header.c_str(), header.size(), 0);
 	// std::cout << *this << std::endl;
 }
@@ -59,7 +61,8 @@ void Response::SetContentType() {
 		else if (extention == ".mp4")
 			this->ContentType = "video/mp4";
 		else
-			this->ContentType = "text/plain";
+			this->ContentType = "cgi";
+		
 	} else
 		this->ContentType = "text/plain";
 }
@@ -82,6 +85,8 @@ void Response::SetVars(const std::string &RequestURI) {
 	}
 
 	this->SetContentType();
+	if (this->ContentType == "cgi")
+		return;
 	this->SetContentLength(RequestURI);
 
 	this->header = "HTTP/1.1 200 ok\r\nContent-Type: ";

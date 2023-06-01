@@ -12,7 +12,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-
+#include <fcntl.h>
 #include <algorithm>
 #include <exception>
 #include <fstream>

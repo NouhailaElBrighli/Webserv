@@ -1,5 +1,4 @@
 #include "MainClient.hpp"
-
 // Getters
 const map<string, string> &MainClient::get_request() const { return request_parser->get_request(); }
 
@@ -27,7 +26,18 @@ void MainClient::start_handle() {
 		this->handle(this->client_socket);
 		Response Response;
 		if (this->request_parser->get_request("Request-Type") == "GET")
+		{	
 			Response.Get(this->request_parser->get_request("Request-URI"), client_socket);
+			if (Response.GetContentType() == "cgi")
+			{
+				Cgi cgi(this, this->config_server_parser->get_config_location_parser());
+				cgi.check_extention();
+			}
+		}
+		if (this->request_parser->get_request("Request-Type") == "DELETE")
+		{
+			//DELETE
+		}
 	} catch (const std::exception &e) {
 
 		std::cout << "Error:" << e.what() << std::endl;

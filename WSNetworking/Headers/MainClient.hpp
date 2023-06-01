@@ -2,6 +2,7 @@
 #define MAINCLIENT_HPP
 
 #include "WSNetworking.hpp"
+#include "Cgi.hpp"
 
 class MainClient {
 

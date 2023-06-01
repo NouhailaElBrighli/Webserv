@@ -39,13 +39,17 @@ SRCS		+= \
 
 SRCS		+= \
 	$(MAIN_DIR)/Sources/Socket.cpp					\
-	$(MAIN_DIR)/Sources/BindSocket.cpp			\
+	$(MAIN_DIR)/Sources/BindSocket.cpp				\
 	$(MAIN_DIR)/Sources/ListenSocket.cpp
+
+# ***************CGI**************** #
+
+SRCS		+= \
+	$(MAIN_DIR)/Sources/Cgi.cpp
 
 # ***************RESPONSE*************** #
 SRCS		+= \
 	$(MAIN_DIR)/Sources/Response.cpp
-		
 
 # *************************************************************************** # 
 #                                   FOLDERS                                   #
