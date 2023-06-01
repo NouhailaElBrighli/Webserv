@@ -29,6 +29,7 @@ class RequestParser {
 
 	// Methods
 	void run_parse(string &head);
+	void	reset_request_uri(std::string &str);
 
   private:
 	// Methods

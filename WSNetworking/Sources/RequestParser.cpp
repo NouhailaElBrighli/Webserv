@@ -136,3 +136,8 @@ std::ostream &operator<<(std::ostream &out, const RequestParser &requestParser) 
 	out << "}" << endl;
 	return out;
 }
+
+void	RequestParser::reset_request_uri(std::string &str)
+{
+	this->request["Request-URI"] = str;
+}

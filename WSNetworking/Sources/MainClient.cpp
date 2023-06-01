@@ -33,7 +33,7 @@ void MainClient::start_handle() {
 		std::cout << "Error:" << e.what() << std::endl;
 		this->msg_status = e.what();
 		std::stringstream ss(this->msg_status);
-		ss >> this->status;	 // !whyyyyyyyyyyyyy -> becauseeeeeeeeee
+		ss >> this->status; // !whyyyyyyyyyyyyy -> becauseeeeeeeeee
 		Response Error;
 		Error.SetError(this->msg_status);
 		send(client_socket, Error.GetHeader().c_str(), Error.GetHeader().size(), 0);
@@ -83,22 +83,22 @@ void MainClient::handle(int client_socket) {
 	string head;
 	string body;
 
+	//! BODY NEED TO BE FILL IN EXTERNAL FILE
 	print_line("Client");
 	data = this->Header_reading(client_socket);
 	head = data.substr(0, data.find("\r\n\r\n"));
-	//! BODY NEED TO BE FILL IN EXTERNAL FILE
 	body = data.substr(data.find("\r\n\r\n") + 4);
 	this->request_parser->run_parse(head);
-	cout << *this->request_parser << endl;
+	// cout << *this->request_parser << endl;
 	//! check_if_uri_dir
-	// get the right config server parser if not set in constructor
-	if (this->request_parser->get_request("Request-Type") == "POST")  // !protect by status
+	if (this->request_parser->get_request("Request-Type") == "POST") // !protect by status
 		this->Body_reading(client_socket, body);
-
+	this->replace_location();
 	int locate = get_matched_location_for_request_uri();
 	is_method_allowed_in_location();
-	if (this->config_server_parser->get_config_location_parser()[locate]->get_autoindex() == 0)
-		throw Error::Forbidden403();
+	
+	// if (this->config_server_parser->get_config_location_parser()[locate]->get_autoindex() == 0)
+	// 	throw Error::Forbidden403();
 	if (body.length() > this->config_server_parser->get_client_max_body_size())
 		throw Error::RequestEntityTooLarge413();
 	this->send_receive_status = false;
@@ -109,11 +109,9 @@ int MainClient::get_matched_location_for_request_uri() {
 	string file_name;
 	bool   is_found = false;
 	int	   locate	= 0;
-	for (vector<ConfigLocationParser *>::const_iterator it
-		 = config_server_parser->get_config_location_parser().begin();
+	for (vector<ConfigLocationParser *>::const_iterator it = config_server_parser->get_config_location_parser().begin();
 		 it != config_server_parser->get_config_location_parser().end(); it++) {
 		file_name = this->get_request("Request-URI");
-
 		if ((*it)->get_location().find("cgi") != string::npos) {
 			locate++;
 			continue;
@@ -141,20 +139,13 @@ int MainClient::get_matched_location_for_request_uri() {
 		}
 		locate++;
 	}
-
-	// File is not a found
-	this->msg_status = "404";
-	std::stringstream ss(msg_status);
-	ss >> status;
-	throw Error::NotFound404();	 //! here
+	throw Error::NotFound404(); //! here
 }
 
 void MainClient::is_method_allowed_in_location() {
-	for (vector<ConfigLocationParser *>::const_iterator it
-		 = config_server_parser->get_config_location_parser().begin();
+	for (vector<ConfigLocationParser *>::const_iterator it = config_server_parser->get_config_location_parser().begin();
 		 it != config_server_parser->get_config_location_parser().end(); it++) {
-		if (this->get_request("Request-URI").find((*it)->get_location()) != string::npos
-			|| this->get_request("Request-URI").find((*it)->get_root()) != string::npos) {
+		if (this->get_request("Request-URI").find((*it)->get_location()) != string::npos || this->get_request("Request-URI").find((*it)->get_root()) != string::npos) {
 			for (size_t i = 0; i < (*it)->get_methods().size(); i++) {
 				if ((*it)->get_methods(i) == this->get_request("Request-Type"))
 					return;
@@ -162,4 +153,24 @@ void MainClient::is_method_allowed_in_location() {
 		}
 	}
 	throw Error::MethodNotAllowed405();
+}
+
+void	MainClient::replace_location()
+{
+	std::string location;
+	std::stringstream ss(this->get_request("Request-URI"));
+	std::getline(ss, location, '/');
+	std::getline(ss, location, '/');
+	location  = '/' + location;
+	for (vector<ConfigLocationParser *>::const_iterator itr = config_server_parser->get_config_location_parser().begin(); itr != config_server_parser->get_config_location_parser().end(); itr++)
+	{
+		if ((*itr)->get_location() == location)
+		{
+			std::string str;
+			std::getline(ss, str, '\0');
+			str = (*itr)->get_root() + '/' + str;
+			this->request_parser->reset_request_uri(str);
+			break;
+		}
+	}
 }

@@ -32,12 +32,13 @@ class MainClient {
 	std::string &Body_reading(int client_socket, std::string &body);
 	// Methods
 	void start_handle();
+	void	replace_location();
 
   private:
 	// Methods
 	void handle(int client_socket);
 	void responder(int client_socket);
-	int	 get_matched_location_for_request_uri();
+	int	 get_matched_location_for_request_uri(); 
 	void is_method_allowed_in_location();
 };
 
