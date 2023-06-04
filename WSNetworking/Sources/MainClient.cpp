@@ -25,18 +25,15 @@ void MainClient::start_handle() {
 	try {
 		this->handle(this->client_socket);
 		Response Response;
-		if (this->request_parser->get_request("Request-Type") == "GET")
-		{	
+		if (this->request_parser->get_request("Request-Type") == "GET") {
 			Response.Get(this->request_parser->get_request("Request-URI"), client_socket);
-			if (Response.GetContentType() == "cgi")
-			{
+			if (Response.GetContentType() == "cgi") {
 				Cgi cgi(this, this->config_server_parser->get_config_location_parser());
 				cgi.check_extention();
 			}
 		}
-		if (this->request_parser->get_request("Request-Type") == "DELETE")
-		{
-			//DELETE
+		if (this->request_parser->get_request("Request-Type") == "DELETE") {
+			// DELETE
 		}
 	} catch (const std::exception &e) {
 
@@ -122,8 +119,6 @@ int MainClient::get_matched_location_for_request_uri() {
 	for (vector<ConfigLocationParser *>::const_iterator it
 		 = config_server_parser->get_config_location_parser().begin();
 		 it != config_server_parser->get_config_location_parser().end(); it++) {
-		file_name = this->get_request("Request-URI");
-
 		if ((*it)->get_location().find("cgi") != string::npos) {
 			locate++;
 			continue;
