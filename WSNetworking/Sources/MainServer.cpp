@@ -183,6 +183,11 @@ void MainServer::create_client(int client_socket) {
 			= new MainClient(client_socket, this->config_file_parser->get_config_server_parser(i));
 		this->clients[client_socket] = mainClient;
 		return;
+	} else if (i == -1) {
+		MainClient *mainClient
+			= new MainClient(client_socket, this->config_file_parser->get_config_server_parser(0));
+		this->clients[client_socket] = mainClient;
+		return;
 	}
 }
 

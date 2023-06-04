@@ -106,8 +106,7 @@ void MainClient::handle(int client_socket) {
 
 int MainClient::get_matched_location_for_request_uri() {
 	// get file name to compare with index
-	bool is_found = false;
-	int	 locate	  = 0;
+	int locate = 0;
 
 	for (vector<ConfigLocationParser *>::const_iterator it
 		 = config_server_parser->get_config_location_parser().begin();
@@ -116,15 +115,16 @@ int MainClient::get_matched_location_for_request_uri() {
 			locate++;
 			continue;
 		}
-		if (this->get_request("Request-URI").find((*it)->get_location()) != string::npos)
-			is_found = true;
+		if (this->get_request("Request-URI") == (*it)->get_location()
+			|| this->get_request("Request-URI") == (*it)->get_root())
+			return locate;
+
+		else if (this->get_request("Request-URI").find((*it)->get_location()) != string::npos)
+			return locate;
 
 		else if (this->get_request("Request-URI").find((*it)->get_root()) != string::npos)
-			is_found = true;
-
-		if (is_found == true) {
 			return locate;
-		}
+
 		locate++;
 	}
 
