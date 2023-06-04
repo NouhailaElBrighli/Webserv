@@ -37,7 +37,7 @@ class Accurate {
 
 	class MovedPermanently301 : public std::exception {
 	  public:
-		virtual const char *what() const throw() { return "301Moved permanently"; }
+		virtual const char *what() const throw() { return "301 Moved permanently"; }
 	};
 
 	class Found302 : public std::exception {

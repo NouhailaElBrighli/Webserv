@@ -1,4 +1,5 @@
 #include "Response.hpp"
+#include <dirent.h>
 
 Response::Response() {}
 
@@ -10,10 +11,33 @@ std::string Response::GetContentLength() const { return (this->ContentLength); }
 
 std::string Response::GetHeader() const { return (this->header); }
 
-void Response::Get(std::string request_URI, int client_socket) {
+Response::Response(MainClient *Client)
+{
+	this->Client = Client;
+}
+
+void	Response::set_resource_type()
+{
+	std::cout << "URI ->" << Client->get_request("Request-URI") << std::endl;
+	DIR *directory  = opendir(Client->get_request("Request-URI").c_str());
+	if (directory == NULL)
+		type = "file";
+	else
+	{
+		type = "directory";
+		closedir(directory);
+		if (Client->get_request("Request-URI")[Client->get_request("Request-URI").size() - 1] != '/')
+		{
+			std::cout << "yes" << std::endl;
+		}
+	}
+}
+
+void Response::Get() {
 	print_long_line("Handle GET");
-	this->SetVars(request_URI);
-	send(client_socket, header.c_str(), header.size(), 0);
+	this->set_resource_type();
+	this->SetVars(Client->get_request("Request-URI"));
+	send(Client->GetClientSocket(), header.c_str(), header.size(), 0);
 	// std::cout << *this << std::endl;
 }
 

@@ -25,21 +25,68 @@ MainClient::~MainClient() { delete request_parser; }
 void MainClient::start_handle() {
 	try {
 		this->handle(this->client_socket);
-		Response Response;
-		if (this->request_parser->get_request("Request-Type") == "GET")
-			Response.Get(this->request_parser->get_request("Request-URI"), client_socket);
+		Response Response(this);
+		if (this->request_parser->get_request("Request-Type") == "GET"){
+			Response.Get();
+		}
 	} catch (const std::exception &e) {
-
-		std::cout << "Error:" << e.what() << std::endl;
-		this->msg_status = e.what();
-		std::stringstream ss(this->msg_status);
-		ss >> this->status; // !whyyyyyyyyyyyyy -> becauseeeeeeeeee
-		Response Error;
-		Error.SetError(this->msg_status);
-		send(client_socket, Error.GetHeader().c_str(), Error.GetHeader().size(), 0);
-		std::cout << Error << std::endl;
-		this->send_receive_status = false;
-		print_error(this->msg_status);
+		print_short_line("catch something");
+		std::cout << *this->request_parser << std::endl;
+		std::cout << "this is host:" << this->config_server_parser->get_host() << std::endl;
+		std::cout << "this is the port:" << this->config_server_parser->get_port() << std::endl;
+		// std::cout << "this is the port" << this->config_server_parser->get_port() << std::endl;
+		std::cout << "URI:" <<  this->get_request("Request-URI") << std::endl;
+		std::cout << "please :" << e.what() << std::endl;
+		if (e.what() == "301 Moved permanently")
+		{
+			// std::cout << "this is host:" << this->config_server_parser->get_host() << std::endl;
+			// std::cout << "this is the port:" << this->config_server_parser->get_port() << std::endl;
+			std::cout << e.what() << std::endl;
+			std::cout << "URI:" << this->request_parser->get_request("Request-URI") << std::endl;
+			std::string header;
+			header = "HTTP/1.1 301 Moved Permanently\r\n";
+			header += "Location: ";
+			header += "http://localhost:8080/file";
+			header += "\r\n";
+			header += "Content-Type: text/html\r\n";
+			header += "Content-Length: ";
+			header += "0";
+			header += "\r\n\r\n";
+			std::cout << "header to send:\n" << header << std::endl;
+			send(client_socket, header.c_str(), header.size(), 0);
+			try {
+				print_long_line("read second time");
+				this->handle(this->client_socket);
+				Response Response(this);
+				if (this->request_parser->get_request("Request-Type") == "GET"){
+					Response.Get();
+				}
+			}
+			catch(const std::exception &e)
+			{
+				std::cout << *this->request_parser << std::endl;
+				std::cout << "what :" << e.what() << std::cout;
+				this->msg_status = e.what();
+				std::stringstream ss(this->msg_status);
+				ss >> this->status;
+				Response Error;
+				Error.SetError(this->msg_status);
+				std::cout << Error << std::endl;
+				send(client_socket, Error.GetHeader().c_str(), Error.GetHeader().size(), 0);
+				this->send_receive_status = false;
+			}
+		}
+		else{
+			std::cout << "what :" << e.what() << std::cout;
+			this->msg_status = e.what();
+			std::stringstream ss(this->msg_status);
+			ss >> this->status;
+			Response Error;
+			Error.SetError(this->msg_status);
+			std::cout << Error << std::endl;
+			send(client_socket, Error.GetHeader().c_str(), Error.GetHeader().size(), 0);
+			this->send_receive_status = false;
+		}
 	}
 }
 
@@ -49,6 +96,7 @@ std::string MainClient::Header_reading(int client_socket) {
 
 	while (1) {
 		bytes = recv(client_socket, buffer, MAXLINE, 0);
+		buffer[bytes] = '\0';
 		if (bytes == 0)
 			break;
 		if (bytes < 0)
@@ -68,8 +116,10 @@ std::string &MainClient::Body_reading(int client_socket, std::string &body) {
 	count = body.size();
 	while (1 && count != n) {
 		bytes = recv(client_socket, buffer, MAXLINE, 0);
+		buffer[bytes] = '\0';
 		body.append(buffer, bytes);
 		count += bytes;
+		std::cout << buffer <<std::endl;
 		if (bytes < 0)
 			throw Error::BadRequest400();
 		if (count == n)
@@ -87,25 +137,31 @@ void MainClient::handle(int client_socket) {
 	print_line("Client");
 	data = this->Header_reading(client_socket);
 	head = data.substr(0, data.find("\r\n\r\n"));
-	body = data.substr(data.find("\r\n\r\n") + 4);
 	this->request_parser->run_parse(head);
-	// cout << *this->request_parser << endl;
-	//! check_if_uri_dir
-	if (this->request_parser->get_request("Request-Type") == "POST") // !protect by status
+	std::cout << *this->request_parser << std::endl;
+	if (this->get_request("Transfer-Encoding").size() != 0 && this->get_request("Transfer-Encoding") != "chunked")
+		throw Error::NotImplemented501();// transfer encoding exist and different to chunked
+	if (this->get_request("Content-Length").size() == 0 && this->get_request("Transfer-Encoding").size() == 0 && this->get_request("Request-Type") == "POST")
+		throw Error::BadRequest400();//post without content-length or transfer encoding
+	if (this->request_parser->get_request("Request-Type") == "POST" && this->get_request("Content-Length").size() != 0)
+	{
+		body = data.substr(data.find("\r\n\r\n") + 4);
 		this->Body_reading(client_socket, body);
-	this->replace_location();
-	int locate = get_matched_location_for_request_uri();
+	}
+	// cout << *this->request_parser << endl;
+	int locate = this->match_location();
 	is_method_allowed_in_location();
-	
+	if (this->config_server_parser->get_config_location_parser()[locate]->get_return().size() != 0)
+		throw Accurate::MovedPermanently301();
 	// if (this->config_server_parser->get_config_location_parser()[locate]->get_autoindex() == 0)
 	// 	throw Error::Forbidden403();
-	if (body.length() > this->config_server_parser->get_client_max_body_size())
-		throw Error::RequestEntityTooLarge413();
-	this->send_receive_status = false;
+	// if (body.length() > this->config_server_parser->get_client_max_body_size())
+	// 	throw Error::RequestEntityTooLarge413();
+	// this->send_receive_status = false;
 }
 
 int MainClient::get_matched_location_for_request_uri() {
-	// get file name to compare with index
+	// get file name to compare with index 
 	string file_name;
 	bool   is_found = false;
 	int	   locate	= 0;
@@ -117,7 +173,6 @@ int MainClient::get_matched_location_for_request_uri() {
 			continue;
 		}
 		if (this->get_request("Request-URI").find((*it)->get_location()) != string::npos) {
-
 			file_name.erase(0, (*it)->get_location().length());
 			is_found = true;
 
@@ -128,18 +183,22 @@ int MainClient::get_matched_location_for_request_uri() {
 		}
 
 		if (is_found == true) {
-			if (file_name[0] == '/')
-				file_name.erase(0, 1);
-			if (file_name.length() == 0)
-				return locate;
-			for (size_t i = 0; i < (*it)->get_index().size(); i++) {
-				if (file_name == (*it)->get_index(i))
-					return locate;
-			}
+			return (locate);
+			// if (file_name[0] == '/')
+			// 	file_name.erase(0, 1);
+			// if (file_name.length() == 0)
+			// 	return locate;
+			// for (size_t i = 0; i < (*it)->get_index().size(); i++) {
+			// 	if (file_name == (*it)->get_index(i))
+			// 		return locate;
+			// }//! it doesn't matter
 		}
 		locate++;
 	}
-	throw Error::NotFound404(); //! here
+
+	if (is_found == false)
+		throw Error::NotFound404(); //! should not throw error if the file doesn't exist in indexes 
+	return(-1);
 }
 
 void MainClient::is_method_allowed_in_location() {
@@ -155,22 +214,39 @@ void MainClient::is_method_allowed_in_location() {
 	throw Error::MethodNotAllowed405();
 }
 
-void	MainClient::replace_location()
+int	MainClient::GetClientSocket()
 {
-	std::string location;
-	std::stringstream ss(this->get_request("Request-URI"));
-	std::getline(ss, location, '/');
-	std::getline(ss, location, '/');
-	location  = '/' + location;
-	for (vector<ConfigLocationParser *>::const_iterator itr = config_server_parser->get_config_location_parser().begin(); itr != config_server_parser->get_config_location_parser().end(); itr++)
-	{
-		if ((*itr)->get_location() == location)
-		{
-			std::string str;
-			std::getline(ss, str, '\0');
-			str = (*itr)->get_root() + '/' + str;
-			this->request_parser->reset_request_uri(str);
-			break;
-		}
-	}
+	return (client_socket);
 }
+
+int	MainClient::match_location()
+{
+	std::string str = this->get_request("Request-URI");
+	size_t found;
+	int locate = 0;
+	while (str.size() != 0)
+	{
+		locate = 0;
+		for (vector<ConfigLocationParser *>::const_iterator itr = config_server_parser->get_config_location_parser().begin();
+		itr != config_server_parser->get_config_location_parser().end() ; itr++)
+		{
+			if ((*itr)->get_location() == str)
+			{
+				//*reset uri here
+				return (locate);
+			}
+			locate++;
+		}
+		found = str.find_last_of('/');
+		str = str.substr(0, found);
+	}
+	// if (is_uri_exist())
+	// {
+		
+	// }
+	std::cout << "peut etre ici" << std::endl;
+	throw Error::NotFound404();
+	return (-1);
+}
+
+		

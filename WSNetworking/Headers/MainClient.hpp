@@ -31,14 +31,17 @@ class MainClient {
 	std::string	 Header_reading(int client_socket);
 	std::string &Body_reading(int client_socket, std::string &body);
 	// Methods
+	int	GetClientSocket();
 	void start_handle();
 	void	replace_location();
+	int	match_location();
+	
 
   private:
 	// Methods
 	void handle(int client_socket);
 	void responder(int client_socket);
-	int	 get_matched_location_for_request_uri(); 
+	int	 get_matched_location_for_request_uri();
 	void is_method_allowed_in_location();
 };
 

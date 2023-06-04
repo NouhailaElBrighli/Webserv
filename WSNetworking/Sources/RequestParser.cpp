@@ -9,7 +9,6 @@ const string &RequestParser::get_request(string key) { return this->request[key]
 
 // Setters
 void RequestParser::set_head(string &head) { this->head = head; }
-
 // Constructors and destructor
 RequestParser::RequestParser() : parse_status(false) {}
 
@@ -48,13 +47,8 @@ void RequestParser::is_head_valid() {
 void RequestParser::is_first_line_valid() {
 	string allowed_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxy"
 						   "z0123456789-._~:/?#[]@!$&'()*+,;=%";
-
 	if (this->request.size() != 3)
 		throw Error::NotImplemented501();
-
-	if (this->request["Request-Type"] != "GET" && this->request["Request-Type"] != "POST"
-		&& this->request["Request-Type"] != "DELETE")
-		throw Error::BadRequest400();
 
 	if (this->request["Request-URI"].find_first_not_of(allowed_chars) != string::npos)
 		throw Error::BadRequest400();
