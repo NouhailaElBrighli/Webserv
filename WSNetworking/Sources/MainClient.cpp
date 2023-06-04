@@ -112,8 +112,6 @@ int MainClient::get_matched_location_for_request_uri() {
 	for (vector<ConfigLocationParser *>::const_iterator it
 		 = config_server_parser->get_config_location_parser().begin();
 		 it != config_server_parser->get_config_location_parser().end(); it++) {
-		file_name = this->get_request("Request-URI");
-
 		if ((*it)->get_location().find("cgi") != string::npos) {
 			locate++;
 			continue;
