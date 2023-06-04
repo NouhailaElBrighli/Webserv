@@ -43,7 +43,7 @@ void MainClient::start_handle() {
 		std::cout << "Error:" << e.what() << std::endl;
 		this->msg_status = e.what();
 		std::stringstream ss(this->msg_status);
-		ss >> this->status;	 // !whyyyyyyyyyyyyy -> becauseeeeeeeeee
+		ss >> this->status;
 		Response Error;
 		Error.SetError(this->msg_status);
 		send(client_socket, Error.GetHeader().c_str(), Error.GetHeader().size(), 0);
@@ -116,9 +116,9 @@ void MainClient::handle(int client_socket) {
 
 int MainClient::get_matched_location_for_request_uri() {
 	// get file name to compare with index
-	string file_name;
-	bool   is_found = false;
-	int	   locate	= 0;
+	bool is_found = false;
+	int	 locate	  = 0;
+
 	for (vector<ConfigLocationParser *>::const_iterator it
 		 = config_server_parser->get_config_location_parser().begin();
 		 it != config_server_parser->get_config_location_parser().end(); it++) {
@@ -128,26 +128,14 @@ int MainClient::get_matched_location_for_request_uri() {
 			locate++;
 			continue;
 		}
-		if (this->get_request("Request-URI").find((*it)->get_location()) != string::npos) {
-
-			file_name.erase(0, (*it)->get_location().length());
+		if (this->get_request("Request-URI").find((*it)->get_location()) != string::npos)
 			is_found = true;
 
-		} else if (this->get_request("Request-URI").find((*it)->get_root()) != string::npos) {
-
-			file_name.erase(0, (*it)->get_root().length());
+		else if (this->get_request("Request-URI").find((*it)->get_root()) != string::npos)
 			is_found = true;
-		}
 
 		if (is_found == true) {
-			if (file_name[0] == '/')
-				file_name.erase(0, 1);
-			if (file_name.length() == 0)
-				return locate;
-			for (size_t i = 0; i < (*it)->get_index().size(); i++) {
-				if (file_name == (*it)->get_index(i))
-					return locate;
-			}
+			return locate;
 		}
 		locate++;
 	}
