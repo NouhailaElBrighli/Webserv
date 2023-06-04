@@ -6,7 +6,7 @@
 /*   By: hsaidi <hsaidi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/27 16:12:00 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/05/27 18:06:52 by hsaidi           ###   ########.fr       */
+/*   Updated: 2023/06/04 11:34:47 by hsaidi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,9 +19,12 @@ class Delete
 {
     private:
         MainClient *main_client;
+        vector<ConfigLocationParser *> config_location_parser;
     public:
-        Delete(MainClient *main_client);
+    
+        Delete(MainClient *main_client, vector<ConfigLocationParser *>config_location_parser);
         ~Delete();
+        void delete_file();
 };
 
 #endif

@@ -3,6 +3,7 @@
 
 #include "WSNetworking.hpp"
 #include "Cgi.hpp"
+#include "Delete.hpp"
 
 class MainClient {
 

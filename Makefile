@@ -33,7 +33,8 @@ SRCS		+= \
 # ***************SERVERS**************** #
 
 SRCS		+= \
-	$(MAIN_DIR)/Sources/MainServer.cpp
+	$(MAIN_DIR)/Sources/MainServer.cpp			\
+	$(MAIN_DIR)/Sources/Delete.cpp
 
 # ***************SOCKETS**************** #
 
@@ -46,6 +47,7 @@ SRCS		+= \
 
 SRCS		+= \
 	$(MAIN_DIR)/Sources/Cgi.cpp
+
 
 # ***************RESPONSE*************** #
 SRCS		+= \

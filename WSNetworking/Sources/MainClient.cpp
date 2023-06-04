@@ -36,7 +36,9 @@ void MainClient::start_handle() {
 		}
 		if (this->request_parser->get_request("Request-Type") == "DELETE")
 		{
-			//DELETE
+			cout << "++ in delete ++" << endl;
+			Delete Delete(this, this->config_server_parser->get_config_location_parser());
+			Delete.delete_file();
 		}
 	} catch (const std::exception &e) {
 
