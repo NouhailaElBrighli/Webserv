@@ -31,63 +31,43 @@ void MainClient::start_handle() {
 		}
 	} catch (const std::exception &e) {
 		print_short_line("catch something");
-		std::cout << *this->request_parser << std::endl;
 		std::cout << "this is host:" << this->config_server_parser->get_host() << std::endl;
 		std::cout << "this is the port:" << this->config_server_parser->get_port() << std::endl;
-		// std::cout << "this is the port" << this->config_server_parser->get_port() << std::endl;
-		std::cout << "URI:" <<  this->get_request("Request-URI") << std::endl;
-		std::cout << "please :" << e.what() << std::endl;
+		this->msg_status = e.what();
+		// set_header_for_errors_and_redirection();
 		if (e.what() == "301 Moved permanently")
 		{
-			// std::cout << "this is host:" << this->config_server_parser->get_host() << std::endl;
-			// std::cout << "this is the port:" << this->config_server_parser->get_port() << std::endl;
-			std::cout << e.what() << std::endl;
-			std::cout << "URI:" << this->request_parser->get_request("Request-URI") << std::endl;
-			std::string header;
-			header = "HTTP/1.1 301 Moved Permanently\r\n";
-			header += "Location: ";
-			header += "http://localhost:8080/file";
-			header += "\r\n";
-			header += "Content-Type: text/html\r\n";
-			header += "Content-Length: ";
-			header += "0";
-			header += "\r\n\r\n";
-			std::cout << "header to send:\n" << header << std::endl;
+			set_header_for_errors_and_redirection();
 			send(client_socket, header.c_str(), header.size(), 0);
-			try {
-				print_long_line("read second time");
-				this->handle(this->client_socket);
-				Response Response(this);
-				if (this->request_parser->get_request("Request-Type") == "GET"){
-					Response.Get();
-				}
-			}
-			catch(const std::exception &e)
-			{
-				std::cout << *this->request_parser << std::endl;
-				std::cout << "what :" << e.what() << std::cout;
-				this->msg_status = e.what();
-				std::stringstream ss(this->msg_status);
-				ss >> this->status;
-				Response Error;
-				Error.SetError(this->msg_status);
-				std::cout << Error << std::endl;
-				send(client_socket, Error.GetHeader().c_str(), Error.GetHeader().size(), 0);
-				this->send_receive_status = false;
-			}
+		// 	std::cout << e.what() << std::endl;
+		// 	std::string header;
+		// 	header = "HTTP/1.1 301 Moved Permanently\r\n";
+		// 	header += "Location: ";
+		// 	header += "/file";
+		// 	header += "\r\n";
+		// 	header += "Content-Type: text/html\r\n";
+		// 	header += "Content-Length: ";
+		// 	header += "0";
+		// 	header += "\r\n\r\n";
+		// 	std::cout << "header to send:\n" << header << std::endl;
+		// 	send(client_socket, header.c_str(), header.size(), 0);
 		}
-		else{
-			std::cout << "what :" << e.what() << std::cout;
-			this->msg_status = e.what();
-			std::stringstream ss(this->msg_status);
-			ss >> this->status;
-			Response Error;
-			Error.SetError(this->msg_status);
-			std::cout << Error << std::endl;
-			send(client_socket, Error.GetHeader().c_str(), Error.GetHeader().size(), 0);
+		else
+		{
+			set_header_for_errors_and_redirection();
+			send(client_socket, header.c_str(), header.size(), 0);
+		// 	this->msg_status = e.what();
+		// 	std::cout << e.what() << std::endl;
+		// 	std::stringstream ss(this->msg_status);
+		// 	ss >> this->status;
+		// 	Response Error;
+		// 	Error.SetError(this->msg_status);
+		// 	std::cout << Error << std::endl;
+		// 	send(client_socket, Error.GetHeader().c_str(), Error.GetHeader().size(), 0);
 			this->send_receive_status = false;
 		}
 	}
+	//send here
 }
 
 std::string MainClient::Header_reading(int client_socket) {
@@ -129,16 +109,16 @@ std::string &MainClient::Body_reading(int client_socket, std::string &body) {
 }
 
 void MainClient::handle(int client_socket) {
-	string data;
-	string head;
-	string body;
+	string	data;
+	string	head;
+	string	body;
 
 	//! BODY NEED TO BE FILL IN EXTERNAL FILE
 	print_line("Client");
 	data = this->Header_reading(client_socket);
 	head = data.substr(0, data.find("\r\n\r\n"));
 	this->request_parser->run_parse(head);
-	std::cout << *this->request_parser << std::endl;
+	// std::cout << *this->request_parser << std::endl;
 	if (this->get_request("Transfer-Encoding").size() != 0 && this->get_request("Transfer-Encoding") != "chunked")
 		throw Error::NotImplemented501();// transfer encoding exist and different to chunked
 	if (this->get_request("Content-Length").size() == 0 && this->get_request("Transfer-Encoding").size() == 0 && this->get_request("Request-Type") == "POST")
@@ -148,10 +128,13 @@ void MainClient::handle(int client_socket) {
 		body = data.substr(data.find("\r\n\r\n") + 4);
 		this->Body_reading(client_socket, body);
 	}
+	print_long_line(this->get_request("Request-URI"));
+	// std::cout << this->get_request("Request-URI") << std::endl;
 	// cout << *this->request_parser << endl;
-	int locate = this->match_location();
+	int location = this->match_location();
+	this->set_location(location);
 	is_method_allowed_in_location();
-	if (this->config_server_parser->get_config_location_parser()[locate]->get_return().size() != 0)
+	if (this->config_server_parser->get_config_location_parser()[get_location()]->get_return().size() != 0)
 		throw Accurate::MovedPermanently301();
 	// if (this->config_server_parser->get_config_location_parser()[locate]->get_autoindex() == 0)
 	// 	throw Error::Forbidden403();
@@ -249,4 +232,35 @@ int	MainClient::match_location()
 	return (-1);
 }
 
-		
+void MainClient::set_header_for_errors_and_redirection()
+{
+	std::stringstream ss (this->msg_status);
+	ss >> this->status;
+	if (this->status  < 400) // redirection
+	{
+		this->header = "HTTP/1.1 ";
+		this->header += this->msg_status;
+		this->header += "\r\nContent-Length: 0\r\n";
+		this->header += "Location: /"; // should use port and host or not ?
+		this->header += this->config_server_parser->get_config_location_parser()[get_location()]->get_return();
+		this->header += "\r\n\r\n";
+		std::cout << "Header of redirection:\n" << this->header << std::endl;
+	}
+	else // errors
+	{
+		Response Error;
+		Error.SetError(this->msg_status);
+		this->header = Error.GetHeader();
+		std::cout << "Header of Error:\n" << this->header << std::endl;
+	}
+}
+
+void	MainClient::set_location(int location)
+{
+	this->location = location;
+}
+	
+int		MainClient::get_location()
+{
+	return (location);
+}

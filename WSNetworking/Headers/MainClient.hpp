@@ -13,6 +13,8 @@ class MainClient {
 	string				msg_status;
 	int					client_socket;
 	char				buffer[MAXLINE + 1];
+	std::string			header;
+	int					location;
 
 	MainClient(const MainClient &);
 	MainClient &operator=(const MainClient &);
@@ -31,11 +33,13 @@ class MainClient {
 	std::string	 Header_reading(int client_socket);
 	std::string &Body_reading(int client_socket, std::string &body);
 	// Methods
-	int	GetClientSocket();
-	void start_handle();
+	int		GetClientSocket();
+	void	start_handle();
 	void	replace_location();
-	int	match_location();
-	
+	int		match_location();
+	void	set_header_for_errors_and_redirection();
+	void	set_location(int location);
+	int		get_location();
 
   private:
 	// Methods
