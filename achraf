@@ -1,0 +1,4 @@
+"don't exit or throw if files in return doesn't exist in root add them to return"
+"don't exit if file body doesn't exist or not"
+"delete all data of client and don't close the socket if the connection is keep-alive"
+"you are already check character of uri (allowed and 2048) can you please replace that after the check of transfer-encoding"

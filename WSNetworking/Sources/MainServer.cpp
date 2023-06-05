@@ -60,19 +60,19 @@ void MainServer::launch() {
 
 // Print the server information
 void MainServer::print_info() {
-	cout << C_CYAN << string(63, '-') << endl;
+	cout << C_CYAN << string(65, '-') << endl;
 	cout << C_CYAN << "| " << C_BLUE;
 	print_str("N°", 7);
 	cout << C_CYAN << "| " << C_YELLOW;
 	print_str("Server Name", 13);
 	cout << C_CYAN << " | " << C_GREEN;
-	print_str("Host", 13);
+	print_str("Host", 15);
 	cout << C_CYAN << " | " << C_RED;
 	print_str("Port", 7);
 	cout << C_CYAN << " | " << C_PURPLE;
 	print_str("FD Socket", 9);
 	cout << C_CYAN << " |" << C_RES << endl;
-	cout << C_CYAN << string(63, '-') << endl;
+	cout << C_CYAN << string(65, '-') << endl;
 
 	for (size_t i = 0; i < this->config_file_parser->get_config_server_parser().size(); i++) {
 		cout << C_CYAN << "| " << C_BLUE;
@@ -80,7 +80,7 @@ void MainServer::print_info() {
 		cout << C_CYAN << "| " << C_YELLOW;
 		print_str(this->config_file_parser->get_config_server_parser(i)->get_server_name(), 13);
 		cout << C_CYAN << " | " << C_GREEN;
-		print_str(this->config_file_parser->get_config_server_parser(i)->get_host(), 13);
+		print_str(this->config_file_parser->get_config_server_parser(i)->get_host(), 15);
 		cout << C_CYAN << " | " << C_RED;
 		print_str(this->config_file_parser->get_config_server_parser(i)->get_port_str(), 7);
 		cout << C_CYAN << " | " << C_PURPLE;
@@ -88,7 +88,7 @@ void MainServer::print_info() {
 			this->port_socket[this->config_file_parser->get_config_server_parser(i)->get_port()],
 			9);
 		cout << C_CYAN << " |" << C_RES << endl;
-		cout << C_CYAN << string(63, '-') << endl;
+		cout << C_CYAN << string(65, '-') << endl;
 	}
 }
 
@@ -181,6 +181,11 @@ void MainServer::create_client(int client_socket) {
 	if ((i = this->right_server(client_socket)) != -1) {
 		MainClient *mainClient
 			= new MainClient(client_socket, this->config_file_parser->get_config_server_parser(i));
+		this->clients[client_socket] = mainClient;
+		return;
+	} else if (i == -1) {
+		MainClient *mainClient
+			= new MainClient(client_socket, this->config_file_parser->get_config_server_parser(0));
 		this->clients[client_socket] = mainClient;
 		return;
 	}

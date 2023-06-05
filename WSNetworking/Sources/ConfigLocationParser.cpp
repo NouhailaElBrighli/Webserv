@@ -148,8 +148,7 @@ bool ConfigLocationParser::find_compare(string &line, const string &str) {
 void ConfigLocationParser::set_location(string location, size_t pos) {
 	location = location.substr(0, location.size() - 2);
 	if (this->location_status == true || location.empty() || this->config_location[pos - 1] != '{'
-		|| this->config_location[pos - 2] != ' ' || location[0] != '/'
-		|| location[location.size() - 1] == '/')
+		|| this->config_location[pos - 2] != ' ' || location[0] != '/')
 		throw std::runtime_error(str_red("location Error : " + location));
 
 	this->location		  = location;
@@ -342,8 +341,6 @@ void ConfigLocationParser::check_status() {
 		if (this->methods_status)
 			throw std::runtime_error(str_red("Error : methods is unnecessary in cgi location"));
 	} else {
-		// if (!this->return_status)
-		// 	throw std::runtime_error(str_red("Error : return is missing"));
 		if (!this->file_body_status)
 			throw std::runtime_error(str_red("Error : file_body is missing"));
 		if (!this->methods_status)

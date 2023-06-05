@@ -23,7 +23,8 @@ class Response {
 	std::string GetContentLength() const;
 	std::string GetHeader() const;
 	void SetError(const std::string msg_status);
-	void	Get();
+	void	check_request_uri(MainClient *client);
+	void	Get(MainClient *client);
 	void	set_resource_type();
 };
 

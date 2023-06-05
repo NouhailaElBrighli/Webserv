@@ -1,5 +1,7 @@
 {
 	"files.associations": {
+		"*.excalidraw": "json",
+		"*.excalidrawlib": "json",
 		"cstdio": "cpp",
 		"algorithm": "cpp",
 		"complex": "cpp",

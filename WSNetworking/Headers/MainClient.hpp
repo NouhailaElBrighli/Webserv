@@ -2,6 +2,7 @@
 #define MAINCLIENT_HPP
 
 #include "WSNetworking.hpp"
+#include "Cgi.hpp"
 
 class MainClient {
 
@@ -40,6 +41,7 @@ class MainClient {
 	void	set_header_for_errors_and_redirection();
 	void	set_location(int location);
 	int		get_location();
+	ConfigServerParser *get_config_server();
 
   private:
 	// Methods

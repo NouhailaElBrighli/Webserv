@@ -5,6 +5,7 @@
 
 // Clients Prototypes
 class MainClient;
+class Cgi;
 
 // Exceptions Prototypes
 class Accurate;
@@ -53,7 +54,11 @@ class Response;
 
 #include "ListenSocket.hpp"
 
+// CGI
+#include "Cgi.hpp"
+
 //response
 #include "Response.hpp"
+#include "Delete.hpp"
 
 #endif // WSNETWORKING_HPP
