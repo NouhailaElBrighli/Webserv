@@ -38,8 +38,8 @@ void MainClient::start_handle(string task) {
 
 	} catch (const std::exception &e) {
 
-		if (string(e.what()) == "Still reading" || string(e.what()) == "Still sending")
-			return;
+		// if (string(e.what()) == "Still running")
+		// 	return;
 
 		this->msg_status = e.what();
 		print_error(this->msg_status);
@@ -69,7 +69,7 @@ void MainClient::Header_reading(int client_socket) {
 		this->body = this->head.substr(this->head.find("\r\n\r\n") + 4);
 		return;
 	} else
-		throw std::runtime_error("Still reading header");
+		throw std::runtime_error("Still running");
 }
 
 void MainClient::Body_reading(int client_socket) {
