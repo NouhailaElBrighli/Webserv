@@ -8,7 +8,7 @@ class MainClient {
   private:
 	ConfigServerParser *config_server_parser;
 	RequestParser	   *request_parser;
-	bool				send_receive_status, response_status;
+	bool				send_receive_status;
 	string				msg_status;
 	int					client_socket;
 	char				buffer[MAXLINE + 1];

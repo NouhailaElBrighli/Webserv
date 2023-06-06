@@ -11,7 +11,7 @@ MainClient::MainClient() { std::memset(buffer, 0, MAXLINE + 1); }
 
 MainClient::MainClient(int client_socket, ConfigServerParser *config_server_parser, string task)
 	: config_server_parser(config_server_parser), request_parser(new RequestParser()),
-	  send_receive_status(true), response_status(false), msg_status(Accurate::OK200().what()),
+	  send_receive_status(true), msg_status(Accurate::OK200().what()),
 	  client_socket(client_socket) {
 	std::memset(buffer, 0, MAXLINE + 1);
 
@@ -33,10 +33,8 @@ void MainClient::start_handle(string task) {
 		if (task == "read")
 			this->handle_read(this->client_socket);
 
-		else if (task == "write") {
-			this->response_status = true;
+		else if (task == "write")
 			this->handle_write(this->client_socket);
-		}
 
 	} catch (const std::exception &e) {
 
@@ -54,7 +52,7 @@ void MainClient::start_handle(string task) {
 
 		this->send_receive_status = false;
 	}
-	if (this->response_status == true)
+	if (task == "write")
 		this->send_receive_status = false;
 }
 
