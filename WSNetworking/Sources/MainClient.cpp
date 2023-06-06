@@ -34,7 +34,6 @@ void MainClient::start_handle() {
 		set_header_for_errors_and_redirection();
 	}
 	send(client_socket, this->header.c_str(), header.size(), 0);
-	this->send_receive_status = false;
 }
 
 std::string MainClient::Header_reading(int client_socket) {
@@ -95,7 +94,7 @@ void MainClient::handle(int client_socket) {
 		body = data.substr(data.find("\r\n\r\n") + 4);
 		this->Body_reading(client_socket, body);
 	}
-	int location = this->match_location();
+	int location = this->get_matched_location_for_request_uri();
 	this->set_location(location);
 	if (this->config_server_parser->get_config_location_parser()[get_location()]->get_return().size() != 0)
 		throw Accurate::MovedPermanently301();
@@ -149,7 +148,7 @@ int	MainClient::GetClientSocket()
 	return (client_socket);
 }
 
-int	MainClient::match_location()
+int	MainClient::get_matched_location_for_request_uri()
 {
 	std::string str = this->get_request("Request-URI");
 	size_t found;
@@ -197,6 +196,8 @@ void MainClient::set_header_for_errors_and_redirection()
 		Error.SetError(this->msg_status);
 		this->header = Error.GetHeader();
 		std::cout << "Header of Error:\n" << this->header << std::endl;
+		this->send_receive_status = false;
+
 	}
 }
 
