@@ -33,11 +33,12 @@ class MainClient {
 	~MainClient();
 
 	// Methods
-	void start_handle_read();
-	void start_handle_write();
+	void start(string task);
 
   private:
 	// Methods
+	void start_handle_read();
+	void start_handle_write();
 	void Header_reading(int client_socket);
 	void Body_reading(int client_socket);
 	void handle_read(int client_socket);

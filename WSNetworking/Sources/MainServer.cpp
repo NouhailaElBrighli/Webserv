@@ -204,7 +204,7 @@ void MainServer::handle_read(int client_socket) {
 	print_long_line("handle_read");
 
 	if (this->clients.find(client_socket) != this->clients.end())
-		this->clients[client_socket]->start_handle_read();
+		this->clients[client_socket]->start("read");
 	else
 		this->create_client(client_socket, "read");
 }
@@ -213,7 +213,7 @@ void MainServer::handle_write(int client_socket) {
 	print_long_line("handle_write");
 
 	if (this->clients.find(client_socket) != this->clients.end())
-		this->clients[client_socket]->start_handle_write();
+		this->clients[client_socket]->start("write");
 	else
 		this->create_client(client_socket, "write");
 }

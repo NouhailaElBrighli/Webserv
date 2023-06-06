@@ -15,6 +15,13 @@ MainClient::MainClient(int client_socket, ConfigServerParser *config_server_pars
 	  client_socket(client_socket) {
 	std::memset(buffer, 0, MAXLINE + 1);
 
+	this->start(task);
+}
+
+MainClient::~MainClient() { delete request_parser; }
+
+// Methods
+void MainClient::start(string task) {
 	if (task == "read")
 		this->start_handle_read();
 	else if (task == "write")
@@ -23,9 +30,6 @@ MainClient::MainClient(int client_socket, ConfigServerParser *config_server_pars
 		throw std::runtime_error("Unknown task");
 }
 
-MainClient::~MainClient() { delete request_parser; }
-
-// Methods
 void MainClient::start_handle_read() {
 	try {
 		this->handle_read(this->client_socket);
