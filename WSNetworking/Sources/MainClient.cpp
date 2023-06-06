@@ -38,8 +38,8 @@ void MainClient::start_handle(string task) {
 
 	} catch (const std::exception &e) {
 
-		// if (string(e.what()) == "Still running")
-		// 	return;
+		if (string(e.what()) == "Still running")
+			return;
 
 		print_short_line("catch something");
 		this->msg_status = e.what();
@@ -90,16 +90,23 @@ void MainClient::handle_read(int client_socket) {
 	this->request_parser->run_parse(this->head);
 	cout << *this->request_parser << endl;
 
-	if (this->get_request("Transfer-Encoding").size() != 0 && this->get_request("Transfer-Encoding") != "chunked")
-		throw Error::NotImplemented501(); // transfer encoding exist and different to chunked
-	if (this->get_request("Content-Length").size() == 0 && this->get_request("Transfer-Encoding").size() == 0 && this->get_request("Request-Type") == "POST")
-		throw Error::BadRequest400(); // post without content-length or transfer encoding
-	if (this->request_parser->get_request("Request-Type") == "POST" && this->get_request("Content-Length").size() != 0)
+	if (this->get_request("Transfer-Encoding").size() != 0
+		&& this->get_request("Transfer-Encoding") != "chunked")
+		throw Error::NotImplemented501();  // transfer encoding exist and different to chunked
+	if (this->get_request("Content-Length").size() == 0
+		&& this->get_request("Transfer-Encoding").size() == 0
+		&& this->get_request("Request-Type") == "POST")
+		throw Error::BadRequest400();  // post without content-length or transfer encoding
+	if (this->request_parser->get_request("Request-Type") == "POST"
+		&& this->get_request("Content-Length").size() != 0)
 		this->Body_reading(client_socket);
 
 	int location = this->get_matched_location_for_request_uri();
 	this->set_location(location);
-	if (this->config_server_parser->get_config_location_parser()[get_location()]->get_return().size() != 0)
+	if (this->config_server_parser->get_config_location_parser()[get_location()]
+			->get_return()
+			.size()
+		!= 0)
 		throw Accurate::MovedPermanently301();
 	is_method_allowed_in_location();
 	// if (this->config_server_parser->get_config_location_parser()[locate]->get_autoindex() == 0)
@@ -126,9 +133,11 @@ void MainClient::handle_write(int client_socket) {
 }
 
 void MainClient::is_method_allowed_in_location() {
-	for (vector<ConfigLocationParser *>::const_iterator it = config_server_parser->get_config_location_parser().begin();
+	for (vector<ConfigLocationParser *>::const_iterator it
+		 = config_server_parser->get_config_location_parser().begin();
 		 it != config_server_parser->get_config_location_parser().end(); it++) {
-		if (this->get_request("Request-URI").find((*it)->get_location()) != string::npos || this->get_request("Request-URI").find((*it)->get_root()) != string::npos) {
+		if (this->get_request("Request-URI").find((*it)->get_location()) != string::npos
+			|| this->get_request("Request-URI").find((*it)->get_root()) != string::npos) {
 			for (size_t i = 0; i < (*it)->get_methods().size(); i++) {
 				if ((*it)->get_methods(i) == this->get_request("Request-Type"))
 					return;
@@ -138,9 +147,7 @@ void MainClient::is_method_allowed_in_location() {
 	throw Error::MethodNotAllowed405();
 }
 
-int MainClient::GetClientSocket() {
-	return (client_socket);
-}
+int MainClient::GetClientSocket() { return (client_socket); }
 
 int MainClient::get_matched_location_for_request_uri() {
 	std::string str = this->get_request("Request-URI");
@@ -148,11 +155,14 @@ int MainClient::get_matched_location_for_request_uri() {
 	int			locate = 0;
 	while (str.size() != 0) {
 		locate = 0;
-		for (vector<ConfigLocationParser *>::const_iterator itr = config_server_parser->get_config_location_parser().begin();
+		for (vector<ConfigLocationParser *>::const_iterator itr
+			 = config_server_parser->get_config_location_parser().begin();
 			 itr != config_server_parser->get_config_location_parser().end(); itr++) {
 			if ((*itr)->get_location() == str) {
 				std::string new_url = this->get_request("Request-URI");
-				new_url.replace(0, str.size(), this->config_server_parser->get_config_location_parser()[locate]->get_root());
+				new_url.replace(
+					0, str.size(),
+					this->config_server_parser->get_config_location_parser()[locate]->get_root());
 				this->request_parser->reset_request_uri(new_url);
 				return (locate);
 			}
@@ -169,35 +179,28 @@ int MainClient::get_matched_location_for_request_uri() {
 void MainClient::set_header_for_errors_and_redirection() {
 	std::stringstream ss(this->msg_status);
 	ss >> this->status;
-	if (this->status < 400) // redirection
+	if (this->status < 400)	 // redirection
 	{
 		this->header = "HTTP/1.1 ";
 		this->header += this->msg_status;
 		this->header += "\r\nContent-Length: 0\r\n";
-		this->header += "Location: /"; // should use port and host or not ?
-		this->header += this->config_server_parser->get_config_location_parser()[get_location()]->get_return();
+		this->header += "Location: /";	// should use port and host or not ?
+		this->header += this->config_server_parser->get_config_location_parser()[get_location()]
+							->get_return();
 		this->header += "\r\n\r\n";
-		std::cout << "Header of redirection:\n"
-				  << this->header << std::endl;
-	} else // errors
+		std::cout << "Header of redirection:\n" << this->header << std::endl;
+	} else	// errors
 	{
 		Response Error;
 		Error.SetError(this->msg_status);
 		this->header = Error.GetHeader();
-		std::cout << "Header of Error:\n"
-				  << this->header << std::endl;
+		std::cout << "Header of Error:\n" << this->header << std::endl;
 		this->send_receive_status = false;
 	}
 }
 
-void MainClient::set_location(int location) {
-	this->location = location;
-}
+void MainClient::set_location(int location) { this->location = location; }
 
-int MainClient::get_location() {
-	return (location);
-}
+int MainClient::get_location() { return (location); }
 
-ConfigServerParser *MainClient::get_config_server() {
-	return (config_server_parser);
-}
+ConfigServerParser *MainClient::get_config_server() { return (config_server_parser); }
