@@ -9,91 +9,94 @@ const bool &MainClient::get_send_receive_status() const { return send_receive_st
 // Constructors and destructor
 MainClient::MainClient() { std::memset(buffer, 0, MAXLINE + 1); }
 
-MainClient::MainClient(int client_socket, ConfigServerParser *config_server_parser)
-	: config_server_parser(config_server_parser), request_parser(new RequestParser()), status(200),
+MainClient::MainClient(int client_socket, ConfigServerParser *config_server_parser, string task)
+	: config_server_parser(config_server_parser), request_parser(new RequestParser()),
 	  send_receive_status(true), msg_status(Accurate::OK200().what()),
 	  client_socket(client_socket) {
 	std::memset(buffer, 0, MAXLINE + 1);
 
-	this->start_handle();
+	this->start(task);
 }
 
 MainClient::~MainClient() { delete request_parser; }
 
 // Methods
-void MainClient::start_handle() {
+void MainClient::start(string task) {
+	if (task == "read" || task == "write")
+		this->start_handle(task);
+	else
+		throw std::runtime_error("Unknown task");
+}
+
+void MainClient::start_handle(string task) {
 	try {
-		this->handle(this->client_socket);
-		Response Response;
-		if (this->request_parser->get_request("Request-Type") == "GET") {
-			Response.Get(this);
-		}
+		if (task == "read")
+			this->handle_read(this->client_socket);
+
+		else if (task == "write")
+			this->handle_write(this->client_socket);
+
 	} catch (const std::exception &e) {
+
+		// if (string(e.what()) == "Still running")
+		// 	return;
+
 		print_short_line("catch something");
 		this->msg_status = e.what();
 		set_header_for_errors_and_redirection();
+
+		this->send_receive_status = false;
 	}
 	send(client_socket, this->header.c_str(), header.size(), 0);
+	if (task == "write")
+		this->send_receive_status = false;
 }
 
-std::string MainClient::Header_reading(int client_socket) {
-	int			bytes;
-	std::string data;
+void MainClient::Header_reading(int client_socket) {
+	int bytes;
 
-	while (1) {
-		bytes = recv(client_socket, buffer, MAXLINE, 0);
-		buffer[bytes] = '\0';
-		if (bytes == 0)
-			break;
-		if (bytes < 0)
-			throw Error::BadRequest400();
-		data.append(buffer, bytes);
-		if (data.find("\r\n\r\n") != string::npos)
-			break;
-	}
-	return (data);
+	bytes = recv(client_socket, buffer, MAXLINE, 0);
+	if (bytes == 0)
+		return;
+	if (bytes < 0)
+		throw Error::BadRequest400();
+	this->head.append(buffer, bytes);
+	if (this->head.find("\r\n\r\n") != string::npos) {
+		this->body = this->head.substr(this->head.find("\r\n\r\n") + 4);
+		return;
+	} else
+		throw std::runtime_error("Still running");
 }
 
-std::string &MainClient::Body_reading(int client_socket, std::string &body) {
-	int				  n, bytes, count;
-	string			  str = this->request_parser->get_request("Content-Length");
-	std::stringstream ss(str);
-	ss >> n;
+void MainClient::Body_reading(int client_socket) {
+	int n, bytes, count;
+
+	n	  = ConfigServerParser::stringToInt(this->request_parser->get_request("Content-Length"));
 	count = body.size();
-	while (1 && count != n) {
-		bytes = recv(client_socket, buffer, MAXLINE, 0);
-		buffer[bytes] = '\0';
-		body.append(buffer, bytes);
-		count += bytes;
-		std::cout << buffer <<std::endl;
-		if (bytes < 0)
-			throw Error::BadRequest400();
-		if (count == n)
-			break;
-	}
-	return (body);
+	if (n == 0 || count == n)
+		return;
+
+	bytes = recv(client_socket, buffer, MAXLINE, 0);
+	if (bytes < 0)
+		throw Error::BadRequest400();
+	body.append(buffer, bytes);
+	count += bytes;
 }
 
-void MainClient::handle(int client_socket) {
-	string	data;
-	string	head;
-	string	body;
-
-	//! BODY NEED TO BE FILL IN EXTERNAL FILE
+void MainClient::handle_read(int client_socket) {
 	print_line("Client");
-	data = this->Header_reading(client_socket);
-	head = data.substr(0, data.find("\r\n\r\n"));
-	this->request_parser->run_parse(head);
-	// std::cout << *this->request_parser << std::endl;
+
+	this->Header_reading(client_socket);
+	this->request_parser->run_parse(this->head);
+	cout << *this->request_parser << endl;
+
 	if (this->get_request("Transfer-Encoding").size() != 0 && this->get_request("Transfer-Encoding") != "chunked")
 		throw Error::NotImplemented501();// transfer encoding exist and different to chunked
 	if (this->get_request("Content-Length").size() == 0 && this->get_request("Transfer-Encoding").size() == 0 && this->get_request("Request-Type") == "POST")
 		throw Error::BadRequest400();//post without content-length or transfer encoding
 	if (this->request_parser->get_request("Request-Type") == "POST" && this->get_request("Content-Length").size() != 0)
-	{
-		body = data.substr(data.find("\r\n\r\n") + 4);
-		this->Body_reading(client_socket, body);
-	}
+		this->Body_reading(client_socket, this->body);
+
 	int location = this->get_matched_location_for_request_uri();
 	this->set_location(location);
 	if (this->config_server_parser->get_config_location_parser()[get_location()]->get_return().size() != 0)
@@ -106,29 +109,21 @@ void MainClient::handle(int client_socket) {
 	// this->send_receive_status = false;
 }
 
-// int MainClient::get_matched_location_for_request_uri() {
-// 	// get file name to compare with index
-// 	int locate = 0;
-// 	for (vector<ConfigLocationParser *>::const_iterator it
-// 		 = config_server_parser->get_config_location_parser().begin();
-// 		 it != config_server_parser->get_config_location_parser().end(); it++) {
-// 		if ((*it)->get_location().find("cgi") != string::npos) {
-// 			locate++;
-// 			continue;
-// 		}
-// 		if (this->get_request("Request-URI") == (*it)->get_location()
-// 			|| this->get_request("Request-URI") == (*it)->get_root())
-// 			return locate;
-// 		else if (this->get_request("Request-URI").find((*it)->get_location()) != string::npos)
-// 			return locate;
-// 		else if (this->get_request("Request-URI").find((*it)->get_root()) != string::npos)
-// 			return locate;
-// 		locate++;
-// 	}
-// 	// if ((is_found == false)
-// 		throw Error::NotFound404();
-// 	return(-1);
-// }
+void MainClient::handle_write(int client_socket) {
+	print_line("Server");
+
+	Response Response;
+	if (this->request_parser->get_request("Request-Type") == "GET") {
+		Response.Get(this->request_parser->get_request("Request-URI"), client_socket);
+		if (Response.GetContentType() == "cgi") {
+			Cgi cgi(this, this->config_server_parser->get_config_location_parser());
+			cgi.check_extention();
+		}
+	}
+	if (this->request_parser->get_request("Request-Type") == "DELETE") {
+		// DELETE
+	}
+}
 
 void MainClient::is_method_allowed_in_location() {
 	for (vector<ConfigLocationParser *>::const_iterator it = config_server_parser->get_config_location_parser().begin();

@@ -18,8 +18,6 @@ class ConfigLocationParser {
 	bool				index_status;
 	string				return_;
 	bool				return_status;
-	string				file_body;
-	bool				file_body_status;
 	vector<string>		methods;
 	bool				methods_status;
 	map<string, string> cgi_ext_path;
@@ -33,7 +31,6 @@ class ConfigLocationParser {
 	const vector<string>	  &get_index() const;
 	const string			  &get_index(int i) const;
 	const string			  &get_return() const;
-	const string			  &get_file_body() const;
 	const vector<string>	  &get_methods() const;
 	const string			  &get_methods(int i) const;
 	const map<string, string> &get_cgi_ext_path() const;
@@ -46,6 +43,7 @@ class ConfigLocationParser {
 
   private:
 	// Tools
+	bool		   check_file(string name, string input, string file_path);
 	vector<string> split_methods(const string &str);
 	vector<string> stringToMethods(string host);
 	bool		   find_compare(string &line, const string &str);
@@ -56,7 +54,6 @@ class ConfigLocationParser {
 	void set_root(string root, size_t pos);
 	void set_index(string index, size_t pos);
 	void set_return(string return_, size_t pos);
-	void set_file_body(string file_body, size_t pos);
 	void set_methods(string methods, size_t pos);
 	void set_cgi_ext_path(string cgi_ext_path, size_t pos);
 
