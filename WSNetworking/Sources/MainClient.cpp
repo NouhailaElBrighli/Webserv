@@ -11,7 +11,7 @@ MainClient::MainClient() { std::memset(buffer, 0, MAXLINE + 1); }
 
 MainClient::MainClient(int client_socket, ConfigServerParser *config_server_parser, string task)
 	: config_server_parser(config_server_parser), request_parser(new RequestParser()),
-	  send_receive_status(true), msg_status(Accurate::OK200().what()),
+	  send_receive_status(true), msg_status(Accurate::OK200().what()), status(200),
 	  client_socket(client_socket) {
 	std::memset(buffer, 0, MAXLINE + 1);
 
@@ -91,11 +91,11 @@ void MainClient::handle_read(int client_socket) {
 	cout << *this->request_parser << endl;
 
 	if (this->get_request("Transfer-Encoding").size() != 0 && this->get_request("Transfer-Encoding") != "chunked")
-		throw Error::NotImplemented501();// transfer encoding exist and different to chunked
+		throw Error::NotImplemented501(); // transfer encoding exist and different to chunked
 	if (this->get_request("Content-Length").size() == 0 && this->get_request("Transfer-Encoding").size() == 0 && this->get_request("Request-Type") == "POST")
-		throw Error::BadRequest400();//post without content-length or transfer encoding
+		throw Error::BadRequest400(); // post without content-length or transfer encoding
 	if (this->request_parser->get_request("Request-Type") == "POST" && this->get_request("Content-Length").size() != 0)
-		this->Body_reading(client_socket, this->body);
+		this->Body_reading(client_socket);
 
 	int location = this->get_matched_location_for_request_uri();
 	this->set_location(location);
@@ -114,7 +114,7 @@ void MainClient::handle_write(int client_socket) {
 
 	Response Response;
 	if (this->request_parser->get_request("Request-Type") == "GET") {
-		Response.Get(this->request_parser->get_request("Request-URI"), client_socket);
+		Response.Get(this);
 		if (Response.GetContentType() == "cgi") {
 			Cgi cgi(this, this->config_server_parser->get_config_location_parser());
 			cgi.check_extention();
@@ -138,44 +138,38 @@ void MainClient::is_method_allowed_in_location() {
 	throw Error::MethodNotAllowed405();
 }
 
-int	MainClient::GetClientSocket()
-{
+int MainClient::GetClientSocket() {
 	return (client_socket);
 }
 
-int	MainClient::get_matched_location_for_request_uri()
-{
+int MainClient::get_matched_location_for_request_uri() {
 	std::string str = this->get_request("Request-URI");
-	size_t found;
-	int locate = 0;
-	while (str.size() != 0)
-	{
+	size_t		found;
+	int			locate = 0;
+	while (str.size() != 0) {
 		locate = 0;
 		for (vector<ConfigLocationParser *>::const_iterator itr = config_server_parser->get_config_location_parser().begin();
-		itr != config_server_parser->get_config_location_parser().end() ; itr++)
-		{
-			if ((*itr)->get_location() == str)
-			{
+			 itr != config_server_parser->get_config_location_parser().end(); itr++) {
+			if ((*itr)->get_location() == str) {
 				std::string new_url = this->get_request("Request-URI");
-				new_url.replace(0, str.size() , this->config_server_parser->get_config_location_parser()[locate]->get_root());
+				new_url.replace(0, str.size(), this->config_server_parser->get_config_location_parser()[locate]->get_root());
 				this->request_parser->reset_request_uri(new_url);
 				return (locate);
 			}
 			locate++;
 		}
 		found = str.find_last_of('/');
-		str = str.substr(0, found);
+		str	  = str.substr(0, found);
 	}
-	//!check_if_uri_exist to serve it
+	//! check_if_uri_exist to serve it
 	throw Error::NotFound404();
 	return (-1);
 }
 
-void MainClient::set_header_for_errors_and_redirection()
-{
-	std::stringstream ss (this->msg_status);
+void MainClient::set_header_for_errors_and_redirection() {
+	std::stringstream ss(this->msg_status);
 	ss >> this->status;
-	if (this->status  < 400) // redirection
+	if (this->status < 400) // redirection
 	{
 		this->header = "HTTP/1.1 ";
 		this->header += this->msg_status;
@@ -183,30 +177,27 @@ void MainClient::set_header_for_errors_and_redirection()
 		this->header += "Location: /"; // should use port and host or not ?
 		this->header += this->config_server_parser->get_config_location_parser()[get_location()]->get_return();
 		this->header += "\r\n\r\n";
-		std::cout << "Header of redirection:\n" << this->header << std::endl;
-	}
-	else // errors
+		std::cout << "Header of redirection:\n"
+				  << this->header << std::endl;
+	} else // errors
 	{
 		Response Error;
 		Error.SetError(this->msg_status);
 		this->header = Error.GetHeader();
-		std::cout << "Header of Error:\n" << this->header << std::endl;
+		std::cout << "Header of Error:\n"
+				  << this->header << std::endl;
 		this->send_receive_status = false;
-
 	}
 }
 
-void	MainClient::set_location(int location)
-{
+void MainClient::set_location(int location) {
 	this->location = location;
 }
-	
-int		MainClient::get_location()
-{
+
+int MainClient::get_location() {
 	return (location);
 }
 
-ConfigServerParser	*MainClient::get_config_server()
-{
+ConfigServerParser *MainClient::get_config_server() {
 	return (config_server_parser);
 }

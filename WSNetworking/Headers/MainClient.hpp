@@ -10,7 +10,7 @@ class MainClient {
 	RequestParser	   *request_parser;
 	bool				send_receive_status;
 	string				msg_status;
-	int					client_socket;
+	int					client_socket, status;
 	char				buffer[MAXLINE + 1];
 	std::string			header;
 	int					location;
