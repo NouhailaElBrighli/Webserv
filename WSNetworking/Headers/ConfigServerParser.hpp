@@ -21,7 +21,7 @@ class ConfigServerParser {
 	bool						   client_max_body_size_status;
 	map<int, string>			   error_page;
 	bool						   error_page_status;
-	vector<ConfigLocationParser *> config_location_parser;// location and find cgi
+	vector<ConfigLocationParser *> config_location_parser;	// location and find cgi
 	int							   config_location_parser_status;
 	int							   config_location_cgi_status;
 
@@ -43,7 +43,7 @@ class ConfigServerParser {
 	~ConfigServerParser();
 
 	// Tools
-	static bool check_file(string name, string input, string file_path);
+	static int stringToInt(string str);
 
 	// Methods
 	void parse_config_server();
@@ -51,7 +51,6 @@ class ConfigServerParser {
   private:
 	// Tools
 	int			checkType(string str);
-	int			stringToInt(string str);
 	vector<int> split_ip_address(const string &str);
 	vector<int> stringToHost(string host);
 	bool		find_compare(string &line, const string &str);

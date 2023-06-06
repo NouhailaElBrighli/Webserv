@@ -9,106 +9,126 @@ const bool &MainClient::get_send_receive_status() const { return send_receive_st
 // Constructors and destructor
 MainClient::MainClient() { std::memset(buffer, 0, MAXLINE + 1); }
 
-MainClient::MainClient(int client_socket, ConfigServerParser *config_server_parser)
-	: config_server_parser(config_server_parser), request_parser(new RequestParser()), status(200),
+MainClient::MainClient(int client_socket, ConfigServerParser *config_server_parser, string task)
+	: config_server_parser(config_server_parser), request_parser(new RequestParser()),
 	  send_receive_status(true), msg_status(Accurate::OK200().what()),
 	  client_socket(client_socket) {
 	std::memset(buffer, 0, MAXLINE + 1);
 
-	this->start_handle();
+	if (task == "read")
+		this->start_handle_read();
+	else if (task == "write")
+		this->start_handle_write();
+	else
+		throw std::runtime_error("Unknown task");
 }
 
 MainClient::~MainClient() { delete request_parser; }
 
 // Methods
-void MainClient::start_handle() {
+void MainClient::start_handle_read() {
 	try {
-		this->handle(this->client_socket);
-		Response Response;
-		if (this->request_parser->get_request("Request-Type") == "GET") {
-			Response.Get(this->request_parser->get_request("Request-URI"), client_socket);
-			if (Response.GetContentType() == "cgi") {
-				Cgi cgi(this, this->config_server_parser->get_config_location_parser());
-				cgi.check_extention();
-			}
-		}
-		if (this->request_parser->get_request("Request-Type") == "DELETE") {
-			// DELETE
-		}
+		this->handle_read(this->client_socket);
 	} catch (const std::exception &e) {
 
-		std::cout << "Error:" << e.what() << std::endl;
+		if (string(e.what()) == "Still reading")
+			return;
+
 		this->msg_status = e.what();
-		std::stringstream ss(this->msg_status);
-		ss >> this->status;
+		print_error(this->msg_status);
+
 		Response Error;
 		Error.SetError(this->msg_status);
+
 		send(client_socket, Error.GetHeader().c_str(), Error.GetHeader().size(), 0);
 		std::cout << Error << std::endl;
-		this->send_receive_status = false;
+	}
+}
+
+void MainClient::start_handle_write() {
+	try {
+		this->handle_write(this->client_socket);
+	} catch (const std::exception &e) {
+		if (string(e.what()) == "Still sending")
+			return;
+
+		this->msg_status = e.what();
 		print_error(this->msg_status);
+
+		Response Error;
+		Error.SetError(this->msg_status);
+
+		send(client_socket, Error.GetHeader().c_str(), Error.GetHeader().size(), 0);
+		std::cout << Error << std::endl;
 	}
+	this->send_receive_status = false;
 }
 
-std::string MainClient::Header_reading(int client_socket) {
-	int			bytes;
-	std::string data;
+void MainClient::Header_reading(int client_socket) {
+	int bytes;
 
-	while (1) {
-		bytes = recv(client_socket, buffer, MAXLINE, 0);
-		if (bytes == 0)
-			break;
-		if (bytes < 0)
-			throw Error::BadRequest400();
-		data.append(buffer, bytes);
-		if (data.find("\r\n\r\n") != string::npos)
-			break;
-	}
-	return (data);
+	bytes = recv(client_socket, buffer, MAXLINE, 0);
+	if (bytes == 0)
+		return;
+	if (bytes < 0)
+		throw Error::BadRequest400();
+	this->head.append(buffer, bytes);
+	if (this->head.find("\r\n\r\n") != string::npos) {
+		this->body = this->head.substr(this->head.find("\r\n\r\n") + 4);
+		return;
+	} else
+		throw std::runtime_error("Still reading header");
 }
 
-std::string &MainClient::Body_reading(int client_socket, std::string &body) {
-	int				  n, bytes, count;
-	string			  str = this->request_parser->get_request("Content-Length");
-	std::stringstream ss(str);
-	ss >> n;
+void MainClient::Body_reading(int client_socket) {
+	int n, bytes, count;
+
+	n	  = ConfigServerParser::stringToInt(this->request_parser->get_request("Content-Length"));
 	count = body.size();
-	while (1 && count != n) {
-		bytes = recv(client_socket, buffer, MAXLINE, 0);
-		body.append(buffer, bytes);
-		count += bytes;
-		if (bytes < 0)
-			throw Error::BadRequest400();
-		if (count == n)
-			break;
-	}
-	return (body);
+	if (n == 0 || count == n)
+		return;
+
+	bytes = recv(client_socket, buffer, MAXLINE, 0);
+	if (bytes < 0)
+		throw Error::BadRequest400();
+	body.append(buffer, bytes);
+	count += bytes;
 }
 
-void MainClient::handle(int client_socket) {
-	string data;
-	string head;
-	string body;
-
+void MainClient::handle_read(int client_socket) {
 	print_line("Client");
-	data = this->Header_reading(client_socket);
-	head = data.substr(0, data.find("\r\n\r\n"));
-	//! BODY NEED TO BE FILL IN EXTERNAL FILE
-	body = data.substr(data.find("\r\n\r\n") + 4);
-	this->request_parser->run_parse(head);
-	cout << *this->request_parser << endl;
-	//! check_if_uri_dir
-	// get the right config server parser if not set in constructor
-	if (this->request_parser->get_request("Request-Type") == "POST")  // !protect by status
-		this->Body_reading(client_socket, body);
 
-	int locate = get_matched_location_for_request_uri();
+	this->Header_reading(client_socket);
+	this->request_parser->run_parse(this->head);
+	cout << *this->request_parser << endl;
+
+	//! check_if_uri_dir
+
+	if (this->request_parser->get_request("Request-Type") == "POST")  // !protect by status
+		this->Body_reading(client_socket);
+
+	int location = get_matched_location_for_request_uri();
 	is_method_allowed_in_location();
-	if (this->config_server_parser->get_config_location_parser()[locate]->get_autoindex() == 0)
+	if (this->config_server_parser->get_config_location_parser()[location]->get_autoindex() == 0)
 		throw Error::Forbidden403();
 	if (body.length() > this->config_server_parser->get_client_max_body_size())
 		throw Error::RequestEntityTooLarge413();
-	this->send_receive_status = false;
+}
+
+void MainClient::handle_write(int client_socket) {
+	print_line("Server");
+
+	Response Response;
+	if (this->request_parser->get_request("Request-Type") == "GET") {
+		Response.Get(this->request_parser->get_request("Request-URI"), client_socket);
+		if (Response.GetContentType() == "cgi") {
+			Cgi cgi(this, this->config_server_parser->get_config_location_parser());
+			cgi.check_extention();
+		}
+	}
+	if (this->request_parser->get_request("Request-Type") == "DELETE") {
+		// DELETE
+	}
 }
 
 int MainClient::get_matched_location_for_request_uri() {
@@ -136,10 +156,7 @@ int MainClient::get_matched_location_for_request_uri() {
 	}
 
 	// File is not a found
-	this->msg_status = "404";
-	std::stringstream ss(msg_status);
-	ss >> status;
-	throw Error::NotFound404();	 //! here
+	throw Error::NotFound404();
 }
 
 void MainClient::is_method_allowed_in_location() {

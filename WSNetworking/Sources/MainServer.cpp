@@ -148,10 +148,14 @@ void MainServer::init_reading_sockets() {
 	FD_ZERO(&this->read_sockets);
 	std::memset(&this->read_sockets, 0, sizeof(this->read_sockets));
 
+	FD_ZERO(&this->write_sockets);
+	std::memset(&this->write_sockets, 0, sizeof(this->write_sockets));
+
 	FD_ZERO(&this->current_sockets);
 	std::memset(&this->current_sockets, 0, sizeof(this->current_sockets));
 	for (map<int, int>::iterator it = this->socket.begin(); it != this->socket.end(); it++)
 		FD_SET((*it).second, &this->current_sockets);
+
 	// max element of the socket map
 	this->max_socket = this->socket.rbegin()->second;
 }
@@ -161,7 +165,12 @@ void MainServer::reset() {
 	// because `select` will modify the set, we need to reset it each time
 	FD_ZERO(&this->read_sockets);
 	std::memset(&this->read_sockets, 0, sizeof(this->read_sockets));
-	this->read_sockets = this->current_sockets;
+
+	FD_ZERO(&this->write_sockets);
+	std::memset(&this->write_sockets, 0, sizeof(this->write_sockets));
+
+	this->read_sockets	= this->current_sockets;
+	this->write_sockets = this->current_sockets;
 }
 
 // Routine methods
@@ -174,30 +183,39 @@ void MainServer::accepter(int fd_socket) {
 		throw std::runtime_error(str_red("Error accept"));
 }
 
-void MainServer::create_client(int client_socket) {
+void MainServer::create_client(int client_socket, string task) {
 	int i;
 
 	print_long_line("create client");
 	if ((i = this->right_server(client_socket)) != -1) {
-		MainClient *mainClient
-			= new MainClient(client_socket, this->config_file_parser->get_config_server_parser(i));
+		MainClient *mainClient = new MainClient(
+			client_socket, this->config_file_parser->get_config_server_parser(i), task);
 		this->clients[client_socket] = mainClient;
 		return;
 	} else if (i == -1) {
-		MainClient *mainClient
-			= new MainClient(client_socket, this->config_file_parser->get_config_server_parser(0));
+		MainClient *mainClient = new MainClient(
+			client_socket, this->config_file_parser->get_config_server_parser(0), task);
 		this->clients[client_socket] = mainClient;
 		return;
 	}
 }
 
-void MainServer::handler(int client_socket) {
-	print_long_line("handler");
+void MainServer::handle_read(int client_socket) {
+	print_long_line("handle_read");
 
-	if (this->clients.find(client_socket) != this->clients.end()) {
-		this->clients[client_socket]->start_handle();
-	} else
-		this->create_client(client_socket);
+	if (this->clients.find(client_socket) != this->clients.end())
+		this->clients[client_socket]->start_handle_read();
+	else
+		this->create_client(client_socket, "read");
+}
+
+void MainServer::handle_write(int client_socket) {
+	print_long_line("handle_write");
+
+	if (this->clients.find(client_socket) != this->clients.end())
+		this->clients[client_socket]->start_handle_write();
+	else
+		this->create_client(client_socket, "write");
 }
 
 void MainServer::destroy_client(int client_socket) {
@@ -215,7 +233,8 @@ void MainServer::destroy_client(int client_socket) {
 		return;
 	}
 	// Destroy the client
-	delete this->clients[client_socket];
+	if (this->clients.find(client_socket) != this->clients.end())
+		delete this->clients[client_socket];
 	this->clients.erase(client_socket);
 	FD_CLR(client_socket, &this->current_sockets);
 	close(client_socket);
@@ -229,12 +248,13 @@ void MainServer::routine() {
 
 		print_long_line("select wait for client");
 		// select() will block until there is activity on one of the sockets
-		if (select(this->max_socket + 1, &this->read_sockets, NULL, NULL, NULL) == -1)
+		if (select(this->max_socket + 1, &this->read_sockets, &this->write_sockets, NULL, NULL)
+			== -1)
 			throw std::runtime_error(str_red("Error select : ") + strerror(errno));
 
 		// check if the listening socket is ready
 		for (int i = 3; i <= this->max_socket; i++) {
-			if (FD_ISSET(i, &this->read_sockets)) {
+			if (FD_ISSET(i, &this->read_sockets) || FD_ISSET(i, &this->write_sockets)) {
 				// check if the socket is a master socket
 				if (i == this->socket[i]) {
 					try {
@@ -247,12 +267,17 @@ void MainServer::routine() {
 					}
 				} else {
 					try {
-						// handle the client's request
-						this->handler(i);
+						// if the socket is ready for reading, call the handle_read function
+						if (FD_ISSET(i, &this->read_sockets))
+							this->handle_read(i);
+						// if the socket is ready for writing, call the handle_write function
+						else if (FD_ISSET(i, &this->write_sockets))
+							this->handle_write(i);
+
+						this->destroy_client(i);
 					} catch (const std::exception &e) {
 						cerr << e.what() << endl;
 					}
-					this->destroy_client(i);
 				}
 			}
 		}

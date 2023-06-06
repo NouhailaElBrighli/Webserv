@@ -14,7 +14,7 @@ class MainServer {
 	map<int, MainClient *> clients;
 	map<int, int>		   socket;
 	int					   accept_socket, max_socket;
-	fd_set				   current_sockets, read_sockets;
+	fd_set				   current_sockets, read_sockets, write_sockets;
 	bool				   launch_status;
 
   private:
@@ -52,8 +52,9 @@ class MainServer {
 	// Routine methods
 	void reset();
 	void accepter(int fd_socket);
-	void create_client(int client_socket);
-	void handler(int client_socket);
+	void create_client(int client_socket, string task);
+	void handle_read(int client_socket);
+	void handle_write(int client_socket);
 	void destroy_client(int client_socket);
 
 	// Main routine
