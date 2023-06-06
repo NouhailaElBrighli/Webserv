@@ -200,22 +200,13 @@ void MainServer::create_client(int client_socket, string task) {
 	}
 }
 
-void MainServer::handle_read(int client_socket) {
-	print_long_line("handle_read");
+void MainServer::handle(int client_socket, string task) {
+	print_long_line("handle " + task);
 
 	if (this->clients.find(client_socket) != this->clients.end())
-		this->clients[client_socket]->start("read");
+		this->clients[client_socket]->start(task);
 	else
-		this->create_client(client_socket, "read");
-}
-
-void MainServer::handle_write(int client_socket) {
-	print_long_line("handle_write");
-
-	if (this->clients.find(client_socket) != this->clients.end())
-		this->clients[client_socket]->start("write");
-	else
-		this->create_client(client_socket, "write");
+		this->create_client(client_socket, task);
 }
 
 void MainServer::destroy_client(int client_socket) {
@@ -269,10 +260,10 @@ void MainServer::routine() {
 					try {
 						// if the socket is ready for reading, call the handle_read function
 						if (FD_ISSET(i, &this->read_sockets))
-							this->handle_read(i);
+							this->handle(i, "read");
 						// if the socket is ready for writing, call the handle_write function
 						else if (FD_ISSET(i, &this->write_sockets))
-							this->handle_write(i);
+							this->handle(i, "write");
 
 						this->destroy_client(i);
 					} catch (const std::exception &e) {

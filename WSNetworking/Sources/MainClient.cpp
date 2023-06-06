@@ -11,7 +11,7 @@ MainClient::MainClient() { std::memset(buffer, 0, MAXLINE + 1); }
 
 MainClient::MainClient(int client_socket, ConfigServerParser *config_server_parser, string task)
 	: config_server_parser(config_server_parser), request_parser(new RequestParser()),
-	  send_receive_status(true), msg_status(Accurate::OK200().what()),
+	  send_receive_status(true), response_status(false), msg_status(Accurate::OK200().what()),
 	  client_socket(client_socket) {
 	std::memset(buffer, 0, MAXLINE + 1);
 
@@ -22,20 +22,25 @@ MainClient::~MainClient() { delete request_parser; }
 
 // Methods
 void MainClient::start(string task) {
-	if (task == "read")
-		this->start_handle_read();
-	else if (task == "write")
-		this->start_handle_write();
+	if (task == "read" || task == "write")
+		this->start_handle(task);
 	else
 		throw std::runtime_error("Unknown task");
 }
 
-void MainClient::start_handle_read() {
+void MainClient::start_handle(string task) {
 	try {
-		this->handle_read(this->client_socket);
+		if (task == "read")
+			this->handle_read(this->client_socket);
+
+		else if (task == "write") {
+			this->response_status = true;
+			this->handle_write(this->client_socket);
+		}
+
 	} catch (const std::exception &e) {
 
-		if (string(e.what()) == "Still reading")
+		if (string(e.what()) == "Still reading" || string(e.what()) == "Still sending")
 			return;
 
 		this->msg_status = e.what();
@@ -46,26 +51,11 @@ void MainClient::start_handle_read() {
 
 		send(client_socket, Error.GetHeader().c_str(), Error.GetHeader().size(), 0);
 		std::cout << Error << std::endl;
+
+		this->send_receive_status = false;
 	}
-}
-
-void MainClient::start_handle_write() {
-	try {
-		this->handle_write(this->client_socket);
-	} catch (const std::exception &e) {
-		if (string(e.what()) == "Still sending")
-			return;
-
-		this->msg_status = e.what();
-		print_error(this->msg_status);
-
-		Response Error;
-		Error.SetError(this->msg_status);
-
-		send(client_socket, Error.GetHeader().c_str(), Error.GetHeader().size(), 0);
-		std::cout << Error << std::endl;
-	}
-	this->send_receive_status = false;
+	if (this->response_status == true)
+		this->send_receive_status = false;
 }
 
 void MainClient::Header_reading(int client_socket) {

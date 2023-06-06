@@ -53,8 +53,7 @@ class MainServer {
 	void reset();
 	void accepter(int fd_socket);
 	void create_client(int client_socket, string task);
-	void handle_read(int client_socket);
-	void handle_write(int client_socket);
+	void handle(int client_socket, string task);
 	void destroy_client(int client_socket);
 
 	// Main routine

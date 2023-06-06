@@ -8,7 +8,7 @@ class MainClient {
   private:
 	ConfigServerParser *config_server_parser;
 	RequestParser	   *request_parser;
-	bool				send_receive_status;
+	bool				send_receive_status, response_status;
 	string				msg_status;
 	int					client_socket;
 	char				buffer[MAXLINE + 1];
@@ -37,12 +37,14 @@ class MainClient {
 
   private:
 	// Methods
-	void start_handle_read();
-	void start_handle_write();
+	void start_handle(string task);
+
 	void Header_reading(int client_socket);
 	void Body_reading(int client_socket);
+
 	void handle_read(int client_socket);
 	void handle_write(int client_socket);
+
 	int	 get_matched_location_for_request_uri();
 	void is_method_allowed_in_location();
 };
