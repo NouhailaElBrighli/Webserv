@@ -84,6 +84,21 @@ class Error {
 	  public:
 		virtual const char *what() const throw() { return "503 Service unavailable"; }
 	};
+
+	class Successe200 : public std::exception {
+	  public:
+		virtual const char *what() const throw() { return "200 OK"; }
+	};
+
+	class No_content204: public std::exception {
+	  public:
+		virtual const char *what() const throw() { return "204 No Content"; }
+	};
+
+	class Accepted202 : public std::exception {
+	  public:
+		virtual const char *what() const throw() { return "202 Accepted"; }
+	};	
 };
 
 #endif	// ERROR_HPP
