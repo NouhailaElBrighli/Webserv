@@ -105,10 +105,7 @@ void MainClient::Body_reading() {
 	this->body.append(buffer, bytes);
 	count += bytes;
 
-	if (count == n)
-		return;
-
-	if (this->body.find("\r\n\r\n") != string::npos) {
+	if (count == n || this->body.find("\r\n\r\n") != string::npos) {
 		this->body_status = true;
 		return;
 	} else
