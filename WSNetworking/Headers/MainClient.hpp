@@ -59,8 +59,8 @@ class MainClient {
 	void handle_read();
 	void handle_write();
 
-	int	 check_and_change_request_uri();
-	int	 get_matched_location_for_request_uri();
+	int check_and_change_request_uri();
+	// int	 get_matched_location_for_request_uri();
 	void is_method_allowed_in_location();
 
 	void set_header_for_errors_and_redirection();

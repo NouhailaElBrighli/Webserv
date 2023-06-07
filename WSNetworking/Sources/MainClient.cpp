@@ -122,7 +122,9 @@ void MainClient::body_reading() {
 		throw std::runtime_error("can't open file " + this->body_file);
 
 	if (count == 0 && this->body.size() != 0) {
-		outFile << this->body.c_str();
+		// Write data to the file with flush
+		outFile << this->body;
+		outFile << std::flush;
 		count += this->body.size();
 	}
 
@@ -206,6 +208,7 @@ void MainClient::is_method_allowed_in_location() {
 	throw Error::MethodNotAllowed405();
 }
 
+/*
 int MainClient::get_matched_location_for_request_uri() {
 	// get file name to compare with index
 	int locate = 0;
@@ -213,10 +216,10 @@ int MainClient::get_matched_location_for_request_uri() {
 	for (vector<ConfigLocationParser *>::const_iterator it
 		 = config_server_parser->get_config_location_parser().begin();
 		 it != config_server_parser->get_config_location_parser().end(); it++) {
-		if ((*it)->get_location().find("cgi") != string::npos) {
-			locate++;
-			continue;
-		}
+		// if ((*it)->get_location().find("cgi") != string::npos) {
+		// 	locate++;
+		// 	continue;
+		// }
 		if (this->get_request("Request-URI") == (*it)->get_location()
 			|| this->get_request("Request-URI") == (*it)->get_root())
 			return locate;
@@ -255,6 +258,34 @@ int MainClient::check_and_change_request_uri() {
 	//! check_if_uri_exist to serve it
 	throw Error::NotFound404();
 	return 0;
+}
+*/
+
+int MainClient::check_and_change_request_uri() {
+	std::string str = this->get_request("Request-URI");
+	size_t		found;
+	int			locate = 0;
+	while (str.size() != 0) {
+		locate = 0;
+		for (vector<ConfigLocationParser *>::const_iterator itr
+			 = config_server_parser->get_config_location_parser().begin();
+			 itr != config_server_parser->get_config_location_parser().end(); itr++) {
+			if ((*itr)->get_location() == str) {
+				std::string new_url = this->get_request("Request-URI");
+				new_url.replace(
+					0, str.size(),
+					this->config_server_parser->get_config_location_parser()[locate]->get_root());
+				this->request_parser->set_request_uri(new_url);
+				return (locate);
+			}
+			locate++;
+		}
+		found = str.find_last_of('/');
+		str	  = str.substr(0, found);
+	}
+	//! check_if_uri_exist to serve it
+	throw Error::NotFound404();
+	return (-1);
 }
 
 void MainClient::set_header_for_errors_and_redirection() {
