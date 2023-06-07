@@ -6,11 +6,12 @@
 /*   By: hsaidi <hsaidi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/27 11:30:30 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/06/06 16:52:37 by hsaidi           ###   ########.fr       */
+/*   Updated: 2023/06/07 11:52:12 by hsaidi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Delete.hpp"
+
 
 Delete::Delete(MainClient *main_client, vector<ConfigLocationParser *>config_location_parser)
 {
@@ -31,12 +32,10 @@ void Delete::delete_file()
 			continue;
 
 		if (this->main_client->get_request("Request-URI").find((*it)->get_location()) != std::string::npos) {
-			cout << "++ location ++" << endl;
 			file_name.erase(0, (*it)->get_location().length());
 			file_name = (*it)->get_root() + file_name; // Concatenate root and remaining path segments
 			remove_file(file_name);
 		} else if (this->main_client->get_request("Request-URI").find((*it)->get_root()) != std::string::npos) {
-			cout << "++ in delete file root ++" << endl;
 			file_name.erase(0, (*it)->get_root().length());
 			file_name = (*it)->get_root() + file_name; // Concatenate root and remaining path segments
 			remove_file(file_name);
@@ -44,14 +43,49 @@ void Delete::delete_file()
 	}
 }
 
-void Delete::remove_file(std::string file_name)
-{
+// void Delete::remove_file(std::string file_name)
+// {
 
-	if (file_name.empty())
-		throw Error::No_content204();
-	if (remove(file_name.c_str()) != 0)
-		throw Error::No_content204();
-	else {
-		throw Error::Successe200();
+// 	if (file_name.empty())
+// 		throw Error::No_content204();
+// 	if (remove(file_name.c_str()) != 0)
+// 		throw Error::No_content204();`
+// 	else {
+// 		throw Error::Successe200();
+// 	}
+// }
+
+void Delete::remove_file(const std::string &path)
+{
+	DIR *dir = opendir(path.c_str());
+	if (dir != NULL)
+	{
+		// Directory exists, delete its contents recursively
+		struct dirent *entry;
+		while ((entry = readdir(dir)) != NULL)
+		{
+			if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
+				continue;
+
+			std::string entry_path = path + "/" + entry->d_name;
+
+			if (entry->d_type == DT_DIR)
+			{
+				remove_file(entry_path); // Recursively delete subdirectory
+			}
+			else if (entry->d_type == DT_REG)
+			{
+				if (remove(entry_path.c_str()) != 0)
+					throw Error::No_content204();
+				else
+					throw Error::Successe200();
+			}
+		}
+		closedir(dir);
 	}
+
+	if (remove(path.c_str()) != 0)
+		throw Error::No_content204();
+	else
+		throw Error::Successe200();
 }
