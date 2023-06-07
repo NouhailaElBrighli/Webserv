@@ -71,24 +71,22 @@ void MainServer::print_info() {
 	print_str("Port", 7);
 	cout << C_CYAN << " | " << C_PURPLE;
 	print_str("FD Socket", 9);
-	cout << C_CYAN << " |" << C_RES << endl;
-	cout << C_CYAN << string(65, '-') << endl;
+	cout << C_CYAN << " |" << endl;
+	cout << string(65, '-') << endl;
 
-	for (size_t i = 0; i < this->config_file_parser->get_config_server_parser().size(); i++) {
+	for (size_t i = 0; i < config_file_parser->get_config_server_parser().size(); i++) {
 		cout << C_CYAN << "| " << C_BLUE;
 		print_int(static_cast<int>(i) + 1, 6);
 		cout << C_CYAN << "| " << C_YELLOW;
-		print_str(this->config_file_parser->get_config_server_parser(i)->get_server_name(), 13);
+		print_str(config_file_parser->get_config_server_parser(i)->get_server_name(), 13);
 		cout << C_CYAN << " | " << C_GREEN;
-		print_str(this->config_file_parser->get_config_server_parser(i)->get_host(), 15);
+		print_str(config_file_parser->get_config_server_parser(i)->get_host(), 15);
 		cout << C_CYAN << " | " << C_RED;
-		print_str(this->config_file_parser->get_config_server_parser(i)->get_port_str(), 7);
+		print_str(config_file_parser->get_config_server_parser(i)->get_port_str(), 7);
 		cout << C_CYAN << " | " << C_PURPLE;
-		print_int(
-			this->port_socket[this->config_file_parser->get_config_server_parser(i)->get_port()],
-			9);
-		cout << C_CYAN << " |" << C_RES << endl;
-		cout << C_CYAN << string(65, '-') << endl;
+		print_int(port_socket[config_file_parser->get_config_server_parser(i)->get_port()], 9);
+		cout << C_CYAN << " |" << endl;
+		cout << string(65, '-') << C_RES << endl;
 	}
 }
 
@@ -188,7 +186,13 @@ void MainServer::accepter(int fd_socket) {
 	this->accept_socket = accept(fd_socket, (t_sockaddr *)&address, &addrlen);
 	if (this->accept_socket == -1)
 		throw std::runtime_error(str_red("Error accept"));
+
+	if (this->accept_socket > this->max_socket)
+		this->max_socket = this->accept_socket;
+
 	this->socket_client[this->accept_socket] = this->accept_socket;
+
+	FD_SET(this->accept_socket, &this->read_sockets);
 }
 
 void MainServer::create_client(int client_socket, string task) {
@@ -226,7 +230,7 @@ void MainServer::destroy_client(int client_socket) {
 			 << "' can't be closed now, until the response is done." << C_RES << endl;
 		return;
 	}
-	if (this->socket_server[client_socket] == client_socket) {
+	if (this->socket_server.find(client_socket) != this->socket_server.end()) {
 		cout << C_GREEN << "current socket '" << client_socket
 			 << "' mustn't be close, because it's a master socket." << C_RES << endl;
 		return;
@@ -245,6 +249,7 @@ void MainServer::destroy_client(int client_socket) {
 // Main routine
 void MainServer::routine() {
 	while (true) {
+
 		this->reset();
 
 		print_long_line("select wait for client");
@@ -257,16 +262,14 @@ void MainServer::routine() {
 		for (int i = 3; i <= this->max_socket; i++) {
 			if (FD_ISSET(i, &this->read_sockets) || FD_ISSET(i, &this->write_sockets)) {
 				// check if the socket is a master socket
-				if (i == this->socket_server[i]) {
+				if (this->socket_server.find(i) != this->socket_server.end()) {
 					try {
 						this->accepter(i);
-						if (this->accept_socket > this->max_socket)
-							this->max_socket = this->accept_socket;
-						FD_SET(this->accept_socket, &this->read_sockets);
 					} catch (const std::exception &e) {
 						cerr << e.what() << endl;
 					}
 				} else {
+
 					try {
 						// if the socket is ready for reading, call the handle_read function
 						if (FD_ISSET(i, &this->read_sockets))

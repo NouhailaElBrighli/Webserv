@@ -12,7 +12,7 @@ class MainClient {
 	string				msg_status;
 	int					client_socket;
 	char				buffer[MAXLINE + 1];
-	std::string			header;
+	string				header;
 	int					location;
 	int					status, phase;
 
@@ -21,7 +21,7 @@ class MainClient {
 	MainClient(const MainClient &);
 	MainClient &operator=(const MainClient &);
 
-	string head, body;
+	string head, body, body_file;
 	bool   head_status, body_status;
 
   public:
@@ -52,8 +52,9 @@ class MainClient {
 	// Methods
 	void start_handle(string task);
 
-	void Header_reading();
-	void Body_reading();
+	void   header_reading();
+	string generate_random_file_name();
+	void   body_reading();
 
 	void handle_read();
 	void handle_write();

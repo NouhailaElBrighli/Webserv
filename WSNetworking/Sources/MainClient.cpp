@@ -50,8 +50,8 @@ void MainClient::start_handle(string task) {
 			this->handle_write();
 
 	} catch (const std::exception &e) {
-
 		print_error(string(e.what()));
+
 		if (string(e.what()) == "Still running")
 			return;
 
@@ -61,12 +61,14 @@ void MainClient::start_handle(string task) {
 
 		this->send_receive_status = false;
 	}
-	send(client_socket, this->header.c_str(), header.size(), 0);
+
+	send(client_socket, this->header.c_str(), this->header.size(), 0);
+
 	if (task == "write")
 		this->send_receive_status = false;
 }
 
-void MainClient::Header_reading() {
+void MainClient::header_reading() {
 	int bytes;
 
 	if (this->head_status)
@@ -87,47 +89,79 @@ void MainClient::Header_reading() {
 		throw std::runtime_error("Still running");
 }
 
-void MainClient::Body_reading() {
-	int n, bytes, count;
+string MainClient::generate_random_file_name() {
+	std::stringstream ss;
+	std::time_t		  now = std::time(0);
+
+	// Seed the random number generator
+	std::srand(static_cast<unsigned int>(std::time(0)));
+
+	ss << "/tmp/body_" << std::hex << now << "_" << std::rand();
+	return ss.str();
+}
+
+void MainClient::body_reading() {
+	int		   n, bytes;
+	static int count = 0;
 
 	if (this->body_status)
 		return;
 
-	n	  = ConfigServerParser::stringToInt(this->request_parser->get_request("Content-Length"));
-	count = body.size();
+	n = ConfigServerParser::stringToInt(this->request_parser->get_request("Content-Length"));
 	if (n == 0)
 		return;
+
+	if (this->body_file.size() == 0)
+		this->body_file = generate_random_file_name();
+
+	cout << "body file : " << this->body_file << endl;
+
+	// Open the file for writing
+	std::ofstream outFile(this->body_file.c_str());
+	if (!outFile)
+		throw std::runtime_error("can't open file " + this->body_file);
+
+	if (count == 0 && this->body.size() != 0) {
+		outFile << this->body.c_str();
+		count += this->body.size();
+	}
 
 	bytes = recv(this->client_socket, buffer, MAXLINE, 0);
 	if (bytes < 0)
 		throw Error::BadRequest400();
 
-	this->body.append(buffer, bytes);
+	// Write data to the file
+	outFile << buffer;
 	count += bytes;
 
-	if (count == n || this->body.find("\r\n\r\n") != string::npos) {
+	// Close the file
+	outFile.close();
+	if (count == n) {
 		this->body_status = true;
+		count			  = 0;
 		return;
-	} else
+	} else {
 		throw std::runtime_error("Still running");
+	}
 }
 
 void MainClient::handle_read() {
 	print_line("Client Request (read)");
 
-	this->Header_reading();
+	this->header_reading();
 	this->request_parser->run_parse(this->head);
 
 	if (this->request_parser->get_request("Request-Type") == "POST"
 		&& this->get_request("Content-Length").size() != 0) {
-		this->Body_reading();
+		this->body_reading();
 
-		print_line("body start:");
-		cout << this->body << endl;
-		print_line("body end:");
+		print_line(this->body_file + " start:");
+		string file = "cat " + this->body_file;
+		system(file.c_str());
+		cout << endl;
+		print_line(this->body_file + " end:");
 	}
 
-	// this->location = this->get_matched_location_for_request_uri();
 	this->location = this->check_and_change_request_uri();
 
 	if (config_server_parser->get_config_location_parser()[this->location]->get_return().size()
@@ -139,7 +173,6 @@ void MainClient::handle_read() {
 	// 	throw Error::Forbidden403();
 	// if (body.length() > this->config_server_parser->get_client_max_body_size())
 	// 	throw Error::RequestEntityTooLarge413();
-	// this->send_receive_status = false;
 }
 
 void MainClient::handle_write() {
@@ -223,32 +256,6 @@ int MainClient::check_and_change_request_uri() {
 	throw Error::NotFound404();
 	return 0;
 }
-
-// int MainClient::change_request_uri() {
-// 	std::string str = this->get_request("Request-URI");
-// 	size_t		found;
-// 	int			locate = 0;
-// 	while (str.size() != 0) {
-// 		locate = 0;
-// 		for (vector<ConfigLocationParser *>::const_iterator itr
-// 			 = config_server_parser->get_config_location_parser().begin();
-// 			 itr != config_server_parser->get_config_location_parser().end(); itr++) {
-// 			if ((*itr)->get_location() == str) {
-// 				std::string new_url = this->get_request("Request-URI");
-// 				new_url.replace(0, str.size(),
-// 					this->config_server_parser->get_config_location_parser()[locate]->get_root());
-// 				this->request_parser->set_request_uri(new_url);
-// 				return (locate);
-// 			}
-// 			locate++;
-// 		}
-// 		found = str.find_last_of('/');
-// 		str	  = str.substr(0, found);
-// 	}
-// 	//! check_if_uri_exist to serve it
-// 	// throw Error::NotFound404();
-// 	return (0);
-// }
 
 void MainClient::set_header_for_errors_and_redirection() {
 	std::stringstream ss(this->msg_status);
