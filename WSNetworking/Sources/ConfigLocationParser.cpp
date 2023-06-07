@@ -79,6 +79,7 @@ ConfigLocationParser::ConfigLocationParser(string config_location)
 	: config_location(config_location) {
 	this->location_status	  = false;
 	this->root_status		  = false;
+	this->autoindex_status	  = false;
 	this->index_status		  = false;
 	this->return_status		  = false;
 	this->methods_status	  = false;
@@ -170,8 +171,9 @@ void ConfigLocationParser::set_location(string location, size_t pos) {
 
 void ConfigLocationParser::set_autoindex(string autoindex, size_t pos) {
 	autoindex = autoindex.substr(0, autoindex.size() - 1);
+
 	if (this->autoindex_status == true || autoindex.empty() || this->config_location[pos - 1] != ';'
-		|| !std::isalnum(this->config_location[pos - 2]))
+		|| !std::isalpha(this->config_location[pos - 2]))
 		throw std::runtime_error(str_red("autoindex Error : " + autoindex));
 
 	if (autoindex == "on")
