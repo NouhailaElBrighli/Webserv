@@ -29,6 +29,8 @@
 #include <string>
 #include <vector>
 
+enum { READ_PHASE, WRITE_PHASE };
+
 #define MAXLINE 1024
 
 #define C_RES "\033[0m"

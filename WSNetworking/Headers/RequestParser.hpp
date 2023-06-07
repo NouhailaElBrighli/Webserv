@@ -16,12 +16,12 @@ class RequestParser {
   public:
 	// Getters
 	const string			  &get_head() const;
-	const string			  &get_body() const;
 	const map<string, string> &get_request() const;
 	const string			  &get_request(string key);
 
 	// Setters
 	void set_head(string &head);
+	void set_request_uri(string &str);
 
 	// Constructors and destructor
 	RequestParser();
@@ -29,7 +29,6 @@ class RequestParser {
 
 	// Methods
 	void run_parse(string &head);
-	void	reset_request_uri(std::string &str);
 
   private:
 	// Methods
@@ -38,6 +37,7 @@ class RequestParser {
 	void is_first_line_valid();
 	void parse_first_line();
 	void parse_rest_lines();
+	void last_check();
 };
 
 // Operator <<

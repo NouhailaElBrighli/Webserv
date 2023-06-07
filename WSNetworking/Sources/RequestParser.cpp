@@ -9,6 +9,9 @@ const string &RequestParser::get_request(string key) { return this->request[key]
 
 // Setters
 void RequestParser::set_head(string &head) { this->head = head; }
+
+void RequestParser::set_request_uri(string &str) { this->request["Request-URI"] = str; }
+
 // Constructors and destructor
 RequestParser::RequestParser() : parse_status(false) {}
 
@@ -23,6 +26,8 @@ void RequestParser::run_parse(string &head) {
 	this->head.clear();
 	this->set_head(head);
 	this->parse_head();
+	// print the request
+	cout << *this << endl;
 }
 
 void RequestParser::parse_head() {
@@ -30,6 +35,7 @@ void RequestParser::parse_head() {
 	this->parse_first_line();
 	this->is_first_line_valid();
 	this->parse_rest_lines();
+	this->last_check();
 }
 
 void RequestParser::is_head_valid() {
@@ -118,6 +124,16 @@ void RequestParser::parse_rest_lines() {
 	}
 }
 
+void RequestParser::last_check() {
+	if (this->get_request("Transfer-Encoding").size() != 0
+		&& this->get_request("Transfer-Encoding") != "chunked")
+		throw Error::NotImplemented501();  // transfer encoding exist and different to chunked
+	if (this->get_request("Content-Length").size() == 0
+		&& this->get_request("Transfer-Encoding").size() == 0
+		&& this->get_request("Request-Type") == "POST")
+		throw Error::BadRequest400();  // post without content-length or transfer encoding
+}
+
 // Operators <<
 std::ostream &operator<<(std::ostream &out, const RequestParser &requestParser) {
 	out << "RequestParser {" << endl;
@@ -129,9 +145,4 @@ std::ostream &operator<<(std::ostream &out, const RequestParser &requestParser) 
 	out << "	}" << endl;
 	out << "}" << endl;
 	return out;
-}
-
-void	RequestParser::reset_request_uri(std::string &str)
-{
-	this->request["Request-URI"] = str;
 }
