@@ -8,25 +8,29 @@ const bool &MainClient::get_send_receive_status() const { return send_receive_st
 
 const int &MainClient::get_phase() const { return phase; }
 
-int MainClient::get_client_socket() { return (client_socket); }
+const string &MainClient::get_body_file() const { return body_file; }
 
-int MainClient::get_location() { return (location); }
+const int &MainClient::get_client_socket() const { return (client_socket); }
 
-ConfigServerParser *MainClient::get_config_server() { return (config_server_parser); }
+const int &MainClient::get_location() const { return (location); }
+
+ConfigServerParser *MainClient::get_config_server() const { return (config_server_parser); }
 
 // Setters
+void MainClient::set_send_receive_status(bool send_receive_status) {
+	this->send_receive_status = send_receive_status;
+}
+
 void MainClient::set_location(int location) { this->location = location; }
 
 // Constructors and destructor
 MainClient::MainClient() { std::memset(buffer, 0, MAXLINE + 1); }
 
-MainClient::MainClient(int client_socket, ConfigServerParser *config_server_parser, string task)
+MainClient::MainClient(int client_socket, ConfigServerParser *config_server_parser)
 	: config_server_parser(config_server_parser), request_parser(new RequestParser()),
 	  send_receive_status(true), msg_status(Accurate::OK200().what()), client_socket(client_socket),
 	  status(200), phase(READ_PHASE), head_status(false), body_status(false) {
 	std::memset(buffer, 0, MAXLINE + 1);
-
-	this->start(task);
 }
 
 MainClient::~MainClient() { delete request_parser; }
@@ -50,6 +54,10 @@ void MainClient::start_handle(string task) {
 			this->handle_write();
 
 	} catch (const std::exception &e) {
+
+		if (string(e.what()).find("can't open file") != string::npos)
+			throw std::runtime_error(string(e.what()));
+
 		print_error(string(e.what()));
 
 		if (string(e.what()) == "Still running")
@@ -111,23 +119,24 @@ void MainClient::body_reading() {
 	if (n == 0)
 		return;
 
-	if (this->body_file.size() == 0)
+	if (this->body_file.size() == 0) {
 		this->body_file = generate_random_file_name();
-
-	cout << "body file : " << this->body_file << endl;
+		cout << "body file : " << this->body_file << endl;
+	}
 
 	// Open the file for writing
-	std::ofstream outFile(this->body_file.c_str());
+	std::ofstream outFile(this->body_file.c_str(), std::ios::app);
 	if (!outFile)
-		throw std::runtime_error("can't open file " + this->body_file);
+		throw std::runtime_error(str_red("can't open file " + this->body_file));
 
 	if (count == 0 && this->body.size() != 0) {
 		// Write data to the file with flush
-		outFile << this->body;
-		outFile << std::flush;
 		count += this->body.size();
+		outFile << this->body << std::flush;
+		this->body.clear();
 	}
 
+	std::memset(buffer, 0, MAXLINE);
 	bytes = recv(this->client_socket, buffer, MAXLINE, 0);
 	if (bytes < 0)
 		throw Error::BadRequest400();
@@ -138,7 +147,8 @@ void MainClient::body_reading() {
 
 	// Close the file
 	outFile.close();
-	if (count == n) {
+
+	if (count == n || bytes == 0) {
 		this->body_status = true;
 		count			  = 0;
 		return;
@@ -157,11 +167,13 @@ void MainClient::handle_read() {
 		&& this->get_request("Content-Length").size() != 0) {
 		this->body_reading();
 
-		print_line(this->body_file + " start:");
+		// concat body file
+		cout << "-> cat " << this->body_file << endl;
+		print_line("start:");
 		string file = "cat " + this->body_file;
 		system(file.c_str());
 		cout << endl;
-		print_line(this->body_file + " end:");
+		print_line("end:");
 	}
 
 	this->location = this->check_and_change_request_uri();

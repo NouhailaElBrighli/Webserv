@@ -195,18 +195,18 @@ void MainServer::accepter(int fd_socket) {
 	FD_SET(this->accept_socket, &this->read_sockets);
 }
 
-void MainServer::create_client(int client_socket, string task) {
+void MainServer::create_client(int client_socket) {
 	int i;
 
 	print_long_line("create client");
 	if ((i = this->right_server(client_socket)) != -1) {
-		MainClient *mainClient = new MainClient(
-			client_socket, this->config_file_parser->get_config_server_parser(i), task);
+		MainClient *mainClient
+			= new MainClient(client_socket, this->config_file_parser->get_config_server_parser(i));
 		this->clients[client_socket] = mainClient;
 		return;
 	} else if (i == -1) {
-		MainClient *mainClient = new MainClient(
-			client_socket, this->config_file_parser->get_config_server_parser(0), task);
+		MainClient *mainClient
+			= new MainClient(client_socket, this->config_file_parser->get_config_server_parser(0));
 		this->clients[client_socket] = mainClient;
 		return;
 	}
@@ -217,15 +217,19 @@ void MainServer::handle(int client_socket, string task) {
 
 	if (this->clients.find(client_socket) != this->clients.end())
 		this->clients[client_socket]->start(task);
-	else
-		this->create_client(client_socket, task);
+
+	else {
+		this->create_client(client_socket);
+		this->clients[client_socket]->start(task);
+	}
 }
 
 void MainServer::destroy_client(int client_socket) {
 	print_long_line("destroy client");
 	// Check if the client is a master socket
 	cout << C_YELLOW << "current socket to be close: " << client_socket << C_RES << endl;
-	if (this->clients[client_socket]->get_send_receive_status() == true) {
+	if (this->clients.find(client_socket) != this->clients.end()
+		&& this->clients[client_socket]->get_send_receive_status() == true) {
 		cout << C_RED << "current client '" << client_socket
 			 << "' can't be closed now, until the response is done." << C_RES << endl;
 		return;
@@ -268,22 +272,22 @@ void MainServer::routine() {
 					} catch (const std::exception &e) {
 						cerr << e.what() << endl;
 					}
-				} else {
-
-					try {
-						// if the socket is ready for reading, call the handle_read function
-						if (FD_ISSET(i, &this->read_sockets))
-							this->handle(i, "read");
-
-						// if the socket is ready for writing, call the handle_write function
-						else if (FD_ISSET(i, &this->write_sockets))
-							this->handle(i, "write");
-
-						this->destroy_client(i);
-					} catch (const std::exception &e) {
-						cerr << e.what() << endl;
-					}
+					continue;
 				}
+				try {
+					// if the socket is ready for reading, call the handle_read function
+					if (FD_ISSET(i, &this->read_sockets))
+						this->handle(i, "read");
+
+					// if the socket is ready for writing, call the handle_write function
+					else if (FD_ISSET(i, &this->write_sockets))
+						this->handle(i, "write");
+
+				} catch (const std::exception &e) {
+					this->clients[i]->set_send_receive_status(false);
+					cerr << e.what() << endl;
+				}
+				this->destroy_client(i);
 			}
 		}
 	}

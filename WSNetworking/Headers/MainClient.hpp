@@ -11,7 +11,7 @@ class MainClient {
 	bool				send_receive_status;
 	string				msg_status;
 	int					client_socket;
-	char				buffer[MAXLINE + 1];
+	char				buffer[MAXLINE];
 	string				header;
 	int					location;
 	int					status, phase;
@@ -30,17 +30,18 @@ class MainClient {
 	const string			  &get_request(string key);
 	const bool				  &get_send_receive_status() const;
 	const int				  &get_phase() const;
-
-	int					get_client_socket();
-	int					get_location();
-	ConfigServerParser *get_config_server();
+	const string			  &get_body_file() const;
+	const int				  &get_client_socket() const;
+	const int				  &get_location() const;
+	ConfigServerParser		  *get_config_server() const;
 
 	// Setters
+	void set_send_receive_status(bool send_receive_status);
 	void set_location(int location);
 
 	// Constructors and destructor
 	MainClient();
-	MainClient(int client_socket, ConfigServerParser *config_server_parser, string task);
+	MainClient(int client_socket, ConfigServerParser *config_server_parser);
 	~MainClient();
 
 	// Methods
