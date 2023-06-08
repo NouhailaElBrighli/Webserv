@@ -104,7 +104,7 @@ string MainClient::generate_random_file_name() {
 	// Seed the random number generator
 	std::srand(static_cast<unsigned int>(std::time(0)));
 
-	ss << "/tmp/body_" << std::hex << now << "_" << std::rand();
+	ss << "./tmp/body_" << std::hex << now << "_" << std::rand();
 	return ss.str();
 }
 
@@ -113,10 +113,6 @@ void MainClient::body_reading() {
 	static int count = 0;
 
 	if (this->body_status)
-		return;
-
-	n = ConfigServerParser::stringToInt(this->request_parser->get_request("Content-Length"));
-	if (n == 0)
 		return;
 
 	if (this->body_file.size() == 0) {
@@ -135,6 +131,10 @@ void MainClient::body_reading() {
 		outFile << this->body << std::flush;
 		this->body.clear();
 	}
+
+	n = ConfigServerParser::stringToInt(this->request_parser->get_request("Content-Length"));
+	if (n == 0)
+		return;
 
 	std::memset(buffer, 0, MAXLINE);
 	bytes = recv(this->client_socket, buffer, MAXLINE, 0);
@@ -157,23 +157,108 @@ void MainClient::body_reading() {
 	}
 }
 
+int MainClient::find_chunk_size0() {
+	int				  i;
+	std::stringstream ss;
+
+	ss << this->body.substr(0, this->body.find("\r\n"));
+	ss >> std::hex >> i;
+
+	return i;
+}
+
+int MainClient::find_chunk_size1() {
+	int				  bytes;
+	std::stringstream ss;
+
+	std::memset(buffer, 0, MAXLINE);
+
+	for (int i = 0; i < 100; i++) {
+
+		bytes = recv(this->client_socket, buffer, 1, 0);
+		this->body.append(buffer, bytes);
+
+		if (this->body[i] == '\r') {
+			bytes = recv(this->client_socket, buffer, 1, 0);
+			ss << this->body.substr(0, i);
+			ss >> std::hex >> i;
+			return i;
+		}
+	}
+	return 0;
+}
+
+void MainClient::chunked_body_reading() {
+	int		   n, bytes;
+	static int count = 0;
+
+	if (this->body_status)
+		return;
+
+	if (this->body_file.size() == 0) {
+		this->body_file = generate_random_file_name();
+		cout << "body file : " << this->body_file << endl;
+	}
+
+	// Open the file for writing
+	std::ofstream outFile(this->body_file.c_str(), std::ios::app);
+	if (!outFile)
+		throw std::runtime_error(str_red("can't open file " + this->body_file));
+
+	if (count == 0 && this->body.size() != 0) {
+		n = find_chunk_size0();
+
+		this->body = this->body.substr(this->body.find("\r\n") + 2);
+
+		// Write data to the file with flush
+		outFile << this->body << std::flush;
+
+		this->body.clear();
+
+	} else {
+		n = find_chunk_size1();
+		if (n == 0) {
+			this->body_status = true;
+			count			  = 0;
+			return;
+		}
+	}
+
+	char buffer0[n];
+	std::memset(buffer0, 0, n);
+	bytes = recv(this->client_socket, buffer0, n, 0);
+	if (bytes < 0)
+		throw Error::BadRequest400();
+
+	// Write data to the file
+	outFile << buffer0;
+	count += bytes;
+
+	// Close the file
+	outFile.close();
+
+	if (count == n || bytes == 0) {
+		this->body_status = true;
+		count			  = 0;
+		return;
+	} else {
+		throw std::runtime_error("Still running");
+	}
+}
+
 void MainClient::handle_read() {
 	print_line("Client Request (read)");
 
 	this->header_reading();
 	this->request_parser->run_parse(this->head);
 
-	if (this->request_parser->get_request("Request-Type") == "POST"
-		&& this->get_request("Content-Length").size() != 0) {
-		this->body_reading();
-
-		// concat body file
-		cout << "-> cat " << this->body_file << endl;
-		print_line("start:");
-		string file = "cat " + this->body_file;
-		system(file.c_str());
-		cout << endl;
-		print_line("end:");
+	if (this->request_parser->get_request("Request-Type") == "POST") {
+		if (this->get_request("Content-Length").size() != 0)
+			this->body_reading();
+		else if (this->get_request("Transfer-Encoding") == "chunked")
+			this->chunked_body_reading();
+		else
+			throw Error::BadRequest400();
 	}
 
 	this->location = this->check_and_change_request_uri();

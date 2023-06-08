@@ -53,9 +53,14 @@ class MainClient {
 	// Methods
 	void start_handle(string task);
 
-	void   header_reading();
+	void header_reading();
+
 	string generate_random_file_name();
 	void   body_reading();
+
+	int	 find_chunk_size0();
+	int	 find_chunk_size1();
+	void chunked_body_reading();
 
 	void handle_read();
 	void handle_write();
