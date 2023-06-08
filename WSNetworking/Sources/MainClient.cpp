@@ -24,7 +24,7 @@ MainClient::~MainClient() { delete request_parser; }
 void MainClient::start_handle() {
 	try {
 		this->handle(this->client_socket);
-		Response Response;
+		Response Response(this);
 		if (this->request_parser->get_request("Request-Type") == "GET") {
 			Response.Get(this);
 		}
@@ -85,7 +85,6 @@ void MainClient::handle(int client_socket) {
 	data = this->Header_reading(client_socket);
 	head = data.substr(0, data.find("\r\n\r\n"));
 	this->request_parser->run_parse(head);
-	// std::cout << *this->request_parser << std::endl;
 	if (this->get_request("Transfer-Encoding").size() != 0 && this->get_request("Transfer-Encoding") != "chunked")
 		throw Error::NotImplemented501();// transfer encoding exist and different to chunked
 	if (this->get_request("Content-Length").size() == 0 && this->get_request("Transfer-Encoding").size() == 0 && this->get_request("Request-Type") == "POST")
@@ -98,38 +97,12 @@ void MainClient::handle(int client_socket) {
 	int location = this->match_location();
 	this->set_location(location);
 	if (this->config_server_parser->get_config_location_parser()[get_location()]->get_return().size() != 0)
+	{
+		redirection = '/' + this->config_server_parser->get_config_location_parser()[get_location()]->get_return();
 		throw Accurate::MovedPermanently301();
+	}
 	is_method_allowed_in_location();
-	// if (this->config_server_parser->get_config_location_parser()[locate]->get_autoindex() == 0)
-	// 	throw Error::Forbidden403();
-	// if (body.length() > this->config_server_parser->get_client_max_body_size())
-	// 	throw Error::RequestEntityTooLarge413();
-	// this->send_receive_status = false;
 }
-
-// int MainClient::get_matched_location_for_request_uri() {
-// 	// get file name to compare with index
-// 	int locate = 0;
-// 	for (vector<ConfigLocationParser *>::const_iterator it
-// 		 = config_server_parser->get_config_location_parser().begin();
-// 		 it != config_server_parser->get_config_location_parser().end(); it++) {
-// 		if ((*it)->get_location().find("cgi") != string::npos) {
-// 			locate++;
-// 			continue;
-// 		}
-// 		if (this->get_request("Request-URI") == (*it)->get_location()
-// 			|| this->get_request("Request-URI") == (*it)->get_root())
-// 			return locate;
-// 		else if (this->get_request("Request-URI").find((*it)->get_location()) != string::npos)
-// 			return locate;
-// 		else if (this->get_request("Request-URI").find((*it)->get_root()) != string::npos)
-// 			return locate;
-// 		locate++;
-// 	}
-// 	// if ((is_found == false)
-// 		throw Error::NotFound404();
-// 	return(-1);
-// }
 
 void MainClient::is_method_allowed_in_location() {
 	for (vector<ConfigLocationParser *>::const_iterator it = config_server_parser->get_config_location_parser().begin();
@@ -154,6 +127,7 @@ int	MainClient::match_location()
 	std::string str = this->get_request("Request-URI");
 	size_t found;
 	int locate = 0;
+	this->new_url = this->get_request("Request-URI");
 	while (str.size() != 0)
 	{
 		locate = 0;
@@ -162,17 +136,19 @@ int	MainClient::match_location()
 		{
 			if ((*itr)->get_location() == str)
 			{
-				std::string new_url = this->get_request("Request-URI");
-				new_url.replace(0, str.size() , this->config_server_parser->get_config_location_parser()[locate]->get_root());
-				this->request_parser->reset_request_uri(new_url);
+				str = this->get_request("Request-URI");
+				this->new_url = this->get_request("Request-URI");
+				std::string root = this->config_server_parser->get_config_location_parser()[locate]->get_root();
+				this->new_url.erase(0, (*itr)->get_location().size());
+				this->new_url = root + new_url;// ? I shouldn't reset the uri for redirect it later 
 				return (locate);
 			}
 			locate++;
 		}
 		found = str.find_last_of('/');
 		str = str.substr(0, found);
-	}
-	//!check_if_uri_exist to serve it
+	}	
+	//!check_if_uri_exist_to_serve_it
 	throw Error::NotFound404();
 	return (-1);
 }
@@ -186,8 +162,8 @@ void MainClient::set_header_for_errors_and_redirection()
 		this->header = "HTTP/1.1 ";
 		this->header += this->msg_status;
 		this->header += "\r\nContent-Length: 0\r\n";
-		this->header += "Location: /"; // should use port and host or not ?
-		this->header += this->config_server_parser->get_config_location_parser()[get_location()]->get_return();
+		this->header += "Location: "; // should use port and host or not ?
+		this->header += redirection;
 		this->header += "\r\n\r\n";
 		std::cout << "Header of redirection:\n" << this->header << std::endl;
 	}
@@ -213,4 +189,14 @@ int		MainClient::get_location()
 ConfigServerParser	*MainClient::get_config_server()
 {
 	return (config_server_parser);
+}
+
+void MainClient::set_redirection(std::string &redirection)
+{
+	this->redirection = redirection;
+}
+
+std::string MainClient::get_new_url()
+{
+	return(this->new_url);
 }

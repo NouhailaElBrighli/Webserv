@@ -16,6 +16,8 @@ class MainClient {
 	char				buffer[MAXLINE + 1];
 	std::string			header;
 	int					location;
+	std::string			redirection;
+	std::string			new_url;
 
 	MainClient(const MainClient &);
 	MainClient &operator=(const MainClient &);
@@ -42,6 +44,8 @@ class MainClient {
 	void	set_location(int location);
 	int		get_location();
 	ConfigServerParser *get_config_server();
+	void set_redirection(std::string &redirection);
+	std::string get_new_url();
 
   private:
 	// Methods

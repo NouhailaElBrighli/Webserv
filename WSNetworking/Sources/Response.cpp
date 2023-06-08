@@ -16,31 +16,18 @@ Response::Response(MainClient *Client)
 	this->Client = Client;
 }
 
-void	Response::set_resource_type()
-{
-	std::cout << "URI ->" << Client->get_request("Request-URI") << std::endl;
-	DIR *directory  = opendir(Client->get_request("Request-URI").c_str());
-	if (directory == NULL)
-		type = "file";
-	else
-	{
-		type = "directory";
-		closedir(directory);
-		if (Client->get_request("Request-URI")[Client->get_request("Request-URI").size() - 1] != '/')
-		{
-			std::cout << "yes" << std::endl;
-		}
-	}
-}
-
 void Response::Get(MainClient *client) {
 	print_long_line("Handle GET");
-	this->check_request_uri(client);// * check if uri exist in the root
-	this->SetVars(client->get_request("Request-URI"));
+	this->check_request_uri();// * check if uri exist in the root
+	std::string file_to_serve;
+	if (this->type == "directory")
+		file_to_serve = handle_directory();
+	else if (this->type == "file")
+		file_to_serve = handle_file();
+	this->SetVars(file_to_serve);
 	if (this->ContentType == "cgi")
 		return;
 	send(client->GetClientSocket(), header.c_str(), header.size(), 0);
-	// std::cout << *this << std::endl;
 }
 
 void Response::SetError(const std::string msg_status) {
@@ -95,23 +82,20 @@ void Response::SetContentLength(std::string RequestURI) {
 	std::ifstream RequestedFile(RequestURI.c_str(), std::ios::binary);
 	if (!RequestedFile)
 		throw Error::Forbidden403();// ! don't check here
-	std::string content((std::istreambuf_iterator<char>(RequestedFile)),
-						std::istreambuf_iterator<char>());
+	std::string content((std::istreambuf_iterator<char>(RequestedFile)), std::istreambuf_iterator<char>());
 	this->body = content;
 	std::stringstream num;
 	num << this->body.size();
 	this->ContentLength = num.str();
 }
 
-void Response::SetVars(const std::string &RequestURI) {
-	std::stringstream ss(RequestURI);
+void Response::SetVars(std::string file_to_serve) {
+	std::stringstream ss(file_to_serve);
+
 	while (getline(ss, this->filename, '/')) {
 	}
-
 	this->SetContentType();
-	if (this->ContentType == "cgi")
-		return;
-	this->SetContentLength(RequestURI);
+	this->SetContentLength(file_to_serve);
 
 	this->header = "HTTP/1.1 200 ok\r\nContent-Type: ";
 	this->header += this->ContentType;
@@ -119,38 +103,133 @@ void Response::SetVars(const std::string &RequestURI) {
 	this->header += ContentLength;
 	this->header += "\r\n\r\n";
 	this->header += body;
+	// std::cout << "header :" << this->header << std::endl;
 }
 
-void	Response::check_request_uri(MainClient *client)
+void	Response::check_request_uri()
 {
-	int flag = 0;
-	std::string root = client->get_config_server()->get_config_location_parser()[client->get_location()]->get_root();
-	std::string uri = client->get_request("Request-URI");
-	std::string path = uri.substr(root.size(), root.size() - uri.size());
-	std::cout << "---------->the root: " << root << std::endl;
-	std::cout << "--------------->uri: " << uri << std::endl;
-	std::cout << "------------>: " << path << std::endl;
-	// std::string new_path = path;
-	// new_path = new_path.substr(1, new_path.size()); // the / in the begin 
-	// size_t found = new_path.find('/');
-	// if (found != std::string::npos)
-	// 	new_path = new_path.substr(0, found);
-	// std::cout << "found:" << found << std::endl;
-	// std::cout << "new_path :" << new_path << std::endl;
-	DIR *root_directory = opendir(root.c_str());
-	if (!root_directory)
-		throw Error::BadRequest400(); // why it will fail to open the directory
-	dirent *list;
-	while ((list = readdir(root_directory)))
+	std::string root = Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_root();
+	std::string uri = Client->get_new_url();
+	if (uri[uri.size() - 1] == '/')
+		uri.erase(uri.size() - 1, 1);
+	if (root == uri)
 	{
-		if (list->d_name == path)
-		{
-			flag = 1;
-			std::cout <<  "i found it" << std::endl;
-			break;
-		}
-		std::cout << list->d_name << std::endl;
+		this->type = "directory";
+		return;
 	}
-	if (!flag)
+	this->check_inside_root(root, uri);
+	if (this->type.size() == 0)
 		throw Error::NotFound404();
+}
+
+void	Response::check_inside_root(std::string &root, std::string uri)
+{
+	DIR *directory = opendir(root.c_str());
+	if (!directory)
+	{
+		std::cout << "failed to open directory: " << uri << std::endl;
+		throw Error::BadRequest400();
+	}
+	dirent *list;
+	while ((list = readdir(directory)))
+	{
+		std::string name = list->d_name;
+		if (list->d_type == DT_DIR)
+		{
+			if (name != "." && name != "..")
+			{
+				std::string new_path = root + '/' + list->d_name;
+				if (new_path == uri) 
+				{
+					this->type = "directory";
+					break;
+				}
+				check_inside_root(new_path, uri);
+			}
+		}
+		else if (list->d_type == DT_REG)
+		{	
+			std::string filename = root + '/' + list->d_name;
+			if (filename == uri)
+			{
+				this->type = "file";
+				break;
+			}
+		}
+	}
+	closedir(directory);
+}
+
+void	Response::serve_file(std::string	index_file)
+{
+	std::cout << "file to serve: " << index_file << std::endl;// search for cgi here
+
+}
+
+std::string	Response::check_auto_index()
+{
+	int autoindex =  this->Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_autoindex();
+	if (autoindex == 0)
+		throw Error::Forbidden403();
+	else
+	{
+		DIR *directory = opendir(Client->get_new_url().c_str());
+		// std::cout << "url: " << Client->get_new_url() << std::endl;
+		if (!directory)
+		{
+			std::cout << "failed to open the directory" << std::endl;
+			throw Error::Forbidden403();
+		}
+		dirent *list;
+		while ((list = readdir(directory)))
+		{
+			std::ofstream file("folder/serve_file");
+			if (!file.is_open())
+				throw Error::BadRequest400();
+			file << "* " << list->d_name << std::endl;
+			std::cout << "* " << list->d_name << std::endl;
+		}
+		closedir(directory);
+	}
+	return ("folder/serve_file");
+}
+
+std::string	Response::handle_directory()
+{
+	print_short_line("handle directory");
+	std::string uri = Client->get_new_url();
+	if (uri[uri.size() - 1] != '/')// redirect from /folder to /folder/
+	{
+		std::string red =  Client->get_request("Request-URI") + '/'; // ? i should use old uri with location one
+		Client->set_redirection(red);
+		throw Accurate::MovedPermanently301();
+	}
+	std::vector<std::string > index_vec =  Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_index();
+	if (index_vec.size() != 0)
+	{
+		std::string root = Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_root();
+		for (std::vector<std::string>::iterator itr_index = index_vec.begin(); itr_index != index_vec.end(); itr_index++)
+		{
+			std::string index_file = root + '/' + (*itr_index);
+			std::ifstream file(index_file);
+			if (!file)
+				continue;
+			else
+			{
+				file.close();
+				return (index_file);
+			}
+		}
+		throw Error::Forbidden403();//should i throw if the files doesn't exist
+	}
+	return (check_auto_index());
+}
+
+std::string	Response::handle_file()
+{
+	print_short_line("handle file");
+	std::ifstream file(Client->get_new_url());
+	if (!file)
+		throw Error::Forbidden403();
+	return (Client->get_new_url());
 }
