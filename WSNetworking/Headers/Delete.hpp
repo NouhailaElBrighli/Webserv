@@ -6,7 +6,7 @@
 /*   By: hsaidi <hsaidi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/27 16:12:00 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/06/07 11:09:48 by hsaidi           ###   ########.fr       */
+/*   Updated: 2023/06/08 17:16:30 by hsaidi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,7 @@ class Delete
         ~Delete();
         void delete_file();
         void remove_file(const std::string &path);
+        // void remove_file_or_directory(const std::string& path);
 };
 
 #endif

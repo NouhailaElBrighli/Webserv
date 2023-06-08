@@ -6,7 +6,7 @@
 /*   By: hsaidi <hsaidi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/27 11:30:30 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/06/07 11:52:12 by hsaidi           ###   ########.fr       */
+/*   Updated: 2023/06/08 17:15:59 by hsaidi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,39 +21,37 @@ Delete::Delete(MainClient *main_client, vector<ConfigLocationParser *>config_loc
 
 Delete::~Delete(){}
 
+#include <dirent.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <cstring>
+#include <dirent.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <cstring>
+
 void Delete::delete_file()
 {
+    for (std::vector<ConfigLocationParser*>::const_iterator it = this->config_location_parser.begin();
+         it != this->config_location_parser.end(); it++) {
+        std::string file_name = this->main_client->get_request("Request-URI");
 
-	for (std::vector<ConfigLocationParser*>::const_iterator it = this->config_location_parser.begin();
-		 it != this->config_location_parser.end(); it++) {
-		std::string file_name = this->main_client->get_request("Request-URI");
+        if ((*it)->get_location().find("cgi") != std::string::npos)
+            continue;
 
-		if ((*it)->get_location().find("cgi") != std::string::npos)
-			continue;
-
-		if (this->main_client->get_request("Request-URI").find((*it)->get_location()) != std::string::npos) {
-			file_name.erase(0, (*it)->get_location().length());
-			file_name = (*it)->get_root() + file_name; // Concatenate root and remaining path segments
-			remove_file(file_name);
-		} else if (this->main_client->get_request("Request-URI").find((*it)->get_root()) != std::string::npos) {
-			file_name.erase(0, (*it)->get_root().length());
-			file_name = (*it)->get_root() + file_name; // Concatenate root and remaining path segments
-			remove_file(file_name);
-		}
-	}
+        if (this->main_client->get_request("Request-URI").find((*it)->get_location()) != std::string::npos) {
+            file_name.erase(0, (*it)->get_location().length());
+            file_name = (*it)->get_root() + file_name; // Concatenate root and remaining path segments
+            remove_file(file_name);
+            break; // Exit the loop after deleting the requested file/folder
+        } else if (this->main_client->get_request("Request-URI").find((*it)->get_root()) != std::string::npos) {
+            file_name.erase(0, (*it)->get_root().length());
+            file_name = (*it)->get_root() + file_name; // Concatenate root and remaining path segments
+            remove_file(file_name);
+            break; // Exit the loop after deleting the requested file/folder
+        }
+    }
 }
-
-// void Delete::remove_file(std::string file_name)
-// {
-
-// 	if (file_name.empty())
-// 		throw Error::No_content204();
-// 	if (remove(file_name.c_str()) != 0)
-// 		throw Error::No_content204();`
-// 	else {
-// 		throw Error::Successe200();
-// 	}
-// }
 
 void Delete::remove_file(const std::string &path)
 {

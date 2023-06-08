@@ -106,6 +106,7 @@ void MainClient::handle(int client_socket) {
 	// get the right config server parser if not set in constructor
 	if (this->request_parser->get_request("Request-Type") == "POST")  // !protect by status
 		this->Body_reading(client_socket, body);
+	cout<< "body: "<<endl << body << endl;
 
 	int locate = get_matched_location_for_request_uri();
 	is_method_allowed_in_location();
