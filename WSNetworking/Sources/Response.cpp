@@ -1,5 +1,4 @@
 #include "Response.hpp"
-#include <dirent.h>
 
 Response::Response() {}
 
@@ -17,34 +16,47 @@ Response::Response(MainClient *Client)
 }
 
 void Response::Get(MainClient *client) {
+	
 	print_long_line("Handle GET");
-	this->check_request_uri();// * check if uri exist in the root
 	std::string file_to_serve;
-	if (this->type == "directory")
-		file_to_serve = handle_directory();
-	else if (this->type == "file")
-		file_to_serve = handle_file();
+	if (Client->get_serve_file().size() == 0)
+	{
+		this->check_request_uri();// * check if uri exist in the root
+		if (this->type == "directory")
+			file_to_serve = handle_directory();
+		else if (this->type == "file")
+			file_to_serve = handle_file();
+	}
+	else
+		file_to_serve = Client->get_serve_file();
 	this->SetVars(file_to_serve);
-	if (this->ContentType == "cgi")
-		return;
 	send(client->GetClientSocket(), header.c_str(), header.size(), 0);
 }
 
-void Response::SetError(const std::string msg_status) {
-	std::stringstream ss(msg_status);
-	std::stringstream num;
-	std::string		  error;
-	getline(ss, error, ' ');
-	getline(ss, error, '\0');
-	num << error.size();
-	this->ContentLength = num.str();
-	this->header		= "HTTP/1.1 ";
-	this->header += msg_status;
-	this->header += "\r\nContent-Type: text/plain\r\n";
-	this->header += "Content-Length: ";
-	this->header += this->ContentLength;
-	this->header += "\r\n\r\n";
-	this->header += error;
+void Response::SetError(const std::string msg_status, std::string body_file) {
+		std::stringstream num;
+		std::string content;
+		this->ContentType = "text/html";
+		if (body_file.size() != 0)
+		{
+			std::ifstream file(body_file);
+			if (file.is_open())
+				std::getline(file, content, '\0');
+			num << content.size();
+			num >> 	this->ContentLength;
+		}
+		else
+			content = this->set_error_body(msg_status);
+		this->header = "HTTP/1.1 ";
+		this->header += msg_status;
+		this->header += "\r\nContent-Type: ";
+		this->header += ContentType;
+		this->header += "\r\nContent-Length: ";
+		this->header += this->ContentLength;
+		this->header += "\r\n\r\n";
+		this->header += content;
+		this->header += "\r\n\r\n";
+		std::cout << "this->header:\n" << this->header << std::endl;
 }
 
 std::ostream &operator<<(std::ostream &out, const Response &obj) {
@@ -103,7 +115,6 @@ void Response::SetVars(std::string file_to_serve) {
 	this->header += ContentLength;
 	this->header += "\r\n\r\n";
 	this->header += body;
-	// std::cout << "header :" << this->header << std::endl;
 }
 
 void	Response::check_request_uri()
@@ -139,7 +150,7 @@ void	Response::check_inside_root(std::string &root, std::string uri)
 			if (name != "." && name != "..")
 			{
 				std::string new_path = root + '/' + list->d_name;
-				if (new_path == uri) 
+				if (new_path == uri)
 				{
 					this->type = "directory";
 					break;
@@ -174,21 +185,18 @@ std::string	Response::check_auto_index()
 	else
 	{
 		DIR *directory = opendir(Client->get_new_url().c_str());
-		// std::cout << "url: " << Client->get_new_url() << std::endl;
 		if (!directory)
-		{
-			std::cout << "failed to open the directory" << std::endl;
 			throw Error::Forbidden403();
-		}
+		std::ofstream file("folder/serve_file.txt");
 		dirent *list;
 		while ((list = readdir(directory)))
 		{
-			std::ofstream file("folder/serve_file");
 			if (!file.is_open())
 				throw Error::BadRequest400();
 			file << "* " << list->d_name << std::endl;
 			std::cout << "* " << list->d_name << std::endl;
 		}
+		file.close();
 		closedir(directory);
 	}
 	return ("folder/serve_file");
@@ -220,7 +228,6 @@ std::string	Response::handle_directory()
 				return (index_file);
 			}
 		}
-		throw Error::Forbidden403();//should i throw if the files doesn't exist
 	}
 	return (check_auto_index());
 }
@@ -232,4 +239,22 @@ std::string	Response::handle_file()
 	if (!file)
 		throw Error::Forbidden403();
 	return (Client->get_new_url());
+}
+
+std::string	Response::set_error_body(std::string msg_status)
+{
+	std::string content;
+	content = "<!DOCTYPE html>\r\n<html>\r\n<head>\r\n<title>";
+	content += msg_status;
+	content += "</title>\r\n<style>\r\nbody {\r\ntext-align: center;\r\npadding: 40px;\r\nfont-family: Arial, sans-serif;\r\n}\r\n";
+    content += "h1 {\r\nfont-size: 100px;\r\ncolor: red;\r\n}\r\n";
+	content += "</style>\r\n</head>\r\n<body>\r\n<h1>";
+	content += msg_status;
+	content += "</body>\r\n</html>";
+	std::stringstream ss;
+	ss << content.size();
+	ss >> this->ContentLength;
+	std::cout << "content size: " << content.size() << std::endl;
+	std::cout << "content length: " << this->ContentLength << std::endl;
+	return (content);
 }

@@ -31,8 +31,13 @@ void MainClient::start_handle() {
 	} catch (const std::exception &e) {
 		print_short_line("catch something");
 		this->msg_status = e.what();
+		std::stringstream ss (this->msg_status);
+		ss >> this->status;
+		check_files_error();
 		set_header_for_errors_and_redirection();
+		
 	}
+	std::cout << "this->header\n: " << this->header << std::endl;
 	send(client_socket, this->header.c_str(), header.size(), 0);
 	this->send_receive_status = false;
 }
@@ -75,16 +80,16 @@ std::string &MainClient::Body_reading(int client_socket, std::string &body) {
 	return (body);
 }
 
-void MainClient::handle(int client_socket) {
+void	MainClient::handle(int client_socket) {
 	string	data;
 	string	head;
 	string	body;
 
-	//! BODY NEED TO BE FILL IN EXTERNAL FILE
 	print_line("Client");
 	data = this->Header_reading(client_socket);
 	head = data.substr(0, data.find("\r\n\r\n"));
 	this->request_parser->run_parse(head);
+	std::cout << *this->request_parser<< std::endl;
 	if (this->get_request("Transfer-Encoding").size() != 0 && this->get_request("Transfer-Encoding") != "chunked")
 		throw Error::NotImplemented501();// transfer encoding exist and different to chunked
 	if (this->get_request("Content-Length").size() == 0 && this->get_request("Transfer-Encoding").size() == 0 && this->get_request("Request-Type") == "POST")
@@ -95,13 +100,16 @@ void MainClient::handle(int client_socket) {
 		this->Body_reading(client_socket, body);
 	}
 	int location = this->match_location();
-	this->set_location(location);
-	if (this->config_server_parser->get_config_location_parser()[get_location()]->get_return().size() != 0)
+	if (location != -1)
 	{
-		redirection = '/' + this->config_server_parser->get_config_location_parser()[get_location()]->get_return();
-		throw Accurate::MovedPermanently301();
+		this->location = location;
+		if (this->config_server_parser->get_config_location_parser()[get_location()]->get_return().size() != 0)
+		{
+			redirection = '/' + this->config_server_parser->get_config_location_parser()[get_location()]->get_return();
+			throw Accurate::MovedPermanently301();
+		}
+		is_method_allowed_in_location();
 	}
-	is_method_allowed_in_location();
 }
 
 void MainClient::is_method_allowed_in_location() {
@@ -147,16 +155,13 @@ int	MainClient::match_location()
 		}
 		found = str.find_last_of('/');
 		str = str.substr(0, found);
-	}	
-	//!check_if_uri_exist_to_serve_it
-	throw Error::NotFound404();
+	}
+	check_if_uri_exist();
 	return (-1);
 }
 
 void MainClient::set_header_for_errors_and_redirection()
 {
-	std::stringstream ss (this->msg_status);
-	ss >> this->status;
 	if (this->status  < 400) // redirection
 	{
 		this->header = "HTTP/1.1 ";
@@ -169,16 +174,10 @@ void MainClient::set_header_for_errors_and_redirection()
 	}
 	else // errors
 	{
-		Response Error;
-		Error.SetError(this->msg_status);
+		Response	Error;
+		Error.SetError(msg_status, body_file);
 		this->header = Error.GetHeader();
-		std::cout << "Header of Error:\n" << this->header << std::endl;
 	}
-}
-
-void	MainClient::set_location(int location)
-{
-	this->location = location;
 }
 	
 int		MainClient::get_location()
@@ -200,3 +199,42 @@ std::string MainClient::get_new_url()
 {
 	return(this->new_url);
 }
+
+std::string	MainClient::get_serve_file()
+{
+	return(serve_file);
+}
+
+void	MainClient::check_if_uri_exist()
+{
+	DIR *directory = opendir(this->get_request("Request-URI").c_str());
+	if (directory == NULL)
+	{
+		std::ifstream file(this->get_request("Request-URI"));
+		if (!file.is_open())
+			throw Error::NotFound404();
+		file.close();
+		this->serve_file = this->get_request("Request-URI");
+	}
+	else
+		throw Error::NotFound404();
+}
+
+void	MainClient::check_files_error()
+{
+	std::map<int, std::string>error_map = this->config_server_parser->get_error_page();
+	std::cout << "status: " << this->status << std::endl;
+	if (error_map[this->status].size() != 0)
+	{
+		std::ifstream error_page(error_map[this->status]);
+		if (!error_page.is_open())
+			return;
+		body_file = error_map[this->status];
+		std::cout << "body file: " << body_file << std::endl;
+	}
+}
+
+// import os
+// file_path = "/Users/nel-brig/Desktop/webserv/error/404.html"
+// file_size = os.path.getsize(file_path)
+// print("File size:", file_size, "bytes")

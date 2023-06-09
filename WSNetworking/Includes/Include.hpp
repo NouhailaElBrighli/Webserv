@@ -23,6 +23,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <dirent.h>
 
 #define MAXLINE 1024
 

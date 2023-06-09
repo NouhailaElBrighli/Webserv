@@ -18,6 +18,8 @@ class MainClient {
 	int					location;
 	std::string			redirection;
 	std::string			new_url;
+	std::string			serve_file;
+	std::string			body_file;
 
 	MainClient(const MainClient &);
 	MainClient &operator=(const MainClient &);
@@ -46,6 +48,7 @@ class MainClient {
 	ConfigServerParser *get_config_server();
 	void set_redirection(std::string &redirection);
 	std::string get_new_url();
+	std::string	get_serve_file();
 
   private:
 	// Methods
@@ -53,6 +56,8 @@ class MainClient {
 	void responder(int client_socket);
 	int	 get_matched_location_for_request_uri();
 	void is_method_allowed_in_location();
+	void	check_if_uri_exist();
+	void	check_files_error();
 };
 
 #endif	// MAINCLIENT_HPP
