@@ -82,6 +82,7 @@ void MainClient::header_reading() {
 	if (this->head_status)
 		return;
 
+	std::memset(buffer, 0, MAXLINE);
 	bytes = recv(this->client_socket, buffer, MAXLINE, 0);
 	if (bytes == 0)
 		return;
@@ -121,20 +122,22 @@ void MainClient::body_reading() {
 	}
 
 	// Open the file for writing
-	std::ofstream outFile(this->body_file.c_str(), std::ios::app);
+	std::ofstream outFile(this->body_file.c_str(), std::ios::app | std::ios::binary);
 	if (!outFile)
 		throw std::runtime_error(str_red("can't open file " + this->body_file));
 
-	if (count == 0 && this->body.size() != 0) {
-		// Write data to the file with flush
-		count += this->body.size();
-		outFile << this->body << std::flush;
+	if (this->body.size() != 0) {
+		count = this->body.size();
+		outFile.write(this->body.c_str(), count);
 		this->body.clear();
 	}
 
 	n = ConfigServerParser::stringToInt(this->request_parser->get_request("Content-Length"));
-	if (n == 0)
+	if (n == 0 || n == count) {
+		this->body_status = true;
+		count			  = 0;
 		return;
+	}
 
 	std::memset(buffer, 0, MAXLINE);
 	bytes = recv(this->client_socket, buffer, MAXLINE, 0);
@@ -147,7 +150,6 @@ void MainClient::body_reading() {
 
 	// Close the file
 	outFile.close();
-
 	if (count == n || bytes == 0) {
 		this->body_status = true;
 		count			  = 0;
@@ -158,30 +160,36 @@ void MainClient::body_reading() {
 }
 
 int MainClient::find_chunk_size0() {
-	int				  i;
-	std::stringstream ss;
-
-	ss << this->body.substr(0, this->body.find("\r\n"));
-	ss >> std::hex >> i;
-
+	int			i	= 0;
+	std::size_t pos = this->body.find("\r\n");
+	if (pos != std::string::npos) {
+		std::string		  chunkSizeStr = this->body.substr(0, pos);
+		std::stringstream ss(chunkSizeStr);
+		ss >> std::hex >> i;
+	}
 	return i;
 }
 
 int MainClient::find_chunk_size1() {
 	int				  bytes;
 	std::stringstream ss;
+	string			  tmp_body;
 
 	std::memset(buffer, 0, MAXLINE);
-
-	for (int i = 0; i < 100; i++) {
-
+	for (int i = 0; i < MAXLINE; i++) {
 		bytes = recv(this->client_socket, buffer, 1, 0);
-		this->body.append(buffer, bytes);
+		if (bytes == 0)
+			return 0;
+		if (bytes < 0)
+			throw Error::BadRequest400();
+		tmp_body.append(buffer, bytes);
 
-		if (this->body[i] == '\r') {
-			bytes = recv(this->client_socket, buffer, 1, 0);
-			ss << this->body.substr(0, i);
-			ss >> std::hex >> i;
+		std::size_t pos = tmp_body.find("\r\n");
+		if (pos != std::string::npos) {
+			std::string chunkSizeStr = tmp_body.substr(0, pos);
+			if (chunkSizeStr == "0" || chunkSizeStr.empty())
+				return 0;
+			std::stringstream ss(chunkSizeStr);
 			return i;
 		}
 	}
@@ -189,57 +197,80 @@ int MainClient::find_chunk_size1() {
 }
 
 void MainClient::chunked_body_reading() {
-	int		   n, bytes;
-	static int count = 0;
+	int		   bytes;
+	static int count = 0, n = 0;
 
 	if (this->body_status)
 		return;
 
-	if (this->body_file.size() == 0) {
+	if (this->body_file.empty()) {
 		this->body_file = generate_random_file_name();
-		cout << "body file : " << this->body_file << endl;
+		cout << "body file: " << this->body_file << endl;
 	}
 
 	// Open the file for writing
-	std::ofstream outFile(this->body_file.c_str(), std::ios::app);
+	std::ofstream outFile(this->body_file, std::ios::app | std::ios::binary);
 	if (!outFile)
 		throw std::runtime_error(str_red("can't open file " + this->body_file));
 
-	if (count == 0 && this->body.size() != 0) {
+	if (!this->body.empty()) {
 		n = find_chunk_size0();
 
-		this->body = this->body.substr(this->body.find("\r\n") + 2);
+		std::size_t pos = this->body.find("\r\n");
 
-		// Write data to the file with flush
-		outFile << this->body << std::flush;
+		string tmp_body = this->body.substr(pos + 2);
 
-		this->body.clear();
+		if (tmp_body.find("\r\n") != string::npos) {
 
-	} else {
-		n = find_chunk_size1();
-		if (n == 0) {
-			this->body_status = true;
-			count			  = 0;
-			return;
+			std::size_t pos2 = tmp_body.find("\r\n");
+
+			string to_write = this->body.substr(pos + 2, pos2 + 2);
+
+			count += to_write.size() - 2;
+
+			// Write data to the file
+			outFile.write(to_write.c_str(), count);
+
+			this->body = tmp_body.substr(pos2 + 2);
+
+		} else {
+			string to_write = this->body.substr(pos + 2);
+
+			count += to_write.size();
+
+			// Write data to the file
+			outFile.write(to_write.c_str(), count);
+
+			this->body.clear();
 		}
+		n -= count;
 	}
 
-	char buffer0[n];
-	std::memset(buffer0, 0, n);
-	bytes = recv(this->client_socket, buffer0, n, 0);
+	if (count == 0 && n == 0)
+		n = find_chunk_size1();
+	if (n <= 0) {
+		this->body_status = true;
+		n				  = 0;
+		outFile.close();  // Close the file
+		return;
+	}
+
+	char chunked_buffer[n];
+	std::memset(chunked_buffer, 0, n);
+	bytes = recv(this->client_socket, chunked_buffer, n, 0);
 	if (bytes < 0)
 		throw Error::BadRequest400();
 
 	// Write data to the file
-	outFile << buffer0;
-	count += bytes;
+	outFile.write(chunked_buffer, bytes);
+	n -= bytes;
 
-	// Close the file
-	outFile.close();
+	outFile.close();  // Close the file
 
-	if (count == n || bytes == 0) {
+	count = 0;
+	if (bytes == 0) {
 		this->body_status = true;
-		count			  = 0;
+		n				  = 0;
 		return;
 	} else {
 		throw std::runtime_error("Still running");

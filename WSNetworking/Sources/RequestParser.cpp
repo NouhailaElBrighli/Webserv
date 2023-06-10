@@ -27,7 +27,7 @@ void RequestParser::run_parse(string &head) {
 	this->set_head(head);
 	this->parse_head();
 	// print the request
-	cout << *this << endl;
+	// cout << *this << endl;
 }
 
 void RequestParser::parse_head() {
