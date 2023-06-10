@@ -209,7 +209,7 @@ void MainClient::chunked_body_reading() {
 	}
 
 	// Open the file for writing
-	std::ofstream outFile(this->body_file, std::ios::app | std::ios::binary);
+	std::ofstream outFile(this->body_file.c_str(), std::ios::app | std::ios::binary);
 	if (!outFile)
 		throw std::runtime_error(str_red("can't open file " + this->body_file));
 
