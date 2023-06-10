@@ -6,7 +6,7 @@
 /*   By: hsaidi <hsaidi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/27 16:12:00 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/06/08 17:16:30 by hsaidi           ###   ########.fr       */
+/*   Updated: 2023/06/09 12:47:38 by hsaidi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,10 @@ class Delete
         Delete(MainClient *main_client, vector<ConfigLocationParser *>config_location_parser);
         ~Delete();
         void delete_file();
-        void remove_file(const std::string &path);
+        void empty_file(const std::string& path);
+        void del(const std::string &path);
+        bool delete_path(const std::string& path);
+        bool delete_directory(const std::string& path);
         // void remove_file_or_directory(const std::string& path);
 };
 
