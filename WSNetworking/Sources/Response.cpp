@@ -30,24 +30,20 @@ std::string	Response::Get(MainClient *client) {
 	return(file_to_serve);
 }
 
-void Response::set_resource_type() {
-	std::cout << "URI ->" << Client->get_request("Request-URI") << std::endl;
-	DIR *directory = opendir(Client->get_request("Request-URI").c_str());
-	if (directory == NULL)
-		type = "file";
-	else {
-		type = "directory";
-		closedir(directory);
-		if (Client->get_request("Request-URI")[Client->get_request("Request-URI").size() - 1]
-			!= '/') {
-			std::cout << "yes" << std::endl;
-		}
-	}
-	else
-		file_to_serve = Client->get_serve_file();
-	this->SetVars(file_to_serve);
-	return(file_to_serve);
-}
+// void Response::set_resource_type() {
+// 	std::cout << "URI ->" << Client->get_request("Request-URI") << std::endl;
+// 	DIR *directory = opendir(Client->get_request("Request-URI").c_str());
+// 	if (directory == NULL)
+// 		type = "file";
+// 	else {
+// 		type = "directory";
+// 		closedir(directory);
+// 		if (Client->get_request("Request-URI")[Client->get_request("Request-URI").size() - 1]
+// 			!= '/') {
+// 			std::cout << "yes" << std::endl;
+// 		}
+// 	}
+// }
 
 std::string Response::SetError(const std::string msg_status, std::string body_file) {
 		this->ContentType = "text/html";

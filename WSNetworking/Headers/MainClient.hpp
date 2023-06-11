@@ -26,7 +26,7 @@ class MainClient {
 	MainClient(const MainClient &);
 	MainClient &operator=(const MainClient &);
 
-	string head, body, body_file;
+	string head, body, body_file_name;
 	bool   head_status, body_status;
 
   public:
@@ -35,7 +35,7 @@ class MainClient {
 	const string			  &get_request(string key);
 	const bool				  &get_send_receive_status() const;
 	const int				  &get_phase() const;
-	const string			  &get_body_file() const;
+	const string			  &get_body_file_name() const;
 	const int				  &get_client_socket() const;
 	const int				  &get_location() const;
 	ConfigServerParser		  *get_config_server() const;
@@ -43,6 +43,7 @@ class MainClient {
 	// Setters
 	void set_send_receive_status(bool send_receive_status);
 	void set_location(int location);
+	void set_header(std::string header);
 
 	// Constructors and destructor
 	MainClient();
@@ -52,14 +53,12 @@ class MainClient {
 	// Methods
 	int		GetClientSocket();
 	void	set_header_for_errors_and_redirection(const char *what);
-	ConfigServerParser *get_config_server();
 	void set_redirection(std::string &redirection);
 	std::string get_new_url();
 	std::string	get_serve_file();
 	std::string	write_into_file(DIR *directory, std::string root);
 	int	convert_to_int(std::string	&str);
 	void	set_serve_file(std::string file_to_serve);
-	void	set_header(std::string header);
 	void	send_to_socket();
 	void	set_content_type_map();
 

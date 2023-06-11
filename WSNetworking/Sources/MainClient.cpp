@@ -8,7 +8,7 @@ const bool &MainClient::get_send_receive_status() const { return send_receive_st
 
 const int &MainClient::get_phase() const { return phase; }
 
-const string &MainClient::get_body_file() const { return body_file; }
+const string &MainClient::get_body_file_name() const { return body_file_name; }
 
 const int &MainClient::get_client_socket() const { return (client_socket); }
 
@@ -22,6 +22,8 @@ void MainClient::set_send_receive_status(bool send_receive_status) {
 }
 
 void MainClient::set_location(int location) { this->location = location; }
+
+void MainClient::set_header(std::string header) { this->header = header; }
 
 // Constructors and destructor
 MainClient::MainClient() { std::memset(buffer, 0, MAXLINE + 1); }
@@ -65,11 +67,15 @@ void MainClient::start_handle(string task) {
 
 		print_short_line("catch something");
 		set_header_for_errors_and_redirection(e.what());
+
+		send_to_socket();
 		this->send_receive_status = false;
 	}
-	send_to_socket();
-	if (task == "write")
+
+	if (task == "write") {
+		send_to_socket();
 		this->send_receive_status = false;
+	}
 }
 
 void MainClient::header_reading() {
@@ -112,15 +118,15 @@ void MainClient::body_reading() {
 	if (this->body_status)
 		return;
 
-	if (this->body_file.size() == 0) {
-		this->body_file = generate_random_file_name();
-		cout << "body file : " << this->body_file << endl;
+	if (this->body_file_name.size() == 0) {
+		this->body_file_name = generate_random_file_name();
+		cout << "body file : " << this->body_file_name << endl;
 	}
 
 	// Open the file for writing
-	std::ofstream outFile(this->body_file.c_str(), std::ios::app | std::ios::binary);
+	std::ofstream outFile(this->body_file_name.c_str(), std::ios::app | std::ios::binary);
 	if (!outFile)
-		throw std::runtime_error(str_red("can't open file " + this->body_file));
+		throw std::runtime_error(str_red("can't open file " + this->body_file_name));
 
 	if (this->body.size() != 0) {
 		count = this->body.size();
@@ -199,15 +205,15 @@ void MainClient::chunked_body_reading() {
 	if (this->body_status)
 		return;
 
-	if (this->body_file.empty()) {
-		this->body_file = generate_random_file_name();
-		cout << "body file: " << this->body_file << endl;
+	if (this->body_file_name.empty()) {
+		this->body_file_name = generate_random_file_name();
+		cout << "body file: " << this->body_file_name << endl;
 	}
 
 	// Open the file for writing
-	std::ofstream outFile(this->body_file.c_str(), std::ios::app | std::ios::binary);
+	std::ofstream outFile(this->body_file_name.c_str(), std::ios::app | std::ios::binary);
 	if (!outFile)
-		throw std::runtime_error(str_red("can't open file " + this->body_file));
+		throw std::runtime_error(str_red("can't open file " + this->body_file_name));
 
 	if (!this->body.empty()) {
 		n = find_chunk_size0();
@@ -309,6 +315,7 @@ void MainClient::handle_write() {
 	Response Response(this);
 	if (this->request_parser->get_request("Request-Type") == "GET") {
 		serve_file = Response.Get(this);
+		std::cout << "HEADER: " << this->header << std::endl;
 	}
 	if (this->request_parser->get_request("Request-Type") == "DELETE") {
 		// DELETE
@@ -366,7 +373,7 @@ void MainClient::set_header_for_errors_and_redirection(const char *what)
 	this->status = convert_to_int(this->msg_status);
 	if (this->status >= 400)
 		check_files_error();
-	if (this->status  < 400) // redirection
+	if (this->status < 400) // redirection
 	{
 		this->header = "HTTP/1.1 ";
 		this->header += this->msg_status;
@@ -502,7 +509,6 @@ void	MainClient::send_to_socket()
 		file.close();
 	}
 }
-
 
 void	MainClient::set_content_type_map()
 {
