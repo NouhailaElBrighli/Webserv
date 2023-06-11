@@ -2,6 +2,7 @@
 #define INCLUDE_HPP
 
 // c include with .h
+#include <dirent.h>
 #include <fcntl.h>
 #include <netdb.h>
 #include <netinet/in.h>

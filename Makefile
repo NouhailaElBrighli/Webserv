@@ -68,9 +68,9 @@ MKDIR	= mkdir -p $(DIRS)
 # *************************************************************************** #
 
 CPP			= c++
-CPPFLAGS	= -Wall -Wextra -Werror
+CPPFLAGS	= # -Wall -Wextra -Werror
 CPPFLAGS	+= -std=c++98
-CPPFLAGS	+= -g3 -fsanitize=address
+CPPFLAGS	+= -fsanitize=address -g3
 
 COMPILE		= $(CPP) $(CPPFLAGS) $(DEPFLAGS) $(INCLUDE)
 
@@ -148,17 +148,20 @@ fclean : clean
 
 re : fclean all
 
-run : all
+tmp_clean :
+	$(RM) ./tmp/*
+
+run : all tmp_clean
 	$(M_RUN_S)
 	./$(NAME) default_anajmi.conf
 	$(M_RGS_E)
 
-go : all
+go : all tmp_clean
 	$(M_GO_S)
 	./$(NAME) default_hsaidi.conf
 	$(M_RGS_E)
 
-start : all
+start : all tmp_clean
 	$(M_START_S)
 	./$(NAME) default_nel-brig.conf
 	$(M_RGS_E)

@@ -23,8 +23,8 @@ int main(int ac, char **av) {
 		MainServer main_server(config_file_parser, 10);
 
 		try {
-			main_server.launch();
 
+			main_server.launch();
 			cout << str_green("Main Server Terminate Successfully") << endl;
 		} catch (const std::exception &e) {
 			delete config_file_parser;

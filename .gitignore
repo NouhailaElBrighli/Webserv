@@ -8,3 +8,5 @@
 **/dependencies
 **/executable
 **/objects
+folder/serve_file*
+tmp/*

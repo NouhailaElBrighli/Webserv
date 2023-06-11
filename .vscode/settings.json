@@ -78,7 +78,8 @@
 		"sstream": "cpp",
 		"stack": "cpp",
 		"climits": "cpp",
-		"filesystem": "cpp"
+		"filesystem": "cpp",
+		"__functional_base_03": "cpp"
 	},
 	"C_Cpp.default.configurationProvider": "ms-vscode.makefile-tools",
 	"C_Cpp.errorSquiggles": "disabled",

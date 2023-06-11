@@ -6,6 +6,7 @@
 class MainClient {
 
   private:
+  	std::map<std::string, std::string>content_type;
 	ConfigServerParser *config_server_parser;
 	RequestParser	   *request_parser;
 	bool				send_receive_status;
@@ -14,6 +15,10 @@ class MainClient {
 	char				buffer[MAXLINE];
 	string				header;
 	int					location;
+	std::string			redirection;
+	std::string			new_url;
+	std::string			serve_file;
+	std::string			body_file;
 	int					status, phase;
 
   private:
@@ -21,7 +26,7 @@ class MainClient {
 	MainClient(const MainClient &);
 	MainClient &operator=(const MainClient &);
 
-	string head, body, body_file;
+	string head, body, body_file_name;
 	bool   head_status, body_status;
 
   public:
@@ -30,7 +35,7 @@ class MainClient {
 	const string			  &get_request(string key);
 	const bool				  &get_send_receive_status() const;
 	const int				  &get_phase() const;
-	const string			  &get_body_file() const;
+	const string			  &get_body_file_name() const;
 	const int				  &get_client_socket() const;
 	const int				  &get_location() const;
 	ConfigServerParser		  *get_config_server() const;
@@ -38,6 +43,7 @@ class MainClient {
 	// Setters
 	void set_send_receive_status(bool send_receive_status);
 	void set_location(int location);
+	void set_header(std::string header);
 
 	// Constructors and destructor
 	MainClient();
@@ -45,26 +51,41 @@ class MainClient {
 	~MainClient();
 
 	// Methods
+	int		GetClientSocket();
+	void	set_header_for_errors_and_redirection(const char *what);
+	void set_redirection(std::string &redirection);
+	std::string get_new_url();
+	std::string	get_serve_file();
+	std::string	write_into_file(DIR *directory, std::string root);
+	int	convert_to_int(std::string	&str);
+	void	set_serve_file(std::string file_to_serve);
+	void	send_to_socket();
+	void	set_content_type_map();
+
 	void start_handle();
-	void replace_location();
 	void start(string task);
 
   private:
 	// Methods
 	void start_handle(string task);
 
-	void   header_reading();
+	void header_reading();
+
 	string generate_random_file_name();
 	void   body_reading();
+
+	int	 find_chunk_size0();
+	int	 find_chunk_size1();
+	void chunked_body_reading();
 
 	void handle_read();
 	void handle_write();
 
-	int check_and_change_request_uri();
-	int	 get_matched_location_for_request_uri();
-	void is_method_allowed_in_location();
-
 	void set_header_for_errors_and_redirection();
+	int		match_location();
+	void	is_method_allowed_in_location();
+	void	check_if_uri_exist();
+	void	check_files_error();
 };
 
 #endif	// MAINCLIENT_HPP

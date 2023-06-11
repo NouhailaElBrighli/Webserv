@@ -6,7 +6,7 @@
 /*   By: hsaidi <hsaidi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:38:43 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/06/06 15:02:13 by hsaidi           ###   ########.fr       */
+/*   Updated: 2023/06/11 19:03:15 by hsaidi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -157,7 +157,7 @@ void Cgi::set_cgi_env()
 	cout << "-----------------------------------------------------------------------------------\n";
 
 	output_file = open("output.txt", O_WRONLY | O_CREAT | O_TRUNC, 0666);
-	input_file = open("input.txt", O_WRONLY | O_CREAT | O_TRUNC, 0666);
+	input_file = open(this->main_client->get_body_file_name().c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
 	int pid = fork();
 	if(pid < 0)
 	{
@@ -173,7 +173,7 @@ void Cgi::set_cgi_env()
 		execve(av[0], av2, this->env);
 	}
 	waitpid(pid, NULL, 0);
-		// execve(av[0], av2, const_cast<char *const *>(&cgi_env[0]));
+	// this->main_client->selt_serve_fie("./output.txt");
 }
 
 
