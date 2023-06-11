@@ -50,29 +50,6 @@ ConfigServerParser::~ConfigServerParser() {
 }
 
 // Tools
-bool ConfigServerParser::check_file(string name, string input, string file_path) {
-	struct stat file_info;
-
-	if (stat(file_path.c_str(), &file_info) != 0)
-		// Failed to stat file
-		throw std::runtime_error(
-			str_red(name + " Error : " + input + " => '" + file_path + "' does not exist"));
-
-	if (S_ISDIR(file_info.st_mode))
-		// File is a directory
-		throw std::runtime_error(
-			str_red(name + " Error : " + input + " => '" + file_path + "' is a directory"));
-
-	if (S_ISREG(file_info.st_mode))
-		// File is a regular file
-		return true;
-
-	// File is not a directory or a regular file
-	throw std::runtime_error(str_red(name + " Error : " + input + " => '" + file_path
-									 + "' is not a directory or a regular file"));
-	return false;
-}
-
 int ConfigServerParser::checkType(string str) {
 	int	 i		= 0;
 	int	 len	= str.length();
@@ -269,10 +246,8 @@ void ConfigServerParser::set_error_page(string error_page, size_t pos) {
 		throw std::runtime_error(str_red("Error Page Error : " + error_page_input));
 	}
 
-	if (this->check_file("Error Page", error_page_input, error_page_path)) {
-		this->error_page[status_code] = error_page_path;
-		this->error_page_status		  = true;
-	}
+	this->error_page[status_code] = error_page_path;
+	this->error_page_status		  = true;
 }
 
 void ConfigServerParser::set_config_location_parser(string config_location) {
@@ -286,18 +261,6 @@ void ConfigServerParser::set_config_location_parser(string config_location) {
 		this->config_location_cgi_status++;
 		return;
 	}
-	// check if index files is exist
-	if (this->config_location_parser.back()->get_index().empty() == false)
-		for (size_t i = 0; i < this->config_location_parser.back()->get_index().size(); i++) {
-			this->check_file("Index", this->config_location_parser.back()->get_index(i),
-							 this->config_location_parser.back()->get_root() + "/"
-								 + this->config_location_parser.back()->get_index(i));
-		}
-	// check if return file is exist
-	if (this->config_location_parser.back()->get_return().empty() == false)
-		this->check_file("return", this->config_location_parser.back()->get_return(),
-						 this->config_location_parser.back()->get_root() + "/"
-							 + this->config_location_parser.back()->get_return());
 }
 
 // Methods

@@ -10,10 +10,7 @@ std::string Response::GetContentLength() const { return (this->ContentLength); }
 
 std::string Response::GetHeader() const { return (this->header); }
 
-Response::Response(MainClient *Client)
-{
-	this->Client = Client;
-}
+Response::Response(MainClient *Client) { this->Client = Client; }
 
 std::string	Response::Get(MainClient *client) {
 	
@@ -26,6 +23,25 @@ std::string	Response::Get(MainClient *client) {
 			file_to_serve = handle_directory();
 		else if (this->type == "file")
 			file_to_serve = handle_file();
+	}
+	else
+		file_to_serve = Client->get_serve_file();
+	this->SetVars(file_to_serve);
+	return(file_to_serve);
+}
+
+void Response::set_resource_type() {
+	std::cout << "URI ->" << Client->get_request("Request-URI") << std::endl;
+	DIR *directory = opendir(Client->get_request("Request-URI").c_str());
+	if (directory == NULL)
+		type = "file";
+	else {
+		type = "directory";
+		closedir(directory);
+		if (Client->get_request("Request-URI")[Client->get_request("Request-URI").size() - 1]
+			!= '/') {
+			std::cout << "yes" << std::endl;
+		}
 	}
 	else
 		file_to_serve = Client->get_serve_file();
@@ -72,6 +88,7 @@ void Response::SetContentType() {
 			this->ContentType = "video/mp4";
 		else
 			this->ContentType = "cgi";
+
 	} else
 		this->ContentType = "text/plain";
 }

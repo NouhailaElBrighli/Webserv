@@ -1,18 +1,25 @@
 #ifndef INCLUDE_HPP
 #define INCLUDE_HPP
 
+// c include with .h
+#include <dirent.h>
+#include <fcntl.h>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <sys/select.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
 #include <unistd.h>
 
+// c includes without .h
 #include <climits>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <fcntl.h>
+#include <ctime>
+
+// c++ includes
 #include <algorithm>
 #include <exception>
 #include <fstream>
@@ -23,7 +30,8 @@
 #include <sstream>
 #include <string>
 #include <vector>
-#include <dirent.h>
+
+enum { READ_PHASE, WRITE_PHASE };
 
 #define MAXLINE 1024
 
