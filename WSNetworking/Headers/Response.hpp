@@ -22,16 +22,17 @@ class Response {
 	std::string GetContentType() const;
 	std::string GetContentLength() const;
 	std::string GetHeader() const;
-	void SetError(const std::string msg_status, std::string body_file);
+	std::string SetError(const std::string msg_status, std::string body_file);
 	void	check_request_uri();
-	void	Get(MainClient *client);
+	std::string	Get(MainClient *client);
     void	set_resource_type();
 	void	check_inside_root(std::string &root, std::string path);
 	std::string	handle_directory();
 	void	serve_file(std::string	index_file);
 	std::string	check_auto_index();
 	std::string	handle_file();
-	std::string	set_error_body(std::string msg_status);
+	std::string	set_error_body(std::string msg_status,std::string body_file);
+	
 };
 
 std::ostream &operator<<(std::ostream &out, const Response &obj);//!here

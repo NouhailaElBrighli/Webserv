@@ -26,19 +26,13 @@ void MainClient::start_handle() {
 		this->handle(this->client_socket);
 		Response Response(this);
 		if (this->request_parser->get_request("Request-Type") == "GET") {
-			Response.Get(this);
+			serve_file = Response.Get(this);
 		}
 	} catch (const std::exception &e) {
 		print_short_line("catch something");
-		this->msg_status = e.what();
-		std::stringstream ss (this->msg_status);
-		ss >> this->status;
-		check_files_error();
-		set_header_for_errors_and_redirection();
-		
+		set_header_for_errors_and_redirection(e.what());
 	}
-	std::cout << "this->header\n: " << this->header << std::endl;
-	send(client_socket, this->header.c_str(), header.size(), 0);
+	send_to_socket();
 	this->send_receive_status = false;
 }
 
@@ -89,7 +83,8 @@ void	MainClient::handle(int client_socket) {
 	data = this->Header_reading(client_socket);
 	head = data.substr(0, data.find("\r\n\r\n"));
 	this->request_parser->run_parse(head);
-	std::cout << *this->request_parser<< std::endl;
+	std::cout << *this->request_parser << std::endl;
+	std::cout << "URI: " << this->get_request("Request-URI")<< std::endl;
 	if (this->get_request("Transfer-Encoding").size() != 0 && this->get_request("Transfer-Encoding") != "chunked")
 		throw Error::NotImplemented501();// transfer encoding exist and different to chunked
 	if (this->get_request("Content-Length").size() == 0 && this->get_request("Transfer-Encoding").size() == 0 && this->get_request("Request-Type") == "POST")
@@ -105,7 +100,9 @@ void	MainClient::handle(int client_socket) {
 		this->location = location;
 		if (this->config_server_parser->get_config_location_parser()[get_location()]->get_return().size() != 0)
 		{
-			redirection = '/' + this->config_server_parser->get_config_location_parser()[get_location()]->get_return();
+			std::string root = this->config_server_parser->get_config_location_parser()[get_location()]->get_root();
+			std::string ret = this->config_server_parser->get_config_location_parser()[get_location()]->get_return();
+			redirection = root + '/' + ret;
 			throw Accurate::MovedPermanently301();
 		}
 		is_method_allowed_in_location();
@@ -148,7 +145,7 @@ int	MainClient::match_location()
 				this->new_url = this->get_request("Request-URI");
 				std::string root = this->config_server_parser->get_config_location_parser()[locate]->get_root();
 				this->new_url.erase(0, (*itr)->get_location().size());
-				this->new_url = root + new_url;// ? I shouldn't reset the uri for redirect it later 
+				this->new_url = root + new_url;// ? I shouldn't reset the uri for redirect it later
 				return (locate);
 			}
 			locate++;
@@ -160,24 +157,28 @@ int	MainClient::match_location()
 	return (-1);
 }
 
-void MainClient::set_header_for_errors_and_redirection()
+void MainClient::set_header_for_errors_and_redirection(const char *what)
 {
+	this->msg_status = what;
+	this->status = convert_to_int(this->msg_status);
+	if (this->status >= 400)
+		check_files_error();
 	if (this->status  < 400) // redirection
 	{
 		this->header = "HTTP/1.1 ";
 		this->header += this->msg_status;
 		this->header += "\r\nContent-Length: 0\r\n";
-		this->header += "Location: "; // should use port and host or not ?
+		this->header += "Location: "; //? should i use port and host or not 
 		this->header += redirection;
 		this->header += "\r\n\r\n";
-		std::cout << "Header of redirection:\n" << this->header << std::endl;
 	}
 	else // errors
 	{
 		Response	Error;
-		Error.SetError(msg_status, body_file);
+		this->body_file = Error.SetError(msg_status, body_file);
 		this->header = Error.GetHeader();
 	}
+	serve_file = body_file;
 }
 	
 int		MainClient::get_location()
@@ -215,26 +216,137 @@ void	MainClient::check_if_uri_exist()
 			throw Error::NotFound404();
 		file.close();
 		this->serve_file = this->get_request("Request-URI");
+		return;
 	}
 	else
-		throw Error::NotFound404();
+	{
+		if (this->get_request("Request-URI") == "/")
+		{
+			std::ofstream file("folder/root_directory.html");
+			if (!file.is_open())
+				throw Error::Forbidden403();
+			char current_path[MAXLINE];
+			getcwd(current_path, sizeof(current_path));
+			DIR *root_directory = opendir(current_path);
+			if (root_directory == NULL)
+				throw Error::Forbidden403();
+			this->serve_file = this->write_into_file(root_directory, current_path);
+			closedir(root_directory);
+			return;
+		}
+	}
+	throw Error::NotFound404();
 }
 
 void	MainClient::check_files_error()
 {
 	std::map<int, std::string>error_map = this->config_server_parser->get_error_page();
-	std::cout << "status: " << this->status << std::endl;
 	if (error_map[this->status].size() != 0)
 	{
 		std::ifstream error_page(error_map[this->status]);
 		if (!error_page.is_open())
-			return;
+			throw Error::Forbidden403();
 		body_file = error_map[this->status];
-		std::cout << "body file: " << body_file << std::endl;
+		error_page.close();
 	}
 }
 
+std::string	MainClient::write_into_file(DIR *directory, std::string root)
+{
+	std::ofstream file("folder/serve_file.html");
+	if (!file.is_open())
+		throw Error::BadRequest400();
+	file << "<!DOCTYPE html>\n<html>\n<head>\n<title>index of";
+	file << root;
+	file << "</title>\n<style>\nbody {\ntext-align: left;\npadding: 40px;\nfont-family: Arial, sans-serif;\n}\nh1 {\nfont-size: 32px;\ncolor: black;\n}\n</style>\n</head>\n<body>\n<h1>";
+	file << "index of ";
+	file << root;
+	file << "</h1>\n";
+	dirent *list;
+	while ((list = readdir(directory)))
+	{
+		file << "<li> <a href= ";
+		file << '"';
+		file << list->d_name;
+		file << '"';
+		file << '>';
+		file << list->d_name;
+		file << "</a></li>";
+	}
+	file.close();
+	return ("folder/serve_file.html");
+}
+
+int	MainClient::convert_to_int(std::string &str)
+{
+	int	integer;
+	std::stringstream ss (this->msg_status);
+	ss >> integer;
+	return(integer);
+}
+
+void	MainClient::set_serve_file(std::string file_to_serve)
+{
+	this->serve_file = file_to_serve;
+}
+
+void	MainClient::set_header(std::string header)
+{
+	this->header = header;
+}
+
+void	MainClient::send_to_socket()
+{
+	std::cout << "this is first header to send: " << this->header << std::endl;
+	if (this->status == 301)
+		send(client_socket, this->header.c_str(), header.size(), 0);
+	else
+	{
+		std::ifstream file(serve_file, std::ios::binary);
+		if (!file.is_open())
+			throw Error::Forbidden403();
+		int chunk = 1024;
+		long count = 0;
+		send(client_socket, this->header.c_str(), header.size(), 0);
+		while (!file.eof())
+		{
+			char buff[chunk];
+			file.read(buff, chunk);
+			count += file.gcount();
+			// std::cout.write(buff, file.gcount());
+			send(client_socket, buff, file.gcount(), 0);
+		}
+		file.close();
+	}
+}
+
+
+void	MainClient::set_content_type_map()
+{
+	this->content_type[".txt"] = "text/plain";
+	this->content_type[".csv"] = "text/plain";
+	this->content_type[".html"] = "text/html";
+	this->content_type[".htm"] = "text/plain";
+	this->content_type[".css"] = "text/css";
+	this->content_type[".jpeg"] = "image/jpeg";
+	this->content_type[".jpg"] = "image/jpeg";
+	this->content_type[".png"] = "image/png";
+	this->content_type[".gif"] = "image/gif";
+	this->content_type[".ico"] = "image/icon";
+	this->content_type[".svg"] = "image/svg+xml";
+	this->content_type[".mp3"] = "audio/mpeg";
+	this->content_type[".wav"] = "audio/wav";
+	this->content_type[".mp4"] = "video/mp4";
+	this->content_type[".mov"] = "video/quicktime";
+	this->content_type[".js"] = "application/javascript";
+	this->content_type[".js"] = "application/json";
+	this->content_type[".xml"] = "application/xml";
+	this->content_type[".pdf"] = "application/pdf";
+}
+
+
 // import os
-// file_path = "/Users/nel-brig/Desktop/webserv/error/404.html"
+// file_path = "./error/404.html"
 // file_size = os.path.getsize(file_path)
 // print("File size:", file_size, "bytes")
+//

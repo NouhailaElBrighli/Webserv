@@ -7,6 +7,7 @@
 class MainClient {
 
   private:
+  	std::map<std::string, std::string>content_type;
 	ConfigServerParser *config_server_parser;
 	RequestParser	   *request_parser;
 	int					status;
@@ -42,13 +43,19 @@ class MainClient {
 	void	start_handle();
 	void	replace_location();
 	int		match_location();
-	void	set_header_for_errors_and_redirection();
+	void	set_header_for_errors_and_redirection(const char *what);
 	void	set_location(int location);
 	int		get_location();
 	ConfigServerParser *get_config_server();
 	void set_redirection(std::string &redirection);
 	std::string get_new_url();
 	std::string	get_serve_file();
+	std::string	write_into_file(DIR *directory, std::string root);
+	int	convert_to_int(std::string	&str);
+	void	set_serve_file(std::string file_to_serve);
+	void	set_header(std::string header);
+	void	send_to_socket();
+	void	set_content_type_map();
 
   private:
 	// Methods

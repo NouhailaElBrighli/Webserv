@@ -15,7 +15,7 @@ Response::Response(MainClient *Client)
 	this->Client = Client;
 }
 
-void Response::Get(MainClient *client) {
+std::string	Response::Get(MainClient *client) {
 	
 	print_long_line("Handle GET");
 	std::string file_to_serve;
@@ -30,23 +30,12 @@ void Response::Get(MainClient *client) {
 	else
 		file_to_serve = Client->get_serve_file();
 	this->SetVars(file_to_serve);
-	send(client->GetClientSocket(), header.c_str(), header.size(), 0);
+	return(file_to_serve);
 }
 
-void Response::SetError(const std::string msg_status, std::string body_file) {
-		std::stringstream num;
-		std::string content;
+std::string Response::SetError(const std::string msg_status, std::string body_file) {
 		this->ContentType = "text/html";
-		if (body_file.size() != 0)
-		{
-			std::ifstream file(body_file);
-			if (file.is_open())
-				std::getline(file, content, '\0');
-			num << content.size();
-			num >> 	this->ContentLength;
-		}
-		else
-			content = this->set_error_body(msg_status);
+		body_file = this->set_error_body(msg_status, body_file);//set content length here
 		this->header = "HTTP/1.1 ";
 		this->header += msg_status;
 		this->header += "\r\nContent-Type: ";
@@ -54,9 +43,7 @@ void Response::SetError(const std::string msg_status, std::string body_file) {
 		this->header += "\r\nContent-Length: ";
 		this->header += this->ContentLength;
 		this->header += "\r\n\r\n";
-		this->header += content;
-		this->header += "\r\n\r\n";
-		std::cout << "this->header:\n" << this->header << std::endl;
+		return(body_file);
 }
 
 std::ostream &operator<<(std::ostream &out, const Response &obj) {
@@ -85,7 +72,6 @@ void Response::SetContentType() {
 			this->ContentType = "video/mp4";
 		else
 			this->ContentType = "cgi";
-		
 	} else
 		this->ContentType = "text/plain";
 }
@@ -94,11 +80,13 @@ void Response::SetContentLength(std::string RequestURI) {
 	std::ifstream RequestedFile(RequestURI.c_str(), std::ios::binary);
 	if (!RequestedFile)
 		throw Error::Forbidden403();// ! don't check here
-	std::string content((std::istreambuf_iterator<char>(RequestedFile)), std::istreambuf_iterator<char>());
-	this->body = content;
+	RequestedFile.seekg(0, std::ios::end);
+	std::ifstream::pos_type size = RequestedFile.tellg();
+	RequestedFile.seekg(0, std::ios::beg);
 	std::stringstream num;
-	num << this->body.size();
+	num << size;
 	this->ContentLength = num.str();
+	RequestedFile.close();
 }
 
 void Response::SetVars(std::string file_to_serve) {
@@ -114,7 +102,7 @@ void Response::SetVars(std::string file_to_serve) {
 	this->header += "\r\nContent-Length: ";
 	this->header += ContentLength;
 	this->header += "\r\n\r\n";
-	this->header += body;
+	Client->set_header(header);
 }
 
 void	Response::check_request_uri()
@@ -180,6 +168,7 @@ void	Response::serve_file(std::string	index_file)
 std::string	Response::check_auto_index()
 {
 	int autoindex =  this->Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_autoindex();
+	std::string root = this->Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_root();
 	if (autoindex == 0)
 		throw Error::Forbidden403();
 	else
@@ -187,26 +176,17 @@ std::string	Response::check_auto_index()
 		DIR *directory = opendir(Client->get_new_url().c_str());
 		if (!directory)
 			throw Error::Forbidden403();
-		std::ofstream file("folder/serve_file.txt");
-		dirent *list;
-		while ((list = readdir(directory)))
-		{
-			if (!file.is_open())
-				throw Error::BadRequest400();
-			file << "* " << list->d_name << std::endl;
-			std::cout << "* " << list->d_name << std::endl;
-		}
-		file.close();
+		Client->write_into_file(directory, root);
 		closedir(directory);
 	}
-	return ("folder/serve_file");
+	return ("folder/serve_file.html");
 }
 
 std::string	Response::handle_directory()
 {
 	print_short_line("handle directory");
 	std::string uri = Client->get_new_url();
-	if (uri[uri.size() - 1] != '/')// redirect from /folder to /folder/
+	if (uri[uri.size() - 1] != '/' && Client->get_request("Request-URI").size() != 1)// redirect from /folder to /folder/
 	{
 		std::string red =  Client->get_request("Request-URI") + '/'; // ? i should use old uri with location one
 		Client->set_redirection(red);
@@ -220,7 +200,7 @@ std::string	Response::handle_directory()
 		{
 			std::string index_file = root + '/' + (*itr_index);
 			std::ifstream file(index_file);
-			if (!file)
+			if (!file.is_open())
 				continue;
 			else
 			{
@@ -241,20 +221,39 @@ std::string	Response::handle_file()
 	return (Client->get_new_url());
 }
 
-std::string	Response::set_error_body(std::string msg_status)
+std::string	Response::set_error_body(std::string msg_status, std::string body_file)
 {
 	std::string content;
-	content = "<!DOCTYPE html>\r\n<html>\r\n<head>\r\n<title>";
-	content += msg_status;
-	content += "</title>\r\n<style>\r\nbody {\r\ntext-align: center;\r\npadding: 40px;\r\nfont-family: Arial, sans-serif;\r\n}\r\n";
-    content += "h1 {\r\nfont-size: 100px;\r\ncolor: red;\r\n}\r\n";
-	content += "</style>\r\n</head>\r\n<body>\r\n<h1>";
-	content += msg_status;
-	content += "</body>\r\n</html>";
-	std::stringstream ss;
-	ss << content.size();
-	ss >> this->ContentLength;
-	std::cout << "content size: " << content.size() << std::endl;
-	std::cout << "content length: " << this->ContentLength << std::endl;
-	return (content);
+	std::stringstream num;
+	if (body_file.size() == 0)
+	{
+		std::ofstream file("error/dynamic_error.html");
+		if (!file.is_open())
+			throw Error::BadRequest400();
+		content = "<!DOCTYPE html>\r\n<html>\r\n<head>\r\n<title>";
+		content += msg_status;
+		content += "</title>\r\n<style>\r\nbody {\r\ntext-align: center;\r\npadding: 40px;\r\nfont-family: Arial, sans-serif;\r\n}\r\n";
+    	content += "h1 {\r\nfont-size: 100px;\r\ncolor: red;\r\n}\r\n";
+		content += "</style>\r\n</head>\r\n<body>\r\n<h1>";
+		content += msg_status;
+		content += "</body>\r\n</html>";
+		file << content;
+		num << content.size();
+		num >> this->ContentLength;
+		return("error/dynamic_error.html");
+	}
+	else
+	{
+		std::ifstream file(body_file, std::ios::binary);
+		file.seekg(0, std::ios::end);
+		std::ifstream::pos_type size = file.tellg();
+		file.seekg(0, std::ios::beg);
+		file.close();
+		num << size;
+		num >> 	this->ContentLength;
+		file.close();
+	}
+	return(body_file);
 }
+
+
