@@ -6,7 +6,7 @@
 /*   By: hsaidi <hsaidi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/27 11:30:30 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/06/09 13:28:11 by hsaidi           ###   ########.fr       */
+/*   Updated: 2023/06/11 14:17:40 by hsaidi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,9 +44,9 @@ void Delete::delete_file()
     }
 
     if (delete_path(file_name))
-        throw Error::Successe200();
+        throw Accurate::OK200();
     else
-        throw Error::No_content204();
+        throw Accurate::NoContent204();
 }
 
 bool Delete::delete_path(const std::string& path)
@@ -73,7 +73,6 @@ bool Delete::delete_path(const std::string& path)
             }
         }
     }
-
     return success;
 }
 

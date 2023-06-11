@@ -38,15 +38,6 @@ const string &ConfigLocationParser::get_return() const {
 	return this->return_;
 }
 
-const string &ConfigLocationParser::get_file_body() const {
-	if (this->file_body_status == false) {
-		// return an empty string if file_body is not set
-		static string empty_string;
-		return empty_string;
-	}
-	return this->file_body;
-}
-
 const vector<string> &ConfigLocationParser::get_methods() const {
 	if (this->methods_status == false) {
 		// return an empty vector if methods is not set
@@ -88,9 +79,9 @@ ConfigLocationParser::ConfigLocationParser(string config_location)
 	: config_location(config_location) {
 	this->location_status	  = false;
 	this->root_status		  = false;
+	this->autoindex_status	  = false;
 	this->index_status		  = false;
 	this->return_status		  = false;
-	this->file_body_status	  = false;
 	this->methods_status	  = false;
 	this->cgi_ext_path_status = false;
 
@@ -100,6 +91,29 @@ ConfigLocationParser::ConfigLocationParser(string config_location)
 ConfigLocationParser::~ConfigLocationParser() {}
 
 // Tools
+bool ConfigLocationParser::check_file(string name, string input, string file_path) {
+	struct stat file_info;
+
+	if (stat(file_path.c_str(), &file_info) != 0)
+		// Failed to stat file
+		throw std::runtime_error(
+			str_red(name + " Error : " + input + " => '" + file_path + "' does not exist"));
+
+	if (S_ISDIR(file_info.st_mode))
+		// File is a directory
+		throw std::runtime_error(
+			str_red(name + " Error : " + input + " => '" + file_path + "' is a directory"));
+
+	if (S_ISREG(file_info.st_mode))
+		// File is a regular file
+		return true;
+
+	// File is not a directory or a regular file
+	throw std::runtime_error(str_red(name + " Error : " + input + " => '" + file_path
+									 + "' is not a directory or a regular file"));
+	return false;
+}
+
 vector<string> ConfigLocationParser::split_methods(const string &str) {
 	vector<string>	  vect_mth;
 	std::stringstream ss_methods(str);
@@ -148,8 +162,7 @@ bool ConfigLocationParser::find_compare(string &line, const string &str) {
 void ConfigLocationParser::set_location(string location, size_t pos) {
 	location = location.substr(0, location.size() - 2);
 	if (this->location_status == true || location.empty() || this->config_location[pos - 1] != '{'
-		|| this->config_location[pos - 2] != ' ' || location[0] != '/'
-		|| location[location.size() - 1] == '/')
+		|| this->config_location[pos - 2] != ' ' || location[0] != '/')
 		throw std::runtime_error(str_red("location Error : " + location));
 
 	this->location		  = location;
@@ -158,8 +171,9 @@ void ConfigLocationParser::set_location(string location, size_t pos) {
 
 void ConfigLocationParser::set_autoindex(string autoindex, size_t pos) {
 	autoindex = autoindex.substr(0, autoindex.size() - 1);
+
 	if (this->autoindex_status == true || autoindex.empty() || this->config_location[pos - 1] != ';'
-		|| !std::isalnum(this->config_location[pos - 2]))
+		|| !std::isalpha(this->config_location[pos - 2]))
 		throw std::runtime_error(str_red("autoindex Error : " + autoindex));
 
 	if (autoindex == "on")
@@ -226,16 +240,6 @@ void ConfigLocationParser::set_return(string return_, size_t pos) {
 	this->return_status = true;
 }
 
-void ConfigLocationParser::set_file_body(string file_body, size_t pos) {
-	file_body = file_body.substr(0, file_body.size() - 1);
-	if (this->file_body_status == true || file_body.empty() || this->config_location[pos - 1] != ';'
-		|| !std::isalnum(this->config_location[pos - 2]))
-		throw std::runtime_error(str_red("file_body Error : " + file_body));
-
-	this->file_body		   = file_body;
-	this->file_body_status = true;
-}
-
 void ConfigLocationParser::set_methods(string methods, size_t pos) {
 	methods = methods.substr(0, methods.size() - 1);
 	if (this->methods_status == true || methods.empty() || this->config_location[pos - 1] != ';'
@@ -276,7 +280,7 @@ void ConfigLocationParser::set_cgi_ext_path(string cgi_ext_path, size_t pos) {
 		throw std::runtime_error(str_red("Error CGI Ext Path : " + cgi_ext_path_input));
 	}
 
-	if (ConfigServerParser::check_file("CGI Ext Path", cgi_ext_path_input, cgi_path)) {
+	if (this->check_file("CGI Ext Path", cgi_ext_path_input, cgi_path)) {
 		this->cgi_ext_path[cgi_ext] = cgi_path;
 		this->cgi_ext_path_status	= true;
 	}
@@ -301,9 +305,6 @@ void ConfigLocationParser::parse_config_location() {
 
 		else if (this->find_compare(line, "return"))
 			this->set_return(line.substr(line.find(" ") + 1), pos);
-
-		else if (this->find_compare(line, "file_body"))
-			this->set_file_body(line.substr(line.find(" ") + 1), pos);
 
 		else if (this->find_compare(line, "index"))
 			this->set_index(line.substr(line.find(" ") + 1), pos);
@@ -333,19 +334,9 @@ void ConfigLocationParser::check_status() {
 		if (!this->cgi_ext_path_status)
 			throw std::runtime_error(str_red("Error : cgi_ext_path is missing"));
 
-		if (this->index_status)
-			throw std::runtime_error(str_red("Error : index is unnecessary in cgi location"));
-		if (this->return_status)
-			throw std::runtime_error(str_red("Error : return is unnecessary in cgi location"));
-		if (this->file_body_status)
-			throw std::runtime_error(str_red("Error : file_body is unnecessary in cgi location"));
 		if (this->methods_status)
 			throw std::runtime_error(str_red("Error : methods is unnecessary in cgi location"));
 	} else {
-		if (!this->return_status)
-			throw std::runtime_error(str_red("Error : return is missing"));
-		if (!this->file_body_status)
-			throw std::runtime_error(str_red("Error : file_body is missing"));
 		if (!this->methods_status)
 			throw std::runtime_error(str_red("Error : methods is missing"));
 

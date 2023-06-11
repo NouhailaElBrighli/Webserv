@@ -10,6 +10,8 @@ const string &RequestParser::get_request(string key) { return this->request[key]
 // Setters
 void RequestParser::set_head(string &head) { this->head = head; }
 
+void RequestParser::set_request_uri(string &str) { this->request["Request-URI"] = str; }
+
 // Constructors and destructor
 RequestParser::RequestParser() : parse_status(false) {}
 
@@ -24,6 +26,8 @@ void RequestParser::run_parse(string &head) {
 	this->head.clear();
 	this->set_head(head);
 	this->parse_head();
+	// print the request
+	cout << *this << endl;
 }
 
 void RequestParser::parse_head() {
@@ -31,6 +35,7 @@ void RequestParser::parse_head() {
 	this->parse_first_line();
 	this->is_first_line_valid();
 	this->parse_rest_lines();
+	this->last_check();
 }
 
 void RequestParser::is_head_valid() {
@@ -48,13 +53,8 @@ void RequestParser::is_head_valid() {
 void RequestParser::is_first_line_valid() {
 	string allowed_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxy"
 						   "z0123456789-._~:/?#[]@!$&'()*+,;=%";
-
 	if (this->request.size() != 3)
 		throw Error::NotImplemented501();
-
-	if (this->request["Request-Type"] != "GET" && this->request["Request-Type"] != "POST"
-		&& this->request["Request-Type"] != "DELETE")
-		throw Error::BadRequest400();
 
 	if (this->request["Request-URI"].find_first_not_of(allowed_chars) != string::npos)
 		throw Error::BadRequest400();
@@ -122,6 +122,16 @@ void RequestParser::parse_rest_lines() {
 			this->request[key] = value;
 		}
 	}
+}
+
+void RequestParser::last_check() {
+	if (this->get_request("Transfer-Encoding").size() != 0
+		&& this->get_request("Transfer-Encoding") != "chunked")
+		throw Error::NotImplemented501();  // transfer encoding exist and different to chunked
+	if (this->get_request("Content-Length").size() == 0
+		&& this->get_request("Transfer-Encoding").size() == 0
+		&& this->get_request("Request-Type") == "POST")
+		throw Error::BadRequest400();  // post without content-length or transfer encoding
 }
 
 // Operators <<

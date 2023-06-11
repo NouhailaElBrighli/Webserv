@@ -1,8 +1,6 @@
 #ifndef WSNETWORKING_HPP
 #define WSNETWORKING_HPP
 
-
-
 // Clients Prototypes
 class MainClient;
 class Cgi;
@@ -57,8 +55,8 @@ class Response;
 // CGI
 #include "Cgi.hpp"
 
-//response
-#include "Response.hpp"
+// response
 #include "Delete.hpp"
+#include "Response.hpp"
 
-#endif // WSNETWORKING_HPP
+#endif	// WSNETWORKING_HPP

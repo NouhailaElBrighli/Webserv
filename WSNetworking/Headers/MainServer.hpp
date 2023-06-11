@@ -12,9 +12,9 @@ class MainServer {
   private:
 	vector<ListenSocket>   listen_socket;
 	map<int, MainClient *> clients;
-	map<int, int>		   socket;
+	map<int, int>		   socket_server, socket_client;
 	int					   accept_socket, max_socket;
-	fd_set				   current_sockets, read_sockets;
+	fd_set				   read_sockets, write_sockets;
 	bool				   launch_status;
 
   private:
@@ -46,14 +46,14 @@ class MainServer {
 	int right_port(int client_socket);
 	int right_server(int client_socket);
 
-	// Initialize the reading sockets
-	void init_reading_sockets();
+	// Initialize the server sockets
+	void init_server_sockets();
 
 	// Routine methods
 	void reset();
 	void accepter(int fd_socket);
 	void create_client(int client_socket);
-	void handler(int client_socket);
+	void handle(int client_socket, string task);
 	void destroy_client(int client_socket);
 
 	// Main routine
