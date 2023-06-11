@@ -253,7 +253,7 @@ void MainClient::chunked_body_reading() {
 	if (n <= 0) {
 		this->body_status = true;
 		n				  = 0;
-		outFile.close();  // Close the file
+		outFile.close(); // Close the file
 		return;
 	}
 
@@ -267,7 +267,7 @@ void MainClient::chunked_body_reading() {
 	outFile.write(chunked_buffer, bytes);
 	n -= bytes;
 
-	outFile.close();  // Close the file
+	outFile.close(); // Close the file
 
 	count = 0;
 	if (bytes == 0) {
@@ -293,16 +293,14 @@ void MainClient::handle_read() {
 		else
 			throw Error::BadRequest400();
 	}
-	
+
 	int location = this->match_location();
-	if (location != -1)
-	{
+	if (location != -1) {
 		this->location = location;
-		if (this->config_server_parser->get_config_location_parser()[get_location()]->get_return().size() != 0)
-		{
+		if (this->config_server_parser->get_config_location_parser()[get_location()]->get_return().size() != 0) {
 			std::string root = this->config_server_parser->get_config_location_parser()[get_location()]->get_root();
-			std::string ret = this->config_server_parser->get_config_location_parser()[get_location()]->get_return();
-			redirection = root + '/' + ret;
+			std::string ret	 = this->config_server_parser->get_config_location_parser()[get_location()]->get_return();
+			redirection		 = root + '/' + ret;
 			throw Accurate::MovedPermanently301();
 		}
 		is_method_allowed_in_location();
@@ -323,11 +321,9 @@ void MainClient::handle_write() {
 }
 
 void MainClient::is_method_allowed_in_location() {
-	for (vector<ConfigLocationParser *>::const_iterator it
-		 = config_server_parser->get_config_location_parser().begin();
+	for (vector<ConfigLocationParser *>::const_iterator it = config_server_parser->get_config_location_parser().begin();
 		 it != config_server_parser->get_config_location_parser().end(); it++) {
-		if (this->get_request("Request-URI").find((*it)->get_location()) != string::npos
-			|| this->get_request("Request-URI").find((*it)->get_root()) != string::npos) {
+		if (this->get_request("Request-URI").find((*it)->get_location()) != string::npos || this->get_request("Request-URI").find((*it)->get_root()) != string::npos) {
 			for (size_t i = 0; i < (*it)->get_methods().size(); i++) {
 				if ((*it)->get_methods(i) == this->get_request("Request-Type"))
 					return;
@@ -337,40 +333,35 @@ void MainClient::is_method_allowed_in_location() {
 	throw Error::MethodNotAllowed405();
 }
 
-int	MainClient::match_location()
-{
+int MainClient::match_location() {
 	std::string str = this->get_request("Request-URI");
-	size_t found;
-	int locate = 0;
-	this->new_url = this->get_request("Request-URI");
-	while (str.size() != 0)
-	{
+	size_t		found;
+	int			locate = 0;
+	this->new_url	   = this->get_request("Request-URI");
+	while (str.size() != 0) {
 		locate = 0;
 		for (vector<ConfigLocationParser *>::const_iterator itr = config_server_parser->get_config_location_parser().begin();
-		itr != config_server_parser->get_config_location_parser().end() ; itr++)
-		{
-			if ((*itr)->get_location() == str)
-			{
-				str = this->get_request("Request-URI");
-				this->new_url = this->get_request("Request-URI");
+			 itr != config_server_parser->get_config_location_parser().end(); itr++) {
+			if ((*itr)->get_location() == str) {
+				str				 = this->get_request("Request-URI");
+				this->new_url	 = this->get_request("Request-URI");
 				std::string root = this->config_server_parser->get_config_location_parser()[locate]->get_root();
 				this->new_url.erase(0, (*itr)->get_location().size());
-				this->new_url = root + new_url;// ? I shouldn't reset the uri for redirect it later
+				this->new_url = root + new_url; // ? I shouldn't reset the uri for redirect it later
 				return (locate);
 			}
 			locate++;
 		}
 		found = str.find_last_of('/');
-		str = str.substr(0, found);
+		str	  = str.substr(0, found);
 	}
 	check_if_uri_exist();
 	return (-1);
 }
 
-void MainClient::set_header_for_errors_and_redirection(const char *what)
-{
+void MainClient::set_header_for_errors_and_redirection(const char *what) {
 	this->msg_status = what;
-	this->status = convert_to_int(this->msg_status);
+	this->status	 = convert_to_int(this->msg_status);
 	if (this->status >= 400)
 		check_files_error();
 	if (this->status < 400) // redirection
@@ -378,50 +369,41 @@ void MainClient::set_header_for_errors_and_redirection(const char *what)
 		this->header = "HTTP/1.1 ";
 		this->header += this->msg_status;
 		this->header += "\r\nContent-Length: 0\r\n";
-		this->header += "Location: "; //? should i use port and host or not 
+		this->header += "Location: "; //? should i use port and host or not
 		this->header += redirection;
 		this->header += "\r\n\r\n";
-	}
-	else // errors
+	} else // errors
 	{
-		Response	Error;
+		Response Error;
 		this->body_file = Error.SetError(msg_status, body_file);
-		this->header = Error.GetHeader();
+		this->header	= Error.GetHeader();
 	}
 	serve_file = body_file;
 }
 
-void MainClient::set_redirection(std::string &redirection)
-{
+void MainClient::set_redirection(std::string &redirection) {
 	this->redirection = redirection;
 }
 
-std::string MainClient::get_new_url()
-{
-	return(this->new_url);
+std::string MainClient::get_new_url() {
+	return (this->new_url);
 }
 
-std::string	MainClient::get_serve_file()
-{
-	return(serve_file);
+std::string MainClient::get_serve_file() {
+	return (serve_file);
 }
 
-void	MainClient::check_if_uri_exist()
-{
+void MainClient::check_if_uri_exist() {
 	DIR *directory = opendir(this->get_request("Request-URI").c_str());
-	if (directory == NULL)
-	{
+	if (directory == NULL) {
 		std::ifstream file(this->get_request("Request-URI"));
 		if (!file.is_open())
 			throw Error::NotFound404();
 		file.close();
 		this->serve_file = this->get_request("Request-URI");
 		return;
-	}
-	else
-	{
-		if (this->get_request("Request-URI") == "/")
-		{
+	} else {
+		if (this->get_request("Request-URI") == "/") {
 			std::ofstream file("folder/root_directory.html");
 			if (!file.is_open())
 				throw Error::Forbidden403();
@@ -438,11 +420,9 @@ void	MainClient::check_if_uri_exist()
 	throw Error::NotFound404();
 }
 
-void	MainClient::check_files_error()
-{
-	std::map<int, std::string>error_map = this->config_server_parser->get_error_page();
-	if (error_map[this->status].size() != 0)
-	{
+void MainClient::check_files_error() {
+	std::map<int, std::string> error_map = this->config_server_parser->get_error_page();
+	if (error_map[this->status].size() != 0) {
 		std::ifstream error_page(error_map[this->status]);
 		if (!error_page.is_open())
 			throw Error::Forbidden403();
@@ -451,8 +431,7 @@ void	MainClient::check_files_error()
 	}
 }
 
-std::string	MainClient::write_into_file(DIR *directory, std::string root)
-{
+std::string MainClient::write_into_file(DIR *directory, std::string root) {
 	std::ofstream file("folder/serve_file.html");
 	if (!file.is_open())
 		throw Error::BadRequest400();
@@ -463,8 +442,7 @@ std::string	MainClient::write_into_file(DIR *directory, std::string root)
 	file << root;
 	file << "</h1>\n";
 	dirent *list;
-	while ((list = readdir(directory)))
-	{
+	while ((list = readdir(directory))) {
 		file << "<li> <a href= ";
 		file << '"';
 		file << list->d_name;
@@ -477,29 +455,25 @@ std::string	MainClient::write_into_file(DIR *directory, std::string root)
 	return ("folder/serve_file.html");
 }
 
-int	MainClient::convert_to_int(std::string &str)
-{
-	int	integer;
-	std::stringstream ss (this->msg_status);
+int MainClient::convert_to_int(std::string &str) {
+	int				  integer;
+	std::stringstream ss(this->msg_status);
 	ss >> integer;
-	return(integer);
+	return (integer);
 }
 
-void	MainClient::send_to_socket()
-{
+void MainClient::send_to_socket() {
 	std::cout << "this is first header to send: " << this->header << std::endl;
 	if (this->status == 301)
 		send(client_socket, this->header.c_str(), header.size(), 0);
-	else
-	{
+	else {
 		std::ifstream file(serve_file, std::ios::binary);
 		if (!file.is_open())
 			throw Error::Forbidden403();
-		int chunk = 1024;
+		int	 chunk = 1024;
 		long count = 0;
 		send(client_socket, this->header.c_str(), header.size(), 0);
-		while (!file.eof())
-		{
+		while (!file.eof()) {
 			char buff[chunk];
 			file.read(buff, chunk);
 			count += file.gcount();
@@ -510,29 +484,27 @@ void	MainClient::send_to_socket()
 	}
 }
 
-void	MainClient::set_content_type_map()
-{
-	this->content_type[".txt"] = "text/plain";
-	this->content_type[".csv"] = "text/plain";
+void MainClient::set_content_type_map() {
+	this->content_type[".txt"]	= "text/plain";
+	this->content_type[".csv"]	= "text/plain";
 	this->content_type[".html"] = "text/html";
-	this->content_type[".htm"] = "text/plain";
-	this->content_type[".css"] = "text/css";
+	this->content_type[".htm"]	= "text/plain";
+	this->content_type[".css"]	= "text/css";
 	this->content_type[".jpeg"] = "image/jpeg";
-	this->content_type[".jpg"] = "image/jpeg";
-	this->content_type[".png"] = "image/png";
-	this->content_type[".gif"] = "image/gif";
-	this->content_type[".ico"] = "image/icon";
-	this->content_type[".svg"] = "image/svg+xml";
-	this->content_type[".mp3"] = "audio/mpeg";
-	this->content_type[".wav"] = "audio/wav";
-	this->content_type[".mp4"] = "video/mp4";
-	this->content_type[".mov"] = "video/quicktime";
-	this->content_type[".js"] = "application/javascript";
-	this->content_type[".js"] = "application/json";
-	this->content_type[".xml"] = "application/xml";
-	this->content_type[".pdf"] = "application/pdf";
+	this->content_type[".jpg"]	= "image/jpeg";
+	this->content_type[".png"]	= "image/png";
+	this->content_type[".gif"]	= "image/gif";
+	this->content_type[".ico"]	= "image/icon";
+	this->content_type[".svg"]	= "image/svg+xml";
+	this->content_type[".mp3"]	= "audio/mpeg";
+	this->content_type[".wav"]	= "audio/wav";
+	this->content_type[".mp4"]	= "video/mp4";
+	this->content_type[".mov"]	= "video/quicktime";
+	this->content_type[".js"]	= "application/javascript";
+	this->content_type[".js"]	= "application/json";
+	this->content_type[".xml"]	= "application/xml";
+	this->content_type[".pdf"]	= "application/pdf";
 }
-
 
 // import os
 // file_path = "./error/404.html"
