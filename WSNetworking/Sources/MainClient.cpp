@@ -56,7 +56,7 @@ void MainClient::start_handle(string task) {
 			this->handle_write();
 
 	} catch (const std::exception &e) {
-
+		print_short_line("catch something");
 		if (string(e.what()).find("can't open file") != string::npos)
 			throw std::runtime_error(string(e.what()));
 
@@ -65,7 +65,6 @@ void MainClient::start_handle(string task) {
 		if (string(e.what()) == "Still running")
 			return;
 
-		print_short_line("catch something");
 		set_header_for_errors_and_redirection(e.what());
 
 		send_to_socket();
@@ -293,7 +292,6 @@ void MainClient::handle_read() {
 		else
 			throw Error::BadRequest400();
 	}
-
 	int location = this->match_location();
 	if (location != -1) {
 		this->location = location;
@@ -310,12 +308,17 @@ void MainClient::handle_read() {
 void MainClient::handle_write() {
 	print_line("Server Response (write)");
 
+	set_content_type_map();
 	Response Response(this);
 	if (this->request_parser->get_request("Request-Type") == "GET") {
 		serve_file = Response.Get(this);
-		std::cout << "HEADER: " << this->header << std::endl;
+		std::cout << "serve_file: " << serve_file << std::endl;
 	}
-	if (this->request_parser->get_request("Request-Type") == "DELETE") {
+	else if (this->request_parser->get_request("Request-Type") == "POST")
+	{
+		serve_file = Response.post(this);
+	}
+	else if (this->request_parser->get_request("Request-Type") == "DELETE") {
 		// DELETE
 	}
 }
@@ -355,8 +358,7 @@ int MainClient::match_location() {
 		found = str.find_last_of('/');
 		str	  = str.substr(0, found);
 	}
-	check_if_uri_exist();
-	return (-1);
+	return (check_for_root_directory());
 }
 
 void MainClient::set_header_for_errors_and_redirection(const char *what) {
@@ -391,33 +393,6 @@ std::string MainClient::get_new_url() {
 
 std::string MainClient::get_serve_file() {
 	return (serve_file);
-}
-
-void MainClient::check_if_uri_exist() {
-	DIR *directory = opendir(this->get_request("Request-URI").c_str());
-	if (directory == NULL) {
-		std::ifstream file(this->get_request("Request-URI"));
-		if (!file.is_open())
-			throw Error::NotFound404();
-		file.close();
-		this->serve_file = this->get_request("Request-URI");
-		return;
-	} else {
-		if (this->get_request("Request-URI") == "/") {
-			std::ofstream file("folder/root_directory.html");
-			if (!file.is_open())
-				throw Error::Forbidden403();
-			char current_path[MAXLINE];
-			getcwd(current_path, sizeof(current_path));
-			DIR *root_directory = opendir(current_path);
-			if (root_directory == NULL)
-				throw Error::Forbidden403();
-			this->serve_file = this->write_into_file(root_directory, current_path);
-			closedir(root_directory);
-			return;
-		}
-	}
-	throw Error::NotFound404();
 }
 
 void MainClient::check_files_error() {
@@ -486,6 +461,7 @@ void MainClient::send_to_socket() {
 
 void MainClient::set_content_type_map() {
 	this->content_type[".txt"]	= "text/plain";
+	this->content_type[".text"]	= "text/plain";
 	this->content_type[".csv"]	= "text/plain";
 	this->content_type[".html"] = "text/html";
 	this->content_type[".htm"]	= "text/plain";
@@ -494,16 +470,50 @@ void MainClient::set_content_type_map() {
 	this->content_type[".jpg"]	= "image/jpeg";
 	this->content_type[".png"]	= "image/png";
 	this->content_type[".gif"]	= "image/gif";
+	this->content_type[".bmp"] = "image/bmp";
+	this->content_type[".svg"] = "image/svg+xml";
 	this->content_type[".ico"]	= "image/icon";
 	this->content_type[".svg"]	= "image/svg+xml";
 	this->content_type[".mp3"]	= "audio/mpeg";
 	this->content_type[".wav"]	= "audio/wav";
 	this->content_type[".mp4"]	= "video/mp4";
+	this->content_type[".webm"]	= "video/webm";
 	this->content_type[".mov"]	= "video/quicktime";
 	this->content_type[".js"]	= "application/javascript";
 	this->content_type[".js"]	= "application/json";
 	this->content_type[".xml"]	= "application/xml";
 	this->content_type[".pdf"]	= "application/pdf";
+	this->content_type[".zip"] = "application/zip";
+	this->content_type[".gz"] = "application/gzip";
+	this->content_type[".xls"] = "application/vnd.ms-excel";
+	this->content_type[".doc"] = "application/msword";
+	this->content_type[".docs"] = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+	this->content_type["xls"] = "application/vnd.ms-excel";
+	this->content_type["xlsx"] = "application/vnd.ms-excel";
+	this->content_type[".py"] = "cgi";
+	this->content_type[".php"] = "cgi";
+}
+
+std::string	MainClient::get_content_type(std::string extention)
+{
+	return(this->content_type[extention]);
+}
+
+int	MainClient::check_for_root_directory()
+{
+	int location = 0;
+	for (vector<ConfigLocationParser *>::const_iterator itr = config_server_parser->get_config_location_parser().begin(); itr != config_server_parser->get_config_location_parser().end(); itr++)
+	{
+		// std::cout << "location :" << (*itr)->get_location() << std::endl;
+		if ((*itr)->get_location() == "/")
+		{
+			this->new_url = this->config_server_parser->get_config_location_parser()[location]->get_root() + this->request_parser->get_request("Request-URI");
+			std::cout << "new_url: " << new_url  << std::endl;
+			return(location);
+		}
+		location++;
+	}
+	return (-1);
 }
 
 // import os

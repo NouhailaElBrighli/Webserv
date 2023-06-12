@@ -39,6 +39,7 @@ class MainClient {
 	const int				  &get_client_socket() const;
 	const int				  &get_location() const;
 	ConfigServerParser		  *get_config_server() const;
+	std::string				get_content_type(std::string extention);
 
 	// Setters
 	void set_send_receive_status(bool send_receive_status);
@@ -62,6 +63,7 @@ class MainClient {
 	void	send_to_socket();
 	void	set_content_type_map();
 
+
 	void start_handle();
 	void start(string task);
 
@@ -83,8 +85,8 @@ class MainClient {
 
 	int		match_location();
 	void	is_method_allowed_in_location();
-	void	check_if_uri_exist();
 	void	check_files_error();
+	int		check_for_root_directory();
 };
 
 #endif	// MAINCLIENT_HPP

@@ -12,6 +12,8 @@ class Response {
 	std::string header;
 	MainClient	*Client;
 	std::string	type;
+	std::string outfile_cgi;
+	int	cgi_status;
   public:
 	Response();
 	~Response();
@@ -32,7 +34,7 @@ class Response {
 	std::string	check_auto_index();
 	std::string	handle_file();
 	std::string	set_error_body(std::string msg_status,std::string body_file);
-	
+	std::string post(MainClient *Client);
 };
 
 std::ostream &operator<<(std::ostream &out, const Response &obj);//!here

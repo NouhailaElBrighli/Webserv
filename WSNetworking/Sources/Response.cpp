@@ -4,13 +4,15 @@ Response::Response() {}
 
 Response::~Response() {}
 
-std::string Response::GetContentType() const { return (this->ContentType); }
+std::string Response::GetContentType() const { return (this->ContentType);  }
 
 std::string Response::GetContentLength() const { return (this->ContentLength); }
 
 std::string Response::GetHeader() const { return (this->header); }
 
-Response::Response(MainClient *Client) { this->Client = Client; }
+Response::Response(MainClient *Client) { this->Client = Client; 
+this->cgi_status = 0;
+}
 
 std::string	Response::Get(MainClient *client) {
 	
@@ -22,28 +24,13 @@ std::string	Response::Get(MainClient *client) {
 		if (this->type == "directory")
 			file_to_serve = handle_directory();
 		else if (this->type == "file")
-			file_to_serve = handle_file();
+			file_to_serve = handle_file(); 
 	}
 	else
 		file_to_serve = Client->get_serve_file();
 	this->SetVars(file_to_serve);
-	return(file_to_serve);
+	return (file_to_serve);
 }
-
-// void Response::set_resource_type() {
-// 	std::cout << "URI ->" << Client->get_request("Request-URI") << std::endl;
-// 	DIR *directory = opendir(Client->get_request("Request-URI").c_str());
-// 	if (directory == NULL)
-// 		type = "file";
-// 	else {
-// 		type = "directory";
-// 		closedir(directory);
-// 		if (Client->get_request("Request-URI")[Client->get_request("Request-URI").size() - 1]
-// 			!= '/') {
-// 			std::cout << "yes" << std::endl;
-// 		}
-// 	}
-// }
 
 std::string Response::SetError(const std::string msg_status, std::string body_file) {
 		this->ContentType = "text/html";
@@ -70,23 +57,44 @@ void Response::SetContentType() {
 	std::string extention;
 
 	size_t start = this->filename.find('.');
-	if (start != string::npos) {
+	if (start != string::npos)
+	{
 		std::string extention = filename.substr(start, filename.size() - 1);
-		if (extention == ".html")
-			this->ContentType = "text/html";
-		else if (extention == ".css")
-			this->ContentType = "text/css";
-		else if (extention == ".jpg" || extention == ".jpeg")
-			this->ContentType = "image/jpeg";
-		else if (extention == ".png")
-			this->ContentType = "image/png";
-		else if (extention == ".mp4")
-			this->ContentType = "video/mp4";
-		else
-			this->ContentType = "cgi";
-
-	} else
-		this->ContentType = "text/plain";
+		std::cout << "extention :" << extention << std::endl;
+		this->ContentType = Client->get_content_type(extention);
+		print_long_line(ContentType);
+		if (ContentType == "cgi")
+		{
+			print_error("rah dkheeeeel");
+			std::string str;
+			Cgi cgi(this->Client, Client->get_config_server()->get_config_location_parser(), Client->get_new_url());
+			cgi.check_extention();
+			outfile_cgi = cgi.get_outfile();
+			std::cout << "outfile :" << outfile_cgi << std::endl;
+			std::ifstream outfile(outfile_cgi);
+			if(!outfile.is_open())
+				throw Error::BadRequest400();
+			char buff[MAXLINE];
+			outfile.read(buff, MAXLINE);
+			std::string fake_buff(buff);
+			size_t found = fake_buff.find("\r\n\r\n");
+			this->header = "HTTP/1.1 200 ok\r\n";
+			if (found != std::string::npos)
+			{
+				this->header += fake_buff.substr(0, found + 4);
+				this->body = fake_buff.substr(found + 4, fake_buff.size() - found);
+				std::cout << "this->header: " << this->header << std::endl;
+				std::cout << "this->body: " << this->body << std::endl;
+				// serve_file << this->body;
+				// std::cout << "serve_file" << serve_file << std::endl;
+			}
+			this->cgi_status = 1;
+			return;
+			//modifier content type
+		}
+	}
+	else
+		this->ContentType = "application/octetstream";
 }
 
 void Response::SetContentLength(std::string RequestURI) {
@@ -108,18 +116,22 @@ void Response::SetVars(std::string file_to_serve) {
 	while (getline(ss, this->filename, '/')) {
 	}
 	this->SetContentType();
-	this->SetContentLength(file_to_serve);
-
-	this->header = "HTTP/1.1 200 ok\r\nContent-Type: ";
-	this->header += this->ContentType;
-	this->header += "\r\nContent-Length: ";
-	this->header += ContentLength;
-	this->header += "\r\n\r\n";
+	if (!this->cgi_status)
+	{
+		this->SetContentLength(file_to_serve);
+		this->header = "HTTP/1.1 200 ok\r\nContent-Type: ";
+		this->header += this->ContentType;
+		this->header += "\r\nContent-Length: ";
+		this->header += ContentLength;
+		this->header += "\r\n\r\n";
+	}
 	Client->set_header(header);
 }
 
 void	Response::check_request_uri()
 {
+	print_error("location");
+	print_error(Client->get_location());
 	std::string root = Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_root();
 	std::string uri = Client->get_new_url();
 	if (uri[uri.size() - 1] == '/')
@@ -269,4 +281,14 @@ std::string	Response::set_error_body(std::string msg_status, std::string body_fi
 	return(body_file);
 }
 
-
+std::string	Response::post(MainClient *Client)
+{
+	this->Client = Client;
+	std::cout << Client->get_body_file_name() << std::endl;
+	this->header = "HTTP/1.1 ";
+	this->header += "200 ok\r\n";
+	this->header += "ContentType: text/html\r\n";
+	this->header += "ContentLength: 3\r\n\r\n";
+	Client->set_header(this->header);
+	return ("folder/post_file.html");
+}
