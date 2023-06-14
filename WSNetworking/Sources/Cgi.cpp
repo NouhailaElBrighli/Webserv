@@ -6,7 +6,7 @@
 /*   By: hsaidi <hsaidi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:38:43 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/06/14 11:58:05 by hsaidi           ###   ########.fr       */
+/*   Updated: 2023/06/14 14:15:04 by hsaidi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -184,7 +184,6 @@ void Cgi::set_cgi_env()
 	waitpid(pid, NULL, 0);
 		// execve(av[0], av2, const_cast<char *const *>(&cgi_env[0]));
 }
-
 
 std::string Cgi::get_outfile()
 {
