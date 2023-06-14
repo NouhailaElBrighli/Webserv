@@ -10,6 +10,7 @@ class MainClient {
 	ConfigServerParser *config_server_parser;
 	RequestParser	   *request_parser;
 	std::ifstream		*send_file;
+	std::streampos	position;
 	bool				send_receive_status;
 	string				msg_status;
 	int					client_socket;

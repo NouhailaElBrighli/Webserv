@@ -70,12 +70,10 @@ void MainClient::start_handle(string task) {
 		set_header_for_errors_and_redirection(e.what());
 		
 		send_to_socket();
-		// this->send_receive_status = false;
 	}
 
 	if (task == "write") {
 		send_to_socket();
-		// this->send_receive_status = false;
 	}
 }
 
@@ -516,51 +514,38 @@ void MainClient::send_to_socket() {
 	}
 
 	std::ifstream file(serve_file, std::ios::binary);
-	// if(file_open == false)
-	// {
+
+	if(file_open == false)
+	{
 		print_short_line("open the file");
-		// send_file = &file;
 		if (!file.is_open())
-		{
-			// std::cout << "serve_file: " << serve_file << std::endl;
-			std::cout << "open failure" << std::endl;
 			throw Error::Forbidden403();
-		}
 		if (this->php_status)
 		{
-			std::cout << "here" << std::endl;
 			char buff[start_php];
 			file.read(buff, start_php);
-			std:cout.write(buff, file.gcount());
+			this->position = file.tellg();
 		}
-		// file_open = true;
-		// return ;
-	// }
-	
-	print_short_line("start sending body");
-	// long count = 0;
-	// if (send_file->eof())
-	// {
-	// 	this->send_receive_status = false;
-	// 	send_file->close();
-	// 	return;
-	// }
-	// char buff[MAXLINE];
-	
-	// send_file->read(buff, MAXLINE);
-	// std::cout.write(buff, send_file->gcount());
-	// if (send(client_socket, buff, send_file->gcount(), 0) < 0)
-	// 	throw Error::BadRequest400();
-
-
-	while (!file.eof())
-	{
-		char buff[MAXLINE];
-		file.read(buff, MAXLINE);
-		send(client_socket, buff, file.gcount(), 0);
-		std::cout.write(buff, file.gcount());
+		file_open = true;
+		return ;
 	}
+	print_short_line("start sending body");
+	file.seekg(position);
+	print_short_line("moving the position");
+	if (!file.is_open())
+		throw Error::BadRequest400();
+	if (position == - 1)
+	{
+		file.close();
+		this->send_receive_status = false;
+		return;
+	}
+	char buff[MAXLINE];
+	
+	file.read(buff, MAXLINE);
 
-	this->send_receive_status = false;
-
+	this->position = file.tellg();
+	if (send(client_socket, buff, file.gcount(), 0) < 0)
+		throw Error::BadRequest400();
+	file.close();
 }

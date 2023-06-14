@@ -43,7 +43,6 @@ void Response::SetContentType() {
 	{
 		this->extention = filename.substr(start, filename.size() - 1);
 		this->ContentType = Client->get_content_type(this->extention);
-		print_long_line(ContentType);
 		if (ContentType == "cgi")
 		{
 			check_cgi_location();
