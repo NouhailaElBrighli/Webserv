@@ -9,6 +9,8 @@ class MainClient {
   	std::map<std::string, std::string>content_type;
 	ConfigServerParser *config_server_parser;
 	RequestParser	   *request_parser;
+	std::ifstream		*send_file;
+	std::streampos	position;
 	bool				send_receive_status;
 	string				msg_status;
 	int					client_socket;
@@ -20,6 +22,11 @@ class MainClient {
 	std::string			serve_file;
 	std::string			body_file;
 	int					status, phase;
+	int					start_php;
+	int					php_status;
+	bool				write_header;
+	bool				write_body;
+	bool				file_open;
 
   private:
 	// Copy constructor and assignation operator
@@ -39,6 +46,7 @@ class MainClient {
 	const int				  &get_client_socket() const;
 	const int				  &get_location() const;
 	ConfigServerParser		  *get_config_server() const;
+	std::string				get_content_type(std::string extention);
 
 	// Setters
 	void set_send_receive_status(bool send_receive_status);
@@ -61,6 +69,8 @@ class MainClient {
 	void	set_serve_file(std::string file_to_serve);
 	void	send_to_socket();
 	void	set_content_type_map();
+	void	set_start_php(int start);
+
 
 	void start_handle();
 	void start(string task);
@@ -84,8 +94,8 @@ class MainClient {
 	void set_header_for_errors_and_redirection();
 	int		match_location();
 	void	is_method_allowed_in_location();
-	void	check_if_uri_exist();
 	void	check_files_error();
+	int		check_for_root_directory();
 };
 
 #endif	// MAINCLIENT_HPP

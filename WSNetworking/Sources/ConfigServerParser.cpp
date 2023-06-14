@@ -40,7 +40,6 @@ ConfigServerParser::ConfigServerParser(string config_server) {
 	this->client_max_body_size_status	= false;
 	this->error_page_status				= false;
 	this->config_location_parser_status = 0;
-	this->config_location_cgi_status	= 0;
 }
 
 ConfigServerParser::~ConfigServerParser() {
@@ -257,10 +256,6 @@ void ConfigServerParser::set_config_location_parser(string config_location) {
 	this->config_location_parser.push_back(new ConfigLocationParser(config_location));
 
 	this->config_location_parser_status++;
-	if (this->config_location_parser.back()->get_location().find("cgi") != string::npos) {
-		this->config_location_cgi_status++;
-		return;
-	}
 }
 
 // Methods
@@ -342,15 +337,8 @@ void ConfigServerParser::check_status() {
 		throw std::runtime_error(str_red("Error: server_name is missing"));
 	if (!this->client_max_body_size_status)
 		throw std::runtime_error(str_red("Error: client_max_body_size is missing"));
-	if (this->config_location_parser_status < 2)
+	if (this->config_location_parser_status < 1)
 		throw std::runtime_error(str_red("Error: config_location_parser is missing"));
-	if (this->config_location_cgi_status != 1) {
-		if (this->config_location_cgi_status > 1)
-			throw std::runtime_error(str_red("Error: cig location is unnecessary"
-											 " (only 1 cgi location is allowed)"));
-		if (this->config_location_cgi_status == 0)
-			throw std::runtime_error(str_red("Error: cig location is missing"));
-	}
 }
 
 std::ostream &operator<<(std::ostream &out, const ConfigServerParser &config_server_parser) {

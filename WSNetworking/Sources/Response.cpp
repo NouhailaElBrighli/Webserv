@@ -4,46 +4,16 @@ Response::Response() {}
 
 Response::~Response() {}
 
-std::string Response::GetContentType() const { return (this->ContentType); }
+std::string Response::GetContentType() const { return (this->ContentType);  }
 
 std::string Response::GetContentLength() const { return (this->ContentLength); }
 
 std::string Response::GetHeader() const { return (this->header); }
 
-Response::Response(MainClient *Client) { this->Client = Client; }
-
-std::string	Response::Get(MainClient *client) {
-	
-	print_long_line("Handle GET");
-	std::string file_to_serve;
-	if (Client->get_serve_file().size() == 0)
-	{
-		this->check_request_uri();// * check if uri exist in the root
-		if (this->type == "directory")
-			file_to_serve = handle_directory();
-		else if (this->type == "file")
-			file_to_serve = handle_file();
-	}
-	else
-		file_to_serve = Client->get_serve_file();
-	this->SetVars(file_to_serve);
-	return(file_to_serve);
+Response::Response(MainClient *Client) { this->Client = Client; 
+this->cgi_status = 0;
 }
 
-// void Response::set_resource_type() {
-// 	std::cout << "URI ->" << Client->get_request("Request-URI") << std::endl;
-// 	DIR *directory = opendir(Client->get_request("Request-URI").c_str());
-// 	if (directory == NULL)
-// 		type = "file";
-// 	else {
-// 		type = "directory";
-// 		closedir(directory);
-// 		if (Client->get_request("Request-URI")[Client->get_request("Request-URI").size() - 1]
-// 			!= '/') {
-// 			std::cout << "yes" << std::endl;
-// 		}
-// 	}
-// }
 
 std::string Response::SetError(const std::string msg_status, std::string body_file) {
 		this->ContentType = "text/html";
@@ -67,26 +37,25 @@ std::ostream &operator<<(std::ostream &out, const Response &obj) {
 }
 
 void Response::SetContentType() {
-	std::string extention;
 
 	size_t start = this->filename.find('.');
-	if (start != string::npos) {
-		std::string extention = filename.substr(start, filename.size() - 1);
-		if (extention == ".html")
+	if (start != string::npos)
+	{
+		this->extention = filename.substr(start, filename.size() - 1);
+		this->ContentType = Client->get_content_type(this->extention);
+		if (ContentType == "cgi")
+		{
+			check_cgi_location();
+			print_long_line("handle cgi");
+			Cgi cgi(this->Client, Client->get_config_server()->get_config_location_parser(), Client->get_new_url());
+			cgi.check_extention();
+			this->serve_file = cgi.get_outfile();
 			this->ContentType = "text/html";
-		else if (extention == ".css")
-			this->ContentType = "text/css";
-		else if (extention == ".jpg" || extention == ".jpeg")
-			this->ContentType = "image/jpeg";
-		else if (extention == ".png")
-			this->ContentType = "image/png";
-		else if (extention == ".mp4")
-			this->ContentType = "video/mp4";
-		else
-			this->ContentType = "cgi";
-
-	} else
-		this->ContentType = "text/plain";
+			return;
+		}
+	}
+	else
+		this->ContentType = "application/octetstream";
 }
 
 void Response::SetContentLength(std::string RequestURI) {
@@ -103,19 +72,19 @@ void Response::SetContentLength(std::string RequestURI) {
 }
 
 void Response::SetVars(std::string file_to_serve) {
-	std::stringstream ss(file_to_serve);
+	std::stringstream ss(serve_file);
 
 	while (getline(ss, this->filename, '/')) {
 	}
 	this->SetContentType();
-	if (this->ContentType == "cgi") 
+	if(this->extention == ".php")
 	{
-		Cgi cgi(this->Client, Client->get_config_server()->get_config_location_parser());
-		cgi.check_extention();
+		print_error("here");
+		handle_php();
+		Client->set_header(header);
 		return;
 	}
-	this->SetContentLength(file_to_serve);
-
+	this->SetContentLength(serve_file);
 	this->header = "HTTP/1.1 200 ok\r\nContent-Type: ";
 	this->header += this->ContentType;
 	this->header += "\r\nContent-Length: ";
@@ -178,12 +147,6 @@ void	Response::check_inside_root(std::string &root, std::string uri)
 	closedir(directory);
 }
 
-void	Response::serve_file(std::string	index_file)
-{
-	std::cout << "file to serve: " << index_file << std::endl;// search for cgi here
-
-}
-
 std::string	Response::check_auto_index()
 {
 	int autoindex =  this->Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_autoindex();
@@ -233,7 +196,6 @@ std::string	Response::handle_directory()
 
 std::string	Response::handle_file()
 {
-	print_short_line("handle file");
 	std::ifstream file(Client->get_new_url());
 	if (!file)
 		throw Error::Forbidden403();
@@ -275,4 +237,73 @@ std::string	Response::set_error_body(std::string msg_status, std::string body_fi
 	return(body_file);
 }
 
+std::string	Response::post(MainClient *Client)
+{
+	this->Client = Client;
+	std::cout << Client->get_body_file_name() << std::endl;
+	this->header = "HTTP/1.1 ";
+	this->header += "200 ok\r\n";
+	this->header += "ContentType: text/html\r\n";
+	this->header += "ContentLength: 3\r\n\r\n";
+	Client->set_header(this->header);
+	return ("folder/post_file.html");
+}
 
+void	Response::check_cgi_location()
+{
+	if (!Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_cgi_ext_path(this->extention).size())
+		throw Error::InternalServerError500();
+}
+
+void	Response::set_outfile_cgi(std::string outfile)
+{
+	this->cgi_outfile = outfile;
+}
+
+std::string	Response::Get(MainClient *client) {
+	
+	print_long_line("Handle GET");
+	if (Client->get_serve_file().size() == 0)
+	{
+		this->check_request_uri();// * check if uri exist in the root
+		if (this->type == "directory")
+			this->serve_file = handle_directory();
+		else if (this->type == "file")
+			this->serve_file = handle_file();
+	}
+	else
+		serve_file = Client->get_serve_file();
+	this->SetVars(serve_file);
+	return (serve_file);
+}
+
+void	Response::handle_php()
+{
+	std::ifstream php_file(serve_file.c_str(), std::ios::binary);
+
+	php_file.seekg(0, std::ios::end);
+	std::ifstream::pos_type size = php_file.tellg();
+	php_file.seekg(0, std::ios::beg);
+	char buff[MAXLINE];
+
+	php_file.read(buff, MAXLINE);
+	std::string	content(buff);
+	size_t found = content.find("\r\n\r\n");
+	if (found != std::string::npos)
+	{
+		this->header = "HTTP/1.1 200 ok\r\n";
+		content = content.substr(0, found);
+		this->header += content;
+		long len = (long)size - found;
+		std::stringstream len_str;
+		len_str << len;
+		len_str >> this->ContentLength;
+		this->header += "\r\nContentLength: ";
+		this->header += this->ContentLength;
+		this->header += "\r\n\r\n";
+		std::cout << "headerrrrrr:" << this->header << std::endl;
+		Client->set_start_php(found + 4);
+		//!cgi = 1 here please
+	}
+	
+}

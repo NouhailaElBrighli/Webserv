@@ -1,0 +1,15 @@
+//NOT ALLOWED CHARACTERS
+
+// Less than ("<")
+// Greater than (">")
+// Double quote (")
+// Pipe ("|")
+// Backslash ("")
+// Caret ("^")
+// Left and right curly braces ("{" and "}")
+// Tilde ("~")
+// Grave accent or backtick ("`")
+// add root directory if not found
+// upload in location
+// why it fail to return 405 in head method
+

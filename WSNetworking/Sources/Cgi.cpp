@@ -6,55 +6,56 @@
 /*   By: hsaidi <hsaidi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:38:43 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/06/13 12:00:26 by hsaidi           ###   ########.fr       */
+/*   Updated: 2023/06/14 11:27:19 by hsaidi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Cgi.hpp"
 
-Cgi::Cgi(MainClient *main_client, vector<ConfigLocationParser *>config_location_parser){
+Cgi::Cgi(MainClient *main_client, vector<ConfigLocationParser *>config_location_parser, std::string filename){
 	this->main_client = main_client;
 	this->config_location_parser = config_location_parser;
+	this->filename = filename;
 }
 Cgi::~Cgi(){}
 
-
 void Cgi::readFileContents() 
 {
-    std::cout << "*****in readFileContents***\n";
-    std::string requestUri = this->main_client->get_request("Request-URI");
-    std::string location, file;
+    // std::cout << "*****in readFileContents***\n";
+    // std::string requestUri = this->main_client->get_request("Request-URI");
+    // std::string location, file;
 
-    // Check if the Request-URI contains a location or root
-    for (std::vector<ConfigLocationParser*>::const_iterator it = this->config_location_parser.begin();
-         it != this->config_location_parser.end(); it++) {
-        if ((*it)->get_location().length() <= requestUri.length()
-            && requestUri.substr(0, (*it)->get_location().length()) == (*it)->get_location()) {
-            location = (*it)->get_root(); // Replace location with root
-            file = requestUri.substr((*it)->get_location().length());
-            break;
-        } else if ((*it)->get_root().length() <= requestUri.length()
-                   && requestUri.substr(0, (*it)->get_root().length()) == (*it)->get_root()) {
-            location = (*it)->get_root();
-            file = requestUri.substr((*it)->get_root().length());
-            break;
-        }
-    }
+    // // Check if the Request-URI contains a location or root
+    // for (std::vector<ConfigLocationParser*>::const_iterator it = this->config_location_parser.begin();
+    //      it != this->config_location_parser.end(); it++) {
+    //     if ((*it)->get_location().length() <= requestUri.length()
+    //         && requestUri.substr(0, (*it)->get_location().length()) == (*it)->get_location()) {
+    //         location = (*it)->get_root(); // Replace location with root
+    //         file = requestUri.substr((*it)->get_location().length());
+    //         break;
+    //     } else if ((*it)->get_root().length() <= requestUri.length()
+    //                && requestUri.substr(0, (*it)->get_root().length()) == (*it)->get_root()) {
+    //         location = (*it)->get_root();
+    //         file = requestUri.substr((*it)->get_root().length());
+    //         break;
+    //     }
+    // }
 
-    // If a location or root is found, update the filename
-    if (!location.empty()) {
-        if (!file.empty() && file[0] == '/')
-            file.erase(0, 1); // Remove leading slash if present
-        this->filename = location + '/' + file; // Add '/' between location and file
-    } else {
-        this->filename = requestUri; // Use the original filename
-    }
-
+    // // If a location or root is found, update the filename
+    // if (!location.empty()) {
+    //     if (!file.empty() && file[0] == '/')
+    //         file.erase(0, 1); // Remove leading slash if present
+    //     this->filename = location + '/' + file; // Add '/' between location and file
+    // } else {
+    //     this->filename = requestUri; // Use the original filename
+    // }
+	
     std::ifstream fileStream(this->filename.c_str());
     if (fileStream.is_open())
         getFileType(this->filename);
     else
-    	std::cout << "Failed to open file: " << this->filename << std::endl;
+		throw Error::BadRequest400();
+    	// std::cout << "Failed to open file: " << this->filename << std::endl;
 }
 
 int Cgi::getFileType(const std::string& filename) 
@@ -63,13 +64,23 @@ int Cgi::getFileType(const std::string& filename)
     if (dotPos != std::string::npos) {
         std::string extension = filename.substr(dotPos + 1);
 
-        if (extension == "php") 
-			return 2;
+        if (extension == "php")
+			this->script = main_client->get_config_server()->get_config_location_parser()[main_client->get_location()]->get_cgi_ext_path(".php");
 		else if (extension == "py")
-			return 1;
+			this->script = main_client->get_config_server()->get_config_location_parser()[main_client->get_location()]->get_cgi_ext_path(".py");
 		else
 			throw Error::NotImplemented501();
-    }
+		}
+	std::ifstream checl_script(this->script.c_str());
+	if (checl_script.is_open())
+	{
+		set_cgi_env();
+	}
+	else
+	{
+		cout << "---- can't open the script ----" << std::endl;
+		throw Error::NotFound404();
+	}
 	return -1;
 }
 
@@ -84,7 +95,7 @@ char* const* Cgi::mapToCharConstArray(const std::map<std::string, std::string>& 
         envp[i] = strdup(envVar.c_str());
         ++i;
     }
-    envp[i] = NULL; 
+    envp[i] = NULL;
     return const_cast<char* const*>(envp);
 }
 
@@ -97,42 +108,39 @@ void Cgi::check_extention()
 		cout << it->first << " : " << it->second << endl;          
 	}
 	readFileContents();
-	for (vector<ConfigLocationParser *>::const_iterator it
-			= this->config_location_parser.begin(); it != this->config_location_parser.end(); it++)
-	{   
-		if ((*it)->get_location().find("cgi") != string::npos)
-		{
-			if (getFileType(this->filename) == 1)
-				this->script = (*it)->get_cgi_ext_path(".py");
-			else if (getFileType(this->filename) == 2)
-				this->script = (*it)->get_cgi_ext_path(".php");
-			else
-				throw Error::NotImplemented501();
-		}
-	}           
-	std::ifstream checl_script(this->script.c_str());
-	if (checl_script.is_open())
-	{
-		set_cgi_env();
-	}
-	else
-	{
-		cout << "---- can't open the script ----" << std::endl;
-		throw Error::NotFound404();
-	}
+	
+	// for (vector<ConfigLocationParser *>::const_iterator it
+	// 		= this->config_location_parser.begin(); it != this->config_location_parser.end(); it++)
+	// {  
+	// 	if ((*it)->get_location().find("cgi") != string::npos)
+	// 	{
+	// 		if (getFileType(this->filename) == 1)
+	// 			this->script = (*it)->get_cgi_ext_path(".py");
+	// 		else if (getFileType(this->filename) == 2)
+	// 		{
+	// 			this->script = (*it)->get_cgi_ext_path(".php");
+	// 			print_error(this->script);
+	// 		}
+	// 		else
+	// 			throw Error::NotImplemented501();
+	// 	}
+	// }
+	
 }
 // setting the cgi_env map
 void Cgi::set_cgi_env()
 {
 	cgi_env["REQUEST_METHOD="] = this->main_client->get_request("Request-Type");
-	cgi_env["PATH_INFO="] = this->main_client->get_request("Request-URI");
+	// cgi_env["PATH_INFO="] = this->main_client->get_request("Request-URI");
+	cgi_env["PATH_INFO="] = this->main_client->get_new_url();
 	cgi_env["QUERY_STRING="] = this->main_client->get_request("Query-String");
 	cgi_env["HTTP_COOKIE="] = this->main_client->get_request("Cookie");
 	cgi_env["SCRIPT_FILENAME="] = this->filename;
 	cgi_env["SERVER_PROTOCOL="] = this->main_client->get_request("Protocol-Version");
 	cgi_env["GATEWAY_INTERFACE="] = "CGI/1.1";
 	cgi_env["REDIRECT_STATUS="] = "200";
-	cgi_env["REQUEST_URI="] = this->main_client->get_request("Request-URI");
+	// cgi_env["REQUEST_URI="] = this->main_client->get_request("Request-URI");
+	cgi_env["REQUEST_URI="] = this->main_client->get_new_url();
 	cgi_env["HTTP_HOST="] = this->main_client->get_request("Host");
 	cgi_env["CONTENT_TYPE="] =this->main_client->get_request("Content-Type");
 	cgi_env["CONTENT_LENGTH="] = this->main_client->get_request("Content-Length");
@@ -146,7 +154,7 @@ void Cgi::set_cgi_env()
     //     const std::string& value = it->second;
     //     std::cout <<"|________|"<< key << value << "|________|"<< std::endl;
     // }
-
+	std::cout << main_client->get_location() << std::endl;
 	const char  *av[] = {script.c_str(), this->filename.c_str(), NULL};
 	char *const *av2 = const_cast<char *const *>(av);
 
@@ -155,8 +163,8 @@ void Cgi::set_cgi_env()
 	for (size_t i = 0; cgi_env.size() > i; i++)
 		cout <<"| "<< this->env[i] <<" |"<< endl;
 	cout << "-----------------------------------------------------------------------------------\n";
-
-	output_file = open("output.html", O_WRONLY | O_CREAT | O_TRUNC, 0666);
+	outfile = "./outfile.txt";
+	output_file = open(outfile.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
 	input_file = open(this->main_client->get_body_file_name().c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
 	int pid = fork();
 	if(pid < 0)
@@ -173,4 +181,11 @@ void Cgi::set_cgi_env()
 		execve(av[0], av2, this->env);
 	}
 	waitpid(pid, NULL, 0);
+		// execve(av[0], av2, const_cast<char *const *>(&cgi_env[0]));
+}
+
+
+std::string Cgi::get_outfile()
+{
+	return (outfile);
 }
