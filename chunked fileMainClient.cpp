@@ -1,3 +1,10 @@
+97
+----------------------------676138037400800377537200
+Content-Disposition: form-data; name="dfg"; filename="MainClient.cpp"
+Content-Type: text/x-c
+
+
+2f0e
 #include "MainClient.hpp"
 // Getters
 const map<string, string> &MainClient::get_request() const { return request_parser->get_request(); }
@@ -67,8 +74,7 @@ void MainClient::start_handle(string task) {
 
 	} catch (const std::exception &e) {
 
-		if (string(e.what()).find("can't open file") != string::npos
-			|| string(e.what()).find("Bad Input") != string::npos)
+		if (string(e.what()).find("can't open file") != string::npos)
 			throw std::runtime_error(string(e.what()));
 
 		print_error(string(e.what()));
@@ -92,6 +98,53 @@ void MainClient::start_handle(string task) {
 void MainClient::handle_read() {
 	print_line("Client Request (read)");
 
+	// 	std::memset(buffer, 0, MAXLINE);
+	// 	size_t bytes = recv(this->client_socket, buffer, MAXLINE, 0);
+	// 	if (bytes == 0)
+	// 		return;
+	// 	if (bytes < 0)
+	// 		throw Error::BadRequest400();
+	// 	//print buffer with specific size
+	// 	std::cout << std::string(buffer, bytes);
+	// 	//in case of chunk request
+	//
+
+	// 97
+	// ----------------------------610700154835422642040385
+	// Content-Disposition: form-data; name="dfg"; filename="MainClient.cpp"
+	// Content-Type: text/x-c
+
+	// 41a5
+	// #include "MainClient.hpp"
+	// .
+	// .
+	// .
+
+	// 3a
+
+	// ----------------------------610700154835422642040385--
+
+	// 0
+
+	//
+
+	// 	/*
+	// 	5
+	// 	avc
+
+	// 	*/
+	// 	/*
+	// 	de
+	// 	0
+
+	// 	*/
+	// 	std::string result = chunk_reader.read(buffer, bytes);
+	// 	buffer = result.c_str();
+	// 	bytes = result.size();
+
+	// 	throw std::runtime_error("Still running");
+	// return ;
+
 	header_body_reader->header_reading();
 	this->request_parser->run_parse(header_body_reader->get_head());
 
@@ -99,7 +152,8 @@ void MainClient::handle_read() {
 		if (this->get_request("Content-Length").size() != 0)
 			header_body_reader->body_reading();
 		else if (this->get_request("Transfer-Encoding") == "chunked")
-			header_body_reader->chunked_body_reading();
+			header_body_reader->body_reading();
+		// header_body_reader->chunked_body_reading();
 		else
 			throw Error::BadRequest400();
 	}
@@ -351,3 +405,10 @@ void MainClient::set_type_mime_map() {
 // file_size = os.path.getsize(file_path)
 // print("File size:", file_size, "bytes")
 //
+
+3a
+
+----------------------------676138037400800377537200--
+
+0
+

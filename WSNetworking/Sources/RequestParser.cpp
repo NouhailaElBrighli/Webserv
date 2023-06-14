@@ -5,10 +5,16 @@ const string &RequestParser::get_head() const { return this->head; }
 
 const map<string, string> &RequestParser::get_request() const { return this->request; }
 
-const string &RequestParser::get_request(string key) { return this->request[key]; }
+const string &RequestParser::get_request(string key) {
+	if (this->request.find(key) != this->request.end())
+		return this->request[key];
+	// return safe empty string if key not found
+	static string empty = "";
+	return empty;
+}
 
 // Setters
-void RequestParser::set_head(string &head) { this->head = head; }
+void RequestParser::set_head(const string &head) { this->head = head; }
 
 void RequestParser::set_request_uri(string &str) { this->request["Request-URI"] = str; }
 
@@ -18,7 +24,7 @@ RequestParser::RequestParser() : parse_status(false) {}
 RequestParser::~RequestParser() {}
 
 // Methods
-void RequestParser::run_parse(string &head) {
+void RequestParser::run_parse(const string &head) {
 	if (this->parse_status == true)
 		return;
 	this->parse_status = true;

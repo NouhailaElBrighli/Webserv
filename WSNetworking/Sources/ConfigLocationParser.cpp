@@ -38,6 +38,16 @@ const string &ConfigLocationParser::get_return() const {
 	return this->return_;
 }
 
+
+const string &ConfigLocationParser::get_upload() const {
+	if (this->upload_status == false) {
+		// upload an empty string if upload is not set
+		static string empty_string;
+		return empty_string;
+	}
+	return this->upload;
+}
+
 const vector<string> &ConfigLocationParser::get_methods() const {
 	if (this->methods_status == false) {
 		// return an empty vector if methods is not set
@@ -82,6 +92,7 @@ ConfigLocationParser::ConfigLocationParser(string config_location)
 	this->autoindex_status	  = false;
 	this->index_status		  = false;
 	this->return_status		  = false;
+	this->upload_status		  = false;
 	this->methods_status	  = false;
 	this->cgi_ext_path_status = false;
 
@@ -240,6 +251,17 @@ void ConfigLocationParser::set_return(string return_, size_t pos) {
 	this->return_status = true;
 }
 
+void ConfigLocationParser::set_upload(string upload, size_t pos) {
+	string upload_save = upload;
+	upload			   = upload.substr(0, upload.size() - 1);
+	if (this->upload_status == true || upload.empty() || this->config_location[pos - 1] != ';'
+		|| !std::isalnum(this->config_location[pos - 2]))
+		throw std::runtime_error(str_red("upload Error : " + upload));
+
+	this->upload		= upload;
+	this->upload_status = true;
+}
+
 void ConfigLocationParser::set_methods(string methods, size_t pos) {
 	methods = methods.substr(0, methods.size() - 1);
 	if (this->methods_status == true || methods.empty() || this->config_location[pos - 1] != ';'
@@ -306,6 +328,9 @@ void ConfigLocationParser::parse_config_location() {
 		else if (this->find_compare(line, "return"))
 			this->set_return(line.substr(line.find(" ") + 1), pos);
 
+		else if (this->find_compare(line, "upload"))
+			this->set_upload(line.substr(line.find(" ") + 1), pos);
+
 		else if (this->find_compare(line, "index"))
 			this->set_index(line.substr(line.find(" ") + 1), pos);
 
@@ -329,21 +354,10 @@ void ConfigLocationParser::check_status() {
 		throw std::runtime_error(str_red("Error : location is missing"));
 	if (!this->root_status)
 		throw std::runtime_error(str_red("Error : root is missing"));
-
-	if (this->location.find("cgi") != string::npos) {
-		if (!this->cgi_ext_path_status)
-			throw std::runtime_error(str_red("Error : cgi_ext_path is missing"));
-
-		if (this->methods_status)
-			throw std::runtime_error(str_red("Error : methods is unnecessary in cgi location"));
-	} else {
-		if (!this->methods_status)
-			throw std::runtime_error(str_red("Error : methods is missing"));
-
-		if (this->cgi_ext_path_status)
-			throw std::runtime_error(
-				str_red("Error : cgi_ext_path is unnecessary in non-cgi location"));
-	}
+	if (!this->cgi_ext_path_status)
+		throw std::runtime_error(str_red("Error : cgi_ext_path is missing"));
+	if (!this->methods_status)
+		throw std::runtime_error(str_red("Error : methods is missing"));
 }
 
 std::ostream &operator<<(std::ostream &os, const ConfigLocationParser &clp) {
@@ -360,6 +374,8 @@ std::ostream &operator<<(std::ostream &os, const ConfigLocationParser &clp) {
 		os << "index : " << clp.get_index()[i] << std::endl;
 	if (!clp.get_return().empty())
 		os << "return : " << clp.get_return() << std::endl;
+	if (!clp.get_upload().empty())
+		os << "upload : " << clp.get_upload() << std::endl;
 	for (size_t i = 0; i < clp.get_methods().size(); i++)
 		os << "methods : " << clp.get_methods()[i] << std::endl;
 	for (std::map<string, string>::const_iterator it = clp.get_cgi_ext_path().begin();

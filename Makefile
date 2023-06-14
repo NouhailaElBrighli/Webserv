@@ -42,14 +42,21 @@ SRCS		+= \
 	$(MAIN_DIR)/Sources/BindSocket.cpp				\
 	$(MAIN_DIR)/Sources/ListenSocket.cpp
 
-# ***************CGI**************** #
+# *****************CGI****************** #
 
 SRCS		+= \
 	$(MAIN_DIR)/Sources/Cgi.cpp
 
+# ***********HEADERBODYREADER*********** #
+
+SRCS		+= \
+	$(MAIN_DIR)/Sources/HeaderBodyReader.cpp
+
 # ***************RESPONSE*************** #
+
 SRCS		+= \
 	$(MAIN_DIR)/Sources/Response.cpp
+
 
 # *************************************************************************** # 
 #                                   FOLDERS                                   #
@@ -58,7 +65,8 @@ SRCS		+= \
 DEP_DIR = dependencies
 EXE_DIR	= executable
 OBJ_DIR	= objects
-DIRS	= $(DEP_DIR) $(EXE_DIR) $(OBJ_DIR)
+TMP_DIR	= tmp
+DIRS	= $(DEP_DIR) $(EXE_DIR) $(OBJ_DIR) $(TMP_DIR)
 MKDIR	= mkdir -p $(DIRS)
 
 # *************************************************************************** #
@@ -105,7 +113,7 @@ $(OBJ_DIR)/%.o : %.cpp
 #                                    MAKING                                    #
 # **************************************************************************** #
 
-all : $(DIRS) $(NAME)
+all : $(DIRS) tmp_clean $(NAME)
 
 -include $(DEP_FILES)
 
@@ -147,19 +155,21 @@ fclean : clean
 re : fclean all
 
 tmp_clean :
+	$(M_TMP_S)
 	$(RM) ./tmp/*
+	$(M_TMP_E)
 
-run : all tmp_clean
+run : all
 	$(M_RUN_S)
 	./$(NAME) default_anajmi.conf
 	$(M_RGS_E)
 
-go : all tmp_clean
+go : all
 	$(M_GO_S)
 	./$(NAME) default_hsaidi.conf
 	$(M_RGS_E)
 
-start : all tmp_clean
+start : all
 	$(M_START_S)
 	./$(NAME) default_nel-brig.conf
 	$(M_RGS_E)
@@ -209,6 +219,9 @@ M_E_RMV_F	= printf "$(L_BLUE)... ${NAME_UP} EXECUTABLE NOT FOUND ✗$(C_RESET)\n
 M_O_RMV_S	= printf "$(C_PURPLE)➔  REMOVING $(NAME_UP) OBJECTS ... 🗑️ $(C_RESET)"
 M_O_RMV_E	= printf "$(C_RED)... ${NAME_UP} OBJECTS REMOVED ✔$(C_RESET)\n"
 M_O_RMV_F	= printf "$(L_BLUE)... ${NAME_UP} OBJECTS NOT FOUND ✗$(C_RESET)\n"
+
+M_TMP_S		= printf "$(C_PURPLE)➔  REMOVING $(NAME_UP) TMP FILES ... 🗑️ $(C_RESET)"
+M_TMP_E		= printf "$(C_RED)... ${NAME_UP} TMP FILES REMOVED ✔$(C_RESET)\n"
 
 M_RUN_S		= printf "$(C_CYAN)➔  RUN ${NAME_UP} ... 🚀$(C_RESET)\n"
 M_GO_S		= printf "$(C_CYAN)➔  GO ${NAME_UP} ... 🚀$(C_RESET)\n"

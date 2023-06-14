@@ -252,6 +252,7 @@ void MainServer::destroy_client(int client_socket) {
 
 // Main routine
 void MainServer::routine() {
+	signal(SIGPIPE, SIG_IGN);
 	while (true) {
 
 		this->reset();
