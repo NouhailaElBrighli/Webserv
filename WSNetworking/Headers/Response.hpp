@@ -12,6 +12,12 @@ class Response {
 	std::string header;
 	MainClient	*Client;
 	std::string	type;
+	std::string outfile_cgi;
+	std::string	extention;
+	std::string cgi_outfile;
+	std::string	serve_file;
+	int	start;
+	int	cgi_status;
   public:
 	Response();
 	~Response();
@@ -28,11 +34,13 @@ class Response {
     void	set_resource_type();
 	void	check_inside_root(std::string &root, std::string path);
 	std::string	handle_directory();
-	void	serve_file(std::string	index_file);
 	std::string	check_auto_index();
 	std::string	handle_file();
 	std::string	set_error_body(std::string msg_status,std::string body_file);
-	
+	std::string post(MainClient *Client);
+	void	check_cgi_location();
+	void	set_outfile_cgi(std::string outfile);
+	void	handle_php();
 };
 
 std::ostream &operator<<(std::ostream &out, const Response &obj);//!here

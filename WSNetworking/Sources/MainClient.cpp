@@ -31,7 +31,7 @@ MainClient::MainClient() { std::memset(buffer, 0, MAXLINE + 1); }
 MainClient::MainClient(int client_socket, ConfigServerParser *config_server_parser)
 	: config_server_parser(config_server_parser), request_parser(new RequestParser()),
 	  send_receive_status(true), msg_status(Accurate::OK200().what()), client_socket(client_socket),
-	  status(200), phase(READ_PHASE), head_status(false), body_status(false) {
+	  status(200), phase(READ_PHASE), head_status(false), body_status(false), php_status(0), write_header(false), write_body(false), file_open(false) {
 	std::memset(buffer, 0, MAXLINE + 1);
 }
 
@@ -53,10 +53,12 @@ void MainClient::start_handle(string task) {
 		}
 
 		else if (task == "write")
+		{
 			this->handle_write();
+		}
 
 	} catch (const std::exception &e) {
-
+		print_short_line("catch something");
 		if (string(e.what()).find("can't open file") != string::npos)
 			throw std::runtime_error(string(e.what()));
 
@@ -65,16 +67,15 @@ void MainClient::start_handle(string task) {
 		if (string(e.what()) == "Still running")
 			return;
 
-		print_short_line("catch something");
 		set_header_for_errors_and_redirection(e.what());
-
+		
 		send_to_socket();
-		this->send_receive_status = false;
+		// this->send_receive_status = false;
 	}
 
 	if (task == "write") {
 		send_to_socket();
-		this->send_receive_status = false;
+		// this->send_receive_status = false;
 	}
 }
 
@@ -281,7 +282,6 @@ void MainClient::chunked_body_reading() {
 
 void MainClient::handle_read() {
 	print_line("Client Request (read)");
-
 	this->header_reading();
 	this->request_parser->run_parse(this->head);
 
@@ -293,32 +293,33 @@ void MainClient::handle_read() {
 		else
 			throw Error::BadRequest400();
 	}
-
-	int location = this->match_location();
-	if (location != -1) {
-		this->location = location;
-		if (this->config_server_parser->get_config_location_parser()[get_location()]->get_return().size() != 0) {
-			std::string root = this->config_server_parser->get_config_location_parser()[get_location()]->get_root();
-			std::string ret	 = this->config_server_parser->get_config_location_parser()[get_location()]->get_return();
-			redirection		 = root + '/' + ret;
-			throw Accurate::MovedPermanently301();
-		}
-		is_method_allowed_in_location();
+	this->location = this->match_location();
+	if (this->config_server_parser->get_config_location_parser()[get_location()]->get_return().size() != 0) {
+		std::string root = this->config_server_parser->get_config_location_parser()[get_location()]->get_root();
+		std::string ret	 = this->config_server_parser->get_config_location_parser()[get_location()]->get_return();
+		redirection		 = root + '/' + ret;
+		throw Accurate::MovedPermanently301();
 	}
+	is_method_allowed_in_location();
 }
 
 void MainClient::handle_write() {
 	print_line("Server Response (write)");
-
+	set_content_type_map();
 	Response Response(this);
 	if (this->request_parser->get_request("Request-Type") == "GET") {
 		serve_file = Response.Get(this);
-		std::cout << "HEADER: " << this->header << std::endl;
+		// this->write_status = 1;
+		// return ;
 	}
-	if (this->request_parser->get_request("Request-Type") == "DELETE") {
-			cout << "++ in delete ++" << endl;
-			Delete Delete(this, this->config_server_parser->get_config_location_parser());
-			Delete.delete_file();
+	else if (this->request_parser->get_request("Request-Type") == "POST")
+	{
+		serve_file = Response.post(this);
+		// return ;
+	}
+	else if (this->request_parser->get_request("Request-Type") == "DELETE") {
+		// DELETE
+
 	}
 }
 
@@ -357,8 +358,7 @@ int MainClient::match_location() {
 		found = str.find_last_of('/');
 		str	  = str.substr(0, found);
 	}
-	check_if_uri_exist();
-	return (-1);
+	return (check_for_root_directory());
 }
 
 void MainClient::set_header_for_errors_and_redirection(const char *what) {
@@ -393,33 +393,6 @@ std::string MainClient::get_new_url() {
 
 std::string MainClient::get_serve_file() {
 	return (serve_file);
-}
-
-void MainClient::check_if_uri_exist() {
-	DIR *directory = opendir(this->get_request("Request-URI").c_str());
-	if (directory == NULL) {
-		std::ifstream file(this->get_request("Request-URI"));
-		if (!file.is_open())
-			throw Error::NotFound404();
-		file.close();
-		this->serve_file = this->get_request("Request-URI");
-		return;
-	} else {
-		if (this->get_request("Request-URI") == "/") {
-			std::ofstream file("folder/root_directory.html");
-			if (!file.is_open())
-				throw Error::Forbidden403();
-			char current_path[MAXLINE];
-			getcwd(current_path, sizeof(current_path));
-			DIR *root_directory = opendir(current_path);
-			if (root_directory == NULL)
-				throw Error::Forbidden403();
-			this->serve_file = this->write_into_file(root_directory, current_path);
-			closedir(root_directory);
-			return;
-		}
-	}
-	throw Error::NotFound404();
 }
 
 void MainClient::check_files_error() {
@@ -458,36 +431,16 @@ std::string MainClient::write_into_file(DIR *directory, std::string root) {
 }
 
 int MainClient::convert_to_int(std::string &str) {
-	int				  integer;
 	std::stringstream ss(this->msg_status);
+	int				  integer;
 	ss >> integer;
 	return (integer);
 }
 
-void MainClient::send_to_socket() {
-	std::cout << "this is first header to send: " << this->header << std::endl;
-	if (this->status == 301)
-		send(client_socket, this->header.c_str(), header.size(), 0);
-	else {
-		std::ifstream file(serve_file, std::ios::binary);
-		if (!file.is_open())
-			throw Error::Forbidden403();
-		int	 chunk = 1024;
-		long count = 0;
-		send(client_socket, this->header.c_str(), header.size(), 0);
-		while (!file.eof()) {
-			char buff[chunk];
-			file.read(buff, chunk);
-			count += file.gcount();
-			// std::cout.write(buff, file.gcount());
-			send(client_socket, buff, file.gcount(), 0);
-		}
-		file.close();
-	}
-}
 
 void MainClient::set_content_type_map() {
 	this->content_type[".txt"]	= "text/plain";
+	this->content_type[".text"]	= "text/plain";
 	this->content_type[".csv"]	= "text/plain";
 	this->content_type[".html"] = "text/html";
 	this->content_type[".htm"]	= "text/plain";
@@ -496,20 +449,118 @@ void MainClient::set_content_type_map() {
 	this->content_type[".jpg"]	= "image/jpeg";
 	this->content_type[".png"]	= "image/png";
 	this->content_type[".gif"]	= "image/gif";
+	this->content_type[".bmp"] = "image/bmp";
+	this->content_type[".svg"] = "image/svg+xml";
 	this->content_type[".ico"]	= "image/icon";
 	this->content_type[".svg"]	= "image/svg+xml";
 	this->content_type[".mp3"]	= "audio/mpeg";
 	this->content_type[".wav"]	= "audio/wav";
 	this->content_type[".mp4"]	= "video/mp4";
+	this->content_type[".webm"]	= "video/webm";
 	this->content_type[".mov"]	= "video/quicktime";
 	this->content_type[".js"]	= "application/javascript";
 	this->content_type[".js"]	= "application/json";
 	this->content_type[".xml"]	= "application/xml";
 	this->content_type[".pdf"]	= "application/pdf";
+	this->content_type[".zip"] = "application/zip";
+	this->content_type[".gz"] = "application/gzip";
+	this->content_type[".xls"] = "application/vnd.ms-excel";
+	this->content_type[".doc"] = "application/msword";
+	this->content_type[".docs"] = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+	this->content_type["xls"] = "application/vnd.ms-excel";
+	this->content_type["xlsx"] = "application/vnd.ms-excel";
+	this->content_type[".py"] = "cgi";
+	this->content_type[".php"] = "cgi";
 }
 
-// import os
-// file_path = "./error/404.html"
-// file_size = os.path.getsize(file_path)
-// print("File size:", file_size, "bytes")
-//
+std::string	MainClient::get_content_type(std::string extention)
+{
+	return(this->content_type[extention]);
+}
+
+int	MainClient::check_for_root_directory()
+{
+	int location = 0;
+	for (vector<ConfigLocationParser *>::const_iterator itr = config_server_parser->get_config_location_parser().begin(); itr != config_server_parser->get_config_location_parser().end(); itr++)
+	{
+		if ((*itr)->get_location() == "/")
+		{
+			this->new_url = this->config_server_parser->get_config_location_parser()[location]->get_root() + this->request_parser->get_request("Request-URI");
+			std::cout << "new_url: " << new_url  << std::endl;
+			return(location);
+		}
+		location++;
+	}
+	throw Error::NotFound404();
+}
+
+void	MainClient::set_start_php(int start)
+{
+	this->php_status = 1;
+	this->start_php = start;
+}
+
+void MainClient::send_to_socket() {
+
+	print_line("sending");
+
+	if (write_header == false)
+	{
+		print_short_line("send header");
+		std::cout << "this->header: " << this->header << std::endl;
+		send(client_socket, this->header.c_str(), header.size(), 0);
+		if (this->status == 301)
+			this->send_receive_status = true;
+		write_header = true;
+		return;
+	}
+
+	std::ifstream file(serve_file, std::ios::binary);
+	// if(file_open == false)
+	// {
+		print_short_line("open the file");
+		// send_file = &file;
+		if (!file.is_open())
+		{
+			// std::cout << "serve_file: " << serve_file << std::endl;
+			std::cout << "open failure" << std::endl;
+			throw Error::Forbidden403();
+		}
+		if (this->php_status)
+		{
+			std::cout << "here" << std::endl;
+			char buff[start_php];
+			file.read(buff, start_php);
+			std:cout.write(buff, file.gcount());
+		}
+		// file_open = true;
+		// return ;
+	// }
+	
+	print_short_line("start sending body");
+	// long count = 0;
+	// if (send_file->eof())
+	// {
+	// 	this->send_receive_status = false;
+	// 	send_file->close();
+	// 	return;
+	// }
+	// char buff[MAXLINE];
+	
+	// send_file->read(buff, MAXLINE);
+	// std::cout.write(buff, send_file->gcount());
+	// if (send(client_socket, buff, send_file->gcount(), 0) < 0)
+	// 	throw Error::BadRequest400();
+
+
+	while (!file.eof())
+	{
+		char buff[MAXLINE];
+		file.read(buff, MAXLINE);
+		send(client_socket, buff, file.gcount(), 0);
+		std::cout.write(buff, file.gcount());
+	}
+
+	this->send_receive_status = false;
+
+}

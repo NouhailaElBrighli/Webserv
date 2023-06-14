@@ -21,9 +21,8 @@ class ConfigServerParser {
 	bool						   client_max_body_size_status;
 	map<int, string>			   error_page;
 	bool						   error_page_status;
-	vector<ConfigLocationParser *> config_location_parser;	// location and find cgi
+	vector<ConfigLocationParser *> config_location_parser;
 	int							   config_location_parser_status;
-	int							   config_location_cgi_status;
 
   public:
 	// Getters
