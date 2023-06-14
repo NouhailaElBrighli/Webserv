@@ -53,9 +53,7 @@ void MainClient::start_handle(string task) {
 		}
 
 		else if (task == "write")
-		{
 			this->handle_write();
-		}
 
 	} catch (const std::exception &e) {
 		print_short_line("catch something");
@@ -119,7 +117,6 @@ void MainClient::body_reading() {
 
 	if (this->body_file_name.size() == 0) {
 		this->body_file_name = generate_random_file_name();
-		cout << "body file : " << this->body_file_name << endl;
 	}
 
 	// Open the file for writing
@@ -206,7 +203,6 @@ void MainClient::chunked_body_reading() {
 
 	if (this->body_file_name.empty()) {
 		this->body_file_name = generate_random_file_name();
-		cout << "body file: " << this->body_file_name << endl;
 	}
 
 	// Open the file for writing
@@ -307,17 +303,12 @@ void MainClient::handle_write() {
 	Response Response(this);
 	if (this->request_parser->get_request("Request-Type") == "GET") {
 		serve_file = Response.Get(this);
-		// this->write_status = 1;
-		// return ;
 	}
-	else if (this->request_parser->get_request("Request-Type") == "POST")
-	{
+	else if (this->request_parser->get_request("Request-Type") == "POST"){
 		serve_file = Response.post(this);
-		// return ;
 	}
 	else if (this->request_parser->get_request("Request-Type") == "DELETE") {
 		// DELETE
-
 	}
 }
 
@@ -434,7 +425,6 @@ int MainClient::convert_to_int(std::string &str) {
 	ss >> integer;
 	return (integer);
 }
-
 
 void MainClient::set_content_type_map() {
 	this->content_type[".txt"]	= "text/plain";

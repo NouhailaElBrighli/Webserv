@@ -237,17 +237,7 @@ std::string	Response::set_error_body(std::string msg_status, std::string body_fi
 	return(body_file);
 }
 
-std::string	Response::post(MainClient *Client)
-{
-	this->Client = Client;
-	std::cout << Client->get_body_file_name() << std::endl;
-	this->header = "HTTP/1.1 ";
-	this->header += "200 ok\r\n";
-	this->header += "ContentType: text/html\r\n";
-	this->header += "ContentLength: 3\r\n\r\n";
-	Client->set_header(this->header);
-	return ("folder/post_file.html");
-}
+
 
 void	Response::check_cgi_location()
 {
@@ -301,9 +291,25 @@ void	Response::handle_php()
 		this->header += "\r\nContentLength: ";
 		this->header += this->ContentLength;
 		this->header += "\r\n\r\n";
-		std::cout << "headerrrrrr:" << this->header << std::endl;
 		Client->set_start_php(found + 4);
 		//!cgi = 1 here please
 	}
 	
+}
+
+std::string	Response::post(MainClient *Client)
+{
+	this->Client = Client;
+	if (Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_upload().size() != 0)
+	{
+		std::string folder_path = Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_root() + Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_upload();
+		std::cout << "the location support upload -> folder_path:" << folder_path << std::endl;
+	}
+	// std::cout << "filename: " << Client->get_body_file_name() << std::endl;
+	this->header = "HTTP/1.1 ";
+	this->header += "200 ok\r\n";
+	this->header += "ContentType: text/html\r\n";
+	this->header += "ContentLength: 3\r\n\r\n";
+	Client->set_header(this->header);
+	return ("folder/post_file.html");
 }
