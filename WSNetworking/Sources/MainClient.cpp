@@ -31,7 +31,7 @@ MainClient::MainClient() { std::memset(buffer, 0, MAXLINE + 1); }
 MainClient::MainClient(int client_socket, ConfigServerParser *config_server_parser)
 	: config_server_parser(config_server_parser), request_parser(new RequestParser()),
 	  send_receive_status(true), msg_status(Accurate::OK200().what()), client_socket(client_socket),
-	  status(200), phase(READ_PHASE), head_status(false), body_status(false), php_status(0), write_header(false), write_body(false) {
+	  status(200), phase(READ_PHASE), head_status(false), body_status(false), php_status(0), write_header(false), write_body(false), file_open(false) {
 	std::memset(buffer, 0, MAXLINE + 1);
 }
 
@@ -53,7 +53,9 @@ void MainClient::start_handle(string task) {
 		}
 
 		else if (task == "write")
+		{
 			this->handle_write();
+		}
 
 	} catch (const std::exception &e) {
 		print_short_line("catch something");
@@ -504,6 +506,7 @@ void MainClient::send_to_socket() {
 
 	if (write_header == false)
 	{
+		print_short_line("send header");
 		std::cout << "this->header: " << this->header << std::endl;
 		send(client_socket, this->header.c_str(), header.size(), 0);
 		if (this->status == 301)
@@ -511,24 +514,53 @@ void MainClient::send_to_socket() {
 		write_header = true;
 		return;
 	}
+
 	std::ifstream file(serve_file, std::ios::binary);
-	if (!file.is_open())
-		throw Error::Forbidden403();
-	if (this->php_status)
+	// if(file_open == false)
+	// {
+		print_short_line("open the file");
+		// send_file = &file;
+		if (!file.is_open())
+		{
+			// std::cout << "serve_file: " << serve_file << std::endl;
+			std::cout << "open failure" << std::endl;
+			throw Error::Forbidden403();
+		}
+		if (this->php_status)
+		{
+			std::cout << "here" << std::endl;
+			char buff[start_php];
+			file.read(buff, start_php);
+			std:cout.write(buff, file.gcount());
+		}
+		// file_open = true;
+		// return ;
+	// }
+	
+	print_short_line("start sending body");
+	// long count = 0;
+	// if (send_file->eof())
+	// {
+	// 	this->send_receive_status = false;
+	// 	send_file->close();
+	// 	return;
+	// }
+	// char buff[MAXLINE];
+	
+	// send_file->read(buff, MAXLINE);
+	// std::cout.write(buff, send_file->gcount());
+	// if (send(client_socket, buff, send_file->gcount(), 0) < 0)
+	// 	throw Error::BadRequest400();
+
+
+	while (!file.eof())
 	{
-		char buff[start_php];
-		file.read(buff, start_php);
-		std:cout.write(buff, file.gcount());
-	}
-	long count = 0;
-	// send(client_socket, this->header.c_str(), header.size(), 0);
-	while (!file.eof()) {
 		char buff[MAXLINE];
 		file.read(buff, MAXLINE);
-		count += file.gcount();
-		// std::cout.write(buff, file.gcount());// * to compare content length with read bytes
 		send(client_socket, buff, file.gcount(), 0);
+		std::cout.write(buff, file.gcount());
 	}
-	file.close();
+
 	this->send_receive_status = false;
+
 }

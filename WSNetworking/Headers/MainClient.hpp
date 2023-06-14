@@ -9,6 +9,7 @@ class MainClient {
   	std::map<std::string, std::string>content_type;
 	ConfigServerParser *config_server_parser;
 	RequestParser	   *request_parser;
+	std::ifstream		*send_file;
 	bool				send_receive_status;
 	string				msg_status;
 	int					client_socket;
@@ -24,6 +25,7 @@ class MainClient {
 	int					php_status;
 	bool				write_header;
 	bool				write_body;
+	bool				file_open;
 
   private:
 	// Copy constructor and assignation operator

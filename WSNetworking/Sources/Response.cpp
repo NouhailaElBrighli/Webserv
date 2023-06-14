@@ -80,6 +80,7 @@ void Response::SetVars(std::string file_to_serve) {
 	this->SetContentType();
 	if(this->extention == ".php")
 	{
+		print_error("here");
 		handle_php();
 		Client->set_header(header);
 		return;
@@ -301,6 +302,7 @@ void	Response::handle_php()
 		this->header += "\r\nContentLength: ";
 		this->header += this->ContentLength;
 		this->header += "\r\n\r\n";
+		std::cout << "headerrrrrr:" << this->header << std::endl;
 		Client->set_start_php(found + 4);
 		//!cgi = 1 here please
 	}
