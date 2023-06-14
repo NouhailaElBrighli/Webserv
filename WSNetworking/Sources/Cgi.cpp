@@ -6,11 +6,12 @@
 /*   By: hsaidi <hsaidi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:38:43 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/06/14 11:30:41 by hsaidi           ###   ########.fr       */
+/*   Updated: 2023/06/14 11:58:05 by hsaidi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Cgi.hpp"
+#include "MainClient.hpp"
 
 Cgi::Cgi(MainClient *main_client, vector<ConfigLocationParser *>config_location_parser, std::string filename){
 	this->main_client = main_client;
