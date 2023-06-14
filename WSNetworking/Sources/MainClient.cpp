@@ -31,7 +31,7 @@ MainClient::MainClient() { std::memset(buffer, 0, MAXLINE + 1); }
 MainClient::MainClient(int client_socket, ConfigServerParser *config_server_parser)
 	: config_server_parser(config_server_parser), request_parser(new RequestParser()),
 	  send_receive_status(true), msg_status(Accurate::OK200().what()), client_socket(client_socket),
-	  status(200), phase(READ_PHASE), head_status(false), body_status(false) {
+	  status(200), phase(READ_PHASE), head_status(false), body_status(false), php_status(0), write_header(false), write_body(false) {
 	std::memset(buffer, 0, MAXLINE + 1);
 }
 
@@ -66,14 +66,14 @@ void MainClient::start_handle(string task) {
 			return;
 
 		set_header_for_errors_and_redirection(e.what());
-
+		
 		send_to_socket();
-		this->send_receive_status = false;
+		// this->send_receive_status = false;
 	}
 
 	if (task == "write") {
 		send_to_socket();
-		this->send_receive_status = false;
+		// this->send_receive_status = false;
 	}
 }
 
@@ -280,7 +280,6 @@ void MainClient::chunked_body_reading() {
 
 void MainClient::handle_read() {
 	print_line("Client Request (read)");
-
 	this->header_reading();
 	this->request_parser->run_parse(this->head);
 
@@ -292,34 +291,33 @@ void MainClient::handle_read() {
 		else
 			throw Error::BadRequest400();
 	}
-	int location = this->match_location();
-	if (location != -1) {
-		this->location = location;
-		if (this->config_server_parser->get_config_location_parser()[get_location()]->get_return().size() != 0) {
-			std::string root = this->config_server_parser->get_config_location_parser()[get_location()]->get_root();
-			std::string ret	 = this->config_server_parser->get_config_location_parser()[get_location()]->get_return();
-			redirection		 = root + '/' + ret;
-			throw Accurate::MovedPermanently301();
-		}
-		is_method_allowed_in_location();
+	this->location = this->match_location();
+	if (this->config_server_parser->get_config_location_parser()[get_location()]->get_return().size() != 0) {
+		std::string root = this->config_server_parser->get_config_location_parser()[get_location()]->get_root();
+		std::string ret	 = this->config_server_parser->get_config_location_parser()[get_location()]->get_return();
+		redirection		 = root + '/' + ret;
+		throw Accurate::MovedPermanently301();
 	}
+	is_method_allowed_in_location();
 }
 
 void MainClient::handle_write() {
 	print_line("Server Response (write)");
-
 	set_content_type_map();
 	Response Response(this);
 	if (this->request_parser->get_request("Request-Type") == "GET") {
 		serve_file = Response.Get(this);
-		std::cout << "serve_file: " << serve_file << std::endl;
+		// this->write_status = 1;
+		// return ;
 	}
 	else if (this->request_parser->get_request("Request-Type") == "POST")
 	{
 		serve_file = Response.post(this);
+		// return ;
 	}
 	else if (this->request_parser->get_request("Request-Type") == "DELETE") {
 		// DELETE
+
 	}
 }
 
@@ -431,33 +429,12 @@ std::string MainClient::write_into_file(DIR *directory, std::string root) {
 }
 
 int MainClient::convert_to_int(std::string &str) {
-	int				  integer;
 	std::stringstream ss(this->msg_status);
+	int				  integer;
 	ss >> integer;
 	return (integer);
 }
 
-void MainClient::send_to_socket() {
-	std::cout << "this is first header to send: " << this->header << std::endl;
-	if (this->status == 301)
-		send(client_socket, this->header.c_str(), header.size(), 0);
-	else {
-		std::ifstream file(serve_file, std::ios::binary);
-		if (!file.is_open())
-			throw Error::Forbidden403();
-		int	 chunk = 1024;
-		long count = 0;
-		send(client_socket, this->header.c_str(), header.size(), 0);
-		while (!file.eof()) {
-			char buff[chunk];
-			file.read(buff, chunk);
-			count += file.gcount();
-			// std::cout.write(buff, file.gcount());
-			send(client_socket, buff, file.gcount(), 0);
-		}
-		file.close();
-	}
-}
 
 void MainClient::set_content_type_map() {
 	this->content_type[".txt"]	= "text/plain";
@@ -504,7 +481,6 @@ int	MainClient::check_for_root_directory()
 	int location = 0;
 	for (vector<ConfigLocationParser *>::const_iterator itr = config_server_parser->get_config_location_parser().begin(); itr != config_server_parser->get_config_location_parser().end(); itr++)
 	{
-		// std::cout << "location :" << (*itr)->get_location() << std::endl;
 		if ((*itr)->get_location() == "/")
 		{
 			this->new_url = this->config_server_parser->get_config_location_parser()[location]->get_root() + this->request_parser->get_request("Request-URI");
@@ -513,11 +489,46 @@ int	MainClient::check_for_root_directory()
 		}
 		location++;
 	}
-	return (-1);
+	throw Error::NotFound404();
 }
 
-// import os
-// file_path = "./error/404.html"
-// file_size = os.path.getsize(file_path)
-// print("File size:", file_size, "bytes")
-//
+void	MainClient::set_start_php(int start)
+{
+	this->php_status = 1;
+	this->start_php = start;
+}
+
+void MainClient::send_to_socket() {
+
+	print_line("sending");
+
+	if (write_header == false)
+	{
+		std::cout << "this->header: " << this->header << std::endl;
+		send(client_socket, this->header.c_str(), header.size(), 0);
+		if (this->status == 301)
+			this->send_receive_status = true;
+		write_header = true;
+		return;
+	}
+	std::ifstream file(serve_file, std::ios::binary);
+	if (!file.is_open())
+		throw Error::Forbidden403();
+	if (this->php_status)
+	{
+		char buff[start_php];
+		file.read(buff, start_php);
+		std:cout.write(buff, file.gcount());
+	}
+	long count = 0;
+	// send(client_socket, this->header.c_str(), header.size(), 0);
+	while (!file.eof()) {
+		char buff[MAXLINE];
+		file.read(buff, MAXLINE);
+		count += file.gcount();
+		// std::cout.write(buff, file.gcount());// * to compare content length with read bytes
+		send(client_socket, buff, file.gcount(), 0);
+	}
+	file.close();
+	this->send_receive_status = false;
+}

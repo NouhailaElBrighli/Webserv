@@ -20,6 +20,10 @@ class MainClient {
 	std::string			serve_file;
 	std::string			body_file;
 	int					status, phase;
+	int					start_php;
+	int					php_status;
+	bool				write_header;
+	bool				write_body;
 
   private:
 	// Copy constructor and assignation operator
@@ -62,6 +66,7 @@ class MainClient {
 	void	set_serve_file(std::string file_to_serve);
 	void	send_to_socket();
 	void	set_content_type_map();
+	void	set_start_php(int start);
 
 
 	void start_handle();
