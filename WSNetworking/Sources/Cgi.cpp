@@ -6,7 +6,7 @@
 /*   By: hsaidi <hsaidi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:38:43 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/06/11 19:03:15 by hsaidi           ###   ########.fr       */
+/*   Updated: 2023/06/13 12:00:26 by hsaidi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -135,10 +135,10 @@ void Cgi::set_cgi_env()
 	cgi_env["REQUEST_URI="] = this->main_client->get_request("Request-URI");
 	cgi_env["HTTP_HOST="] = this->main_client->get_request("Host");
 	cgi_env["CONTENT_TYPE="] =this->main_client->get_request("Content-Type");
-	if (this->main_client->get_request("Request-Type") == "POST")
-	{
-		cgi_env["CONTENT_LENGTH="] = this->main_client->get_request("Content-Length");
-	}
+	cgi_env["CONTENT_LENGTH="] = this->main_client->get_request("Content-Length");
+	// if (this->main_client->get_request("Request-Type") == "POST")
+	// {
+	// }
 	cout << "------------------- Printing the env variables ------------------------------------\n";
     // std::map<std::string, std::string>::const_iterator it;
     // for (it = cgi_env.begin(); it != cgi_env.end(); ++it) {
@@ -156,7 +156,7 @@ void Cgi::set_cgi_env()
 		cout <<"| "<< this->env[i] <<" |"<< endl;
 	cout << "-----------------------------------------------------------------------------------\n";
 
-	output_file = open("output.txt", O_WRONLY | O_CREAT | O_TRUNC, 0666);
+	output_file = open("output.html", O_WRONLY | O_CREAT | O_TRUNC, 0666);
 	input_file = open(this->main_client->get_body_file_name().c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
 	int pid = fork();
 	if(pid < 0)
@@ -173,7 +173,4 @@ void Cgi::set_cgi_env()
 		execve(av[0], av2, this->env);
 	}
 	waitpid(pid, NULL, 0);
-	// this->main_client->selt_serve_fie("./output.txt");
 }
-
-
