@@ -6,7 +6,7 @@
 class HeaderBodyReader {
 
   private:
-	int			client_socket;
+	int			client_socket, n;
 	char		buffer[MAXLINE];
 	MainClient *main_client;
 
@@ -45,11 +45,16 @@ class HeaderBodyReader {
 	void body_reading();
 
   private:
+	int hex_to_int(string chunkSizeStr);
 	int find_chunk_size_in_body_str();
 	int find_chunk_size_from_recv();
 
   public:
 	void chunked_body_reading();
+
+  private:
+	void chunked_body_from_header();
+	void chunked_body();
 };
 
 #endif	// HEADERBODYREADER_HPP

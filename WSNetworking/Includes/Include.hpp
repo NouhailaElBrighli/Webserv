@@ -51,7 +51,12 @@ enum { READ_PHASE, WRITE_PHASE };
 #define print_line(str)                                                                            \
 	cout << C_YELLOW << "--------------------------------" << str << C_RES << endl;
 #define print_short_line(str) cout << C_CYAN << "----------------" << str << C_RES << endl;
-
+/*
+#define print_error(str)
+#define print_long_line(str)
+#define print_line(str)
+#define print_short_line(str)
+ */
 #define str_red(str) (std::string(C_RED) + std::string(str) + std::string(C_RES))
 #define str_green(str) (std::string(C_GREEN) + std::string(str) + std::string(C_RES))
 #define str_cyan(str) (std::string(C_CYAN) + std::string(str) + std::string(C_RES))

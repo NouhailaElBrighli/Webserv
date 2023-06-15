@@ -96,7 +96,10 @@ void MainClient::handle_read() {
 	this->request_parser->run_parse(header_body_reader->get_head());
 
 	if (this->get_request("Request-Type") == "POST") {
-		if (this->get_request("Content-Length").size() != 0)
+		if (this->get_request("Content-Length").size() != 0
+			&& this->get_request("Transfer-Encoding").size() != 0)
+			throw Error::BadRequest400();
+		else if (this->get_request("Content-Length").size() != 0)
 			header_body_reader->body_reading();
 		else if (this->get_request("Transfer-Encoding") == "chunked")
 			header_body_reader->chunked_body_reading();

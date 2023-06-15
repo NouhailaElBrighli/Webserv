@@ -8,6 +8,7 @@ const string &HeaderBodyReader::get_body_file_name() const { return this->body_f
 // Constructors and destructor
 HeaderBodyReader::HeaderBodyReader(MainClient *main_client) : main_client(main_client) {
 	this->client_socket = main_client->get_client_socket();
+	this->n				= 0;
 	this->head_status	= false;
 	this->body_status	= false;
 }
@@ -33,17 +34,25 @@ void HeaderBodyReader::header_reading() {
 	if (bytes < 0)
 		throw Error::BadRequest400();
 	this->head.append(buffer, bytes);
+
 	if (this->head.find("\r\n\r\n") != string::npos) {
-		this->body.append(this->head.substr(this->head.find("\r\n\r\n") + 4));
-		this->head		  = this->head.substr(0, this->head.find("\r\n\r\n") + 4);
 		this->head_status = true;
-		return;
-	} else
+		size_t bodyStart  = this->head.find("\r\n\r\n") + 4;
+		if (bodyStart < this->head.size()) {
+			this->body = this->head.substr(bodyStart);
+			this->head = this->head.substr(0, bodyStart);
+			return;
+		} else {
+			this->head_status = true;
+			return;
+		}
+	} else {
 		throw std::runtime_error("Still running");
+	}
 }
 
 void HeaderBodyReader::check_header_body() {
-	if (this->body.find("\r\n\r\n") != string::npos) {
+	if (!this->body.empty() && this->body.find("\r\n\r\n") != string::npos) {
 		this->head_body = this->body.substr(0, this->body.find("\r\n\r\n") + 4);
 		if (this->head_body.find("Content-Disposition") != string::npos) {
 			set_new_body_file_name();
@@ -93,10 +102,12 @@ void HeaderBodyReader::open_body_file() {
 		this->check_header_body();
 	}
 
-	// Open the file for writing
-	this->outFile.open(this->body_file_name.c_str(), std::ios::app | std::ios::binary);
-	if (!this->outFile)
-		throw std::runtime_error(str_red("can't open file " + this->body_file_name));
+	// Open the file for writing if it's not already open
+	if (!this->outFile.is_open()) {
+		this->outFile.open(this->body_file_name.c_str(), std::ios::app | std::ios::binary);
+		if (!this->outFile)
+			throw std::runtime_error(str_red("can't open file " + this->body_file_name));
+	}
 }
 
 int HeaderBodyReader::receive_data(int size) {
@@ -153,19 +164,29 @@ void HeaderBodyReader::body_reading() {
 	}
 }
 
-int HeaderBodyReader::find_chunk_size_in_body_str() {
-	int	   i   = 0;
-	size_t pos = this->body.find("\r\n");
+int HeaderBodyReader::hex_to_int(string chunkSizeStr) {
+	int				  i;
+	std::stringstream ss(chunkSizeStr);
+	ss >> std::hex >> i;
+	return i;
+}
 
-	if (pos != string::npos) {
-		string			  chunkSizeStr = this->body.substr(0, pos);
-		std::stringstream ss(chunkSizeStr);
-		ss >> std::hex >> i;
+int HeaderBodyReader::find_chunk_size_in_body_str() {
+	int	   i	= 0;
+	size_t pos0 = this->body.find("\r\n");
+	size_t pos1 = this->body.find("\r\n0\r\n");
+
+	if (pos0 != string::npos && pos0 != 0) {
+		cout << "pos0 : " << pos0 << endl;
+		string chunkSizeStr = this->body.substr(0, pos0);
+		i					= hex_to_int(chunkSizeStr);
+	} else if (pos1 != string::npos) {
+		i = 0;
 	} else {
 		this->chunkSizeStrPart = this->body;
-		return 0;
+		i					   = -1;
 	}
-	this->body = this->body.substr(pos + 2);
+	this->body = this->body.substr(pos0 + 2);
 	return i;
 }
 
@@ -195,77 +216,102 @@ int HeaderBodyReader::find_chunk_size_from_recv() {
 		start = false;
 
 		std::size_t pos = tmp_body.find("\r\n");
-		if (pos != std::string::npos) {
+		if (pos != string::npos) {
 			cout << "tmp_body = " << tmp_body << endl;
-			std::string chunkSizeStr = tmp_body.substr(0, pos);
+			string chunkSizeStr = tmp_body.substr(0, pos);
 			if (chunkSizeStr == "0" || chunkSizeStr.empty())
 				return 0;
-			std::stringstream ss(chunkSizeStr);
-			ss >> std::hex >> i;
-			return i;
+			return hex_to_int(chunkSizeStr);
 		}
 	}
 	return 0;
 }
 
 void HeaderBodyReader::chunked_body_reading() {
-	static int n = 0;
-	int		   bytes, count = 0;
+	static int n	= 0;
+	size_t	   pos1 = this->body.find("\r\n0\r\n");
 
 	if (this->body_status)
 		return;
 
 	this->open_body_file();
+
+	if (this->body.size() > 0 && pos1 != string::npos) {
+		cout << "omar" << endl;
+		this->chunked_body_from_header();
+		this->chunked_body_from_header();
+	}
+
+	else {
+		cout << "omar2" << endl;
+		this->chunked_body();
+	}
+}
+
+void HeaderBodyReader::chunked_body_from_header() {
+	int count = 0;
+
+	if (this->n == 0) {
+		this->n = find_chunk_size_in_body_str();
+		cout << "find_chunk_size_in_body_str() = " << this->n << endl;
+		if (this->n == 0) {	 // ? if really 0 => end of body (chunked), what can we do ?
+			cout << "done" << endl;
+			this->body_status = true;
+			this->n			  = 0;
+			return;
+		} else if (this->n == -1) {
+			this->n = 0;
+			this->throw_still_running();
+		}
+	}
+	std::size_t pos = this->body.find("\r\n\r\n");
+	cout << "pos = " << pos << endl;
+	cout << "n = " << this->n << endl;
+	if (pos != string::npos) {
+		string to_write = this->body.substr(0, this->n);
+		cout << "to_write = " << to_write << endl;
+		count = this->n;
+		outFile.write(to_write.c_str(), this->n);
+		this->body.erase(0, this->n);
+	} else {
+		string to_write = this->body;
+		cout << "to_write = " << to_write << endl;
+		count = to_write.size();
+		outFile.write(to_write.c_str(), to_write.size());
+		this->body.clear();
+	}
+	this->n -= count;
+}
+
+void HeaderBodyReader::chunked_body() {
+	int bytes;
+
 	cout << 1 << endl;
 	cout << "this->body.size() = " << this->body.size() << endl;
 
 	if (this->body.size() > 0) {
-		if (n == 0) {
-			n = find_chunk_size_in_body_str();
-			cout << "find_chunk_size_in_body_str() => n = " << n << endl;
-			if (n == 0)
-				this->throw_still_running();
-		}
-		std::size_t pos = this->body.find("\r\n\r\n");
-		cout << "pos = " << pos << endl;
-		cout << "n = " << n << endl;
-		if (pos != std::string::npos) {
-			string to_write = this->body.substr(0, n);
-			cout << "to_write = " << to_write << endl;
-			count = to_write.size();
-			outFile.write(to_write.c_str(), to_write.size());
-			this->body.erase(0, n);
-		} else {
-			string to_write = this->body;
-			cout << "to_write = " << to_write << endl;
-			count = to_write.size();
-			outFile.write(to_write.c_str(), to_write.size());
-			this->body.clear();
-		}
-		n -= count;
-
+		chunked_body_from_header();
 		this->throw_still_running();
 	}
-
 	cout << 2 << endl;
 	cout << "n = " << n << endl;
-	if (n == 0) {
-		n = find_chunk_size_from_recv();
-		cout << "find_chunk_size_from_recv() => n = " << n << endl;
+	if (this->n == 0) {
+		this->n = find_chunk_size_from_recv();
+		cout << "find_chunk_size_from_recv(1) => n = " << this->n << endl;
 	}
 	cout << 3 << endl;
-	bytes = this->receive_data(n);
-	n -= bytes;
+	bytes = this->receive_data(this->n);
+	this->n -= bytes;
 	cout << 4 << endl;
-	if (n == 0) {
-		n = find_chunk_size_from_recv();
-		cout << "find_chunk_size_from_recv() => n = " << n << endl;
+	if (this->n == 0) {
+		this->n = find_chunk_size_from_recv();
+		cout << "find_chunk_size_from_recv(2) => n = " << this->n << endl;
 	}
 	cout << 5 << endl;
-	if (bytes == 0 && n == 0) {
+	if (bytes == 0 && this->n == 0) {
 		cout << "done" << endl;
 		this->body_status = true;
-		n				  = 0;
+		this->n			  = 0;
 		return;
 	} else {
 		throw std::runtime_error("Still running");
