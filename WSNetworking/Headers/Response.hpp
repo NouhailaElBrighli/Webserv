@@ -16,8 +16,10 @@ class Response {
 	std::string	extention;
 	std::string cgi_outfile;
 	std::string	serve_file;
+	std::string	upload_path;
 	int	start;
 	int	cgi_status;
+	int post_status;
   public:
 	Response();
 	~Response();
@@ -30,17 +32,18 @@ class Response {
 	std::string GetHeader() const;
 	std::string SetError(const std::string msg_status, std::string body_file);
 	void	check_request_uri();
-	std::string	Get(MainClient *client);
+	std::string	Get();
     void	set_resource_type();
 	void	check_inside_root(std::string &root, std::string path);
 	std::string	handle_directory();
 	std::string	check_auto_index();
 	std::string	handle_file();
 	std::string	set_error_body(std::string msg_status,std::string body_file);
-	std::string post(MainClient *Client);
+	std::string post();
 	void	check_cgi_location();
 	void	set_outfile_cgi(std::string outfile);
 	void	handle_php();
+	void	set_extention_for_body_and_move_it();
 };
 
 std::ostream &operator<<(std::ostream &out, const Response &obj);//!here

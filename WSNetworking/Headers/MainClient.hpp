@@ -1,12 +1,12 @@
 #ifndef MAINCLIENT_HPP
 #define MAINCLIENT_HPP
-
 #include "WSNetworking.hpp"
 
 class MainClient {
 
   private:
   	std::map<std::string, std::string>content_type;
+	std::map<std::string, std::string>extention;
 	ConfigServerParser *config_server_parser;
 	RequestParser	   *request_parser;
 	std::ifstream		*send_file;
@@ -69,7 +69,10 @@ class MainClient {
 	void	set_serve_file(std::string file_to_serve);
 	void	send_to_socket();
 	void	set_content_type_map();
+	void	set_extention_map();
 	void	set_start_php(int start);
+	void	reset_body_file_name(std::string new_name);
+	std::string		get_extention(std::string content);
 
 
 	void start_handle();

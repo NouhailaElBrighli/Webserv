@@ -237,8 +237,6 @@ std::string	Response::set_error_body(std::string msg_status, std::string body_fi
 	return(body_file);
 }
 
-
-
 void	Response::check_cgi_location()
 {
 	if (!Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_cgi_ext_path(this->extention).size())
@@ -250,7 +248,7 @@ void	Response::set_outfile_cgi(std::string outfile)
 	this->cgi_outfile = outfile;
 }
 
-std::string	Response::Get(MainClient *client) {
+std::string	Response::Get() {
 	
 	print_long_line("Handle GET");
 	if (Client->get_serve_file().size() == 0)
@@ -297,19 +295,37 @@ void	Response::handle_php()
 	
 }
 
-std::string	Response::post(MainClient *Client)
+std::string	Response::post()
 {
-	this->Client = Client;
 	if (Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_upload().size() != 0)
 	{
-		std::string folder_path = Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_root() + Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_upload();
-		std::cout << "the location support upload -> folder_path:" << folder_path << std::endl;
+		this->upload_path = Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_root() + Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_upload();
+		std::cout << "the location support upload -> folder_path:" << upload_path << std::endl;
+		DIR *upload_dir = opendir(upload_path.c_str());
+		if (upload_dir == NULL)
+			throw Error::InternalServerError500();
+		closedir(upload_dir);
+		set_extention_for_body_and_move_it();
 	}
-	// std::cout << "filename: " << Client->get_body_file_name() << std::endl;
 	this->header = "HTTP/1.1 ";
 	this->header += "200 ok\r\n";
 	this->header += "ContentType: text/html\r\n";
 	this->header += "ContentLength: 3\r\n\r\n";
 	Client->set_header(this->header);
+	
 	return ("folder/post_file.html");
+}
+
+void	Response::set_extention_for_body_and_move_it()
+{
+	std::string extention;
+	if (Client->get_request("Content-Type").size() == 0)
+		extention = ".bin";
+	else 
+		extention = Client->get_extention(Client->get_request("Content-Type"));
+	std::string new_name  = Client->get_body_file_name() + extention;
+	if (std::rename(Client->get_body_file_name().c_str(), new_name.c_str()) != 0)
+		throw Error::BadRequest400();
+	Client->reset_body_file_name(new_name);
+	std::cout << "new_name :" << Client->get_body_file_name() << std::endl;
 }

@@ -300,12 +300,14 @@ void MainClient::handle_read() {
 void MainClient::handle_write() {
 	print_line("Server Response (write)");
 	set_content_type_map();
+	set_extention_map();
 	Response Response(this);
 	if (this->request_parser->get_request("Request-Type") == "GET") {
-		serve_file = Response.Get(this);
+
+		serve_file = Response.Get();
 	}
 	else if (this->request_parser->get_request("Request-Type") == "POST"){
-		serve_file = Response.post(this);
+		serve_file = Response.post();
 	}
 	else if (this->request_parser->get_request("Request-Type") == "DELETE") {
 		// DELETE
@@ -538,4 +540,47 @@ void MainClient::send_to_socket() {
 	if (send(client_socket, buff, file.gcount(), 0) < 0)
 		throw Error::BadRequest400();
 	file.close();
+}
+
+void	MainClient::reset_body_file_name(std::string new_name)
+{
+	this->body_file_name = new_name;
+}
+
+void	MainClient::set_extention_map()
+{
+	extention["text/plain"] = ".txt";
+	extention["text/html"] = ".html";
+	extention["text/css"] = ".css";
+	extention["image/jpeg"] = ".jpeg";
+	extention["image/png"] = ".png";
+	extention["image/bmp"] = ".bmp";
+	extention["text/png"] = ".png";
+	extention["image/svg+xml"] = ".svg";
+	extention["image/icon"] = ".icon";
+	extention["audio/mpeg"] = ".mp3";
+	extention["audio/wav"] = ".wav";
+	extention["video/mp4"] = ".mp4";
+	extention["video/webm"] = ".webm";
+	extention["video/quicktime"] = ".mov";
+	extention["application/json"] = ".js";
+	extention["application/xml"] = ".xml";
+	extention["application/pdf"] = ".pdf";
+	extention["application/zip"] = ".zip";
+	extention["application/gzip"] = ".gz";
+	extention["application/msword"] = ".doc";
+	extention["application/vnd.openxmlformats-officedocument.wordprocessingml.document"] = ".docx";
+	extention["application/vnd.ms-excel"] = ".xls";
+	extention["application/vnd.ms-excel"] = ".xlsx";
+	extention["application/x-httpd-php"] = ".php";
+}
+
+
+std::string	MainClient::get_extention(std::string content)
+{
+	std::cout << "content: " << content << std::endl;
+	std::cout << "extention: " << extention[content] << std::endl;
+	if (extention[content].size() != 0)
+		return (extention[content]);
+	return(".bin");
 }
