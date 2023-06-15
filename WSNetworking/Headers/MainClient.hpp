@@ -58,7 +58,7 @@ class MainClient {
 	std::string get_new_url();
 	std::string get_serve_file();
 	std::string write_into_file(DIR *directory, std::string root);
-	int			convert_to_int(std::string &str);
+	int			convert_to_int(const std::string &str);
 	void		set_serve_file(std::string file_to_serve);
 	void		send_to_socket();
 	void		set_content_type_map();

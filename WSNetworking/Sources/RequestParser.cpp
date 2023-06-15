@@ -33,7 +33,7 @@ void RequestParser::run_parse(const string &head) {
 	this->set_head(head);
 	this->parse_head();
 	// print the request
-	cout << *this << endl;
+	SHOW_INFO(*this);
 }
 
 void RequestParser::parse_head() {
@@ -45,13 +45,6 @@ void RequestParser::parse_head() {
 }
 
 void RequestParser::is_head_valid() {
-	cout << endl;
-	if (head.length() == 0)
-		cout << C_RED << "head.length() : " << head.length();
-	else
-		cout << C_GREEN << "head.length() : " << head.length();
-	cout << C_RES << endl << endl;
-
 	if (head.empty())
 		throw Error::BadRequest400();
 }
@@ -134,8 +127,10 @@ void RequestParser::last_check() {
 	if (this->get_request("Transfer-Encoding").size() != 0
 		&& this->get_request("Transfer-Encoding") != "chunked")
 		throw Error::NotImplemented501();  // transfer encoding exist and different to chunked
-	if (this->get_request("Content-Length").size() == 0
-		&& this->get_request("Transfer-Encoding").size() == 0
+	if (((this->get_request("Content-Length").size() == 0
+		  && this->get_request("Transfer-Encoding").size() == 0)
+		 || (this->get_request("Content-Length").size() != 0
+			 && this->get_request("Transfer-Encoding").size() != 0))
 		&& this->get_request("Request-Type") == "POST")
 		throw Error::BadRequest400();  // post without content-length or transfer encoding
 }

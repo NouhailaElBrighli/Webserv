@@ -77,12 +77,12 @@ void MainClient::start_handle(string task) {
 		if (string(e.what()).find("can't open file") != string::npos)
 			throw std::runtime_error(string(e.what()));
 
-		print_error(string(e.what()));
+		PRINT_ERROR(string(e.what()));
 
 		if (string(e.what()) == "Still running")
 			return;
 
-		print_short_line("catch something");
+		PRINT_SHORT_LINE("catch something");
 		set_header_for_errors_and_redirection(e.what());
 
 		send_to_socket();
@@ -96,7 +96,7 @@ void MainClient::start_handle(string task) {
 }
 
 void MainClient::handle_read() {
-	print_line("Client Request (read)");
+	PRINT_LINE("Client Request (read)");
 
 	// 	std::memset(buffer, 0, MAXLINE);
 	// 	size_t bytes = recv(this->client_socket, buffer, MAXLINE, 0);
@@ -179,7 +179,7 @@ void MainClient::handle_read() {
 }
 
 void MainClient::handle_write() {
-	print_line("Server Response (write)");
+	PRINT_LINE("Server Response (write)");
 
 	Response Response(this);
 	if (this->get_request("Request-Type") == "GET") {

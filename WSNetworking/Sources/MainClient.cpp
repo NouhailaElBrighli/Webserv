@@ -71,12 +71,12 @@ void MainClient::start_handle(string task) {
 			|| string(e.what()).find("Bad Input") != string::npos)
 			throw std::runtime_error(string(e.what()));
 
-		print_error(string(e.what()));
+		PRINT_ERROR(string(e.what()));
 
 		if (string(e.what()) == "Still running")
 			return;
 
-		print_short_line("catch something");
+		PRINT_SHORT_LINE("catch something");
 		set_header_for_errors_and_redirection(e.what());
 
 		send_to_socket();
@@ -90,16 +90,13 @@ void MainClient::start_handle(string task) {
 }
 
 void MainClient::handle_read() {
-	print_line("Client Request (read)");
+	PRINT_LINE("Client Request (read)");
 
 	header_body_reader->header_reading();
 	this->request_parser->run_parse(header_body_reader->get_head());
 
 	if (this->get_request("Request-Type") == "POST") {
-		if (this->get_request("Content-Length").size() != 0
-			&& this->get_request("Transfer-Encoding").size() != 0)
-			throw Error::BadRequest400();
-		else if (this->get_request("Content-Length").size() != 0)
+		if (this->get_request("Content-Length").size() != 0)
 			header_body_reader->body_reading();
 		else if (this->get_request("Transfer-Encoding") == "chunked")
 			header_body_reader->chunked_body_reading();
@@ -128,7 +125,7 @@ void MainClient::handle_read() {
 }
 
 void MainClient::handle_write() {
-	print_line("Server Response (write)");
+	PRINT_LINE("Server Response (write)");
 
 	Response Response(this);
 	if (this->get_request("Request-Type") == "GET") {
@@ -276,9 +273,9 @@ std::string MainClient::write_into_file(DIR *directory, std::string root) {
 	return ("folder/serve_file.html");
 }
 
-int MainClient::convert_to_int(std::string &str) {
+int MainClient::convert_to_int(const std::string &str) {
 	int				  integer;
-	std::stringstream ss(this->msg_status);
+	std::stringstream ss(str);
 	ss >> integer;
 	return (integer);
 }

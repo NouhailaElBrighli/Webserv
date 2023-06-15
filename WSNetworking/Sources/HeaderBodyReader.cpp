@@ -8,8 +8,9 @@ const string &HeaderBodyReader::get_body_file_name() const { return this->body_f
 // Constructors and destructor
 HeaderBodyReader::HeaderBodyReader(MainClient *main_client) : main_client(main_client) {
 	this->client_socket = main_client->get_client_socket();
-	this->length		= 0;
 	this->count			= 0;
+	this->length		= 0;
+	this->size			= 0;
 	this->head_status	= false;
 	this->body_status	= false;
 }
@@ -76,7 +77,7 @@ void HeaderBodyReader::set_new_body_file_name() {
 		ss << "_" << std::hex << std::rand();
 		this->body_file_name.insert(this->body_file_name.find_last_of('.'), ss.str());
 	}
-	cout << "new body file name : " << this->body_file_name << endl;
+	SHOW_INFO("new body file name : " + this->body_file_name);
 }
 
 string HeaderBodyReader::generate_random_file_name() {
@@ -100,7 +101,7 @@ string HeaderBodyReader::generate_random_file_name() {
 void HeaderBodyReader::open_body_file() {
 	if (this->body_file_name.empty()) {
 		this->body_file_name = generate_random_file_name();
-		cout << "body file name : " << this->body_file_name << endl;
+		SHOW_INFO("body file name : " + this->body_file_name);
 		this->check_header_body();
 	}
 
@@ -108,7 +109,7 @@ void HeaderBodyReader::open_body_file() {
 	if (!this->outFile.is_open()) {
 		this->outFile.open(this->body_file_name.c_str(), std::ios::app | std::ios::binary);
 		if (!this->outFile)
-			throw std::runtime_error(str_red("can't open file " + this->body_file_name));
+			throw std::runtime_error(STR_RED("can't open file " + this->body_file_name));
 	}
 }
 
@@ -146,8 +147,12 @@ void HeaderBodyReader::body_reading() {
 		this->body.clear();
 	}
 
-	if (this->length == 0)
+	if (this->length == 0) {
 		this->length = ConfigServerParser::stringToInt(main_client->get_request("Content-Length"));
+		if (static_cast<size_t>(this->length)
+			> this->main_client->get_config_server()->get_client_max_body_size())
+			throw Error::RequestEntityTooLarge413();
+	}
 	if (this->length == 0 || this->length == this->count) {
 		this->body_status = true;
 		this->count		  = 0;
@@ -174,25 +179,30 @@ int HeaderBodyReader::hex_to_int(string chunkSizeStr) {
 }
 
 int HeaderBodyReader::find_chunk_size_in_body_str() {
-	int	   i	= 0;
+	int	   len	= 0;
 	size_t pos0 = this->body.find("\r\n");
 	size_t pos1 = this->body.find("\r\n0\r\n");
 
 	if (pos0 != string::npos && pos0 != 0) {
 		string chunkSizeStr = this->body.substr(0, pos0);
-		i					= hex_to_int(chunkSizeStr);
+		len					= hex_to_int(chunkSizeStr);
 	} else if (pos1 != string::npos) {
-		i = 0;
+		len = 0;
 	} else {
 		this->chunkSizeStrPart = this->body;
-		i					   = -1;
+		len					   = -1;
 	}
 	this->body = this->body.substr(pos0 + 2);
-	return i;
+
+	if (len != -1)
+		this->size += len;
+	if (this->size > this->main_client->get_config_server()->get_client_max_body_size())
+		throw Error::RequestEntityTooLarge413();
+	return len;
 }
 
 int HeaderBodyReader::find_chunk_size_from_recv() {
-	int				  bytes;
+	int				  bytes, len = 0;
 	std::stringstream ss;
 	string			  tmp_body;
 	bool			  start = true;
@@ -205,8 +215,10 @@ int HeaderBodyReader::find_chunk_size_from_recv() {
 	for (int i = 0; i < MAXLINE; i++) {
 		std::memset(num_buff, 0, 2);
 		bytes = recv(this->client_socket, num_buff, 1, 0);
-		if (bytes == 0)
-			return 0;
+		if (bytes == 0) {
+			len = 0;
+			break;
+		}
 		if (bytes < 0)
 			throw Error::BadRequest400();
 
@@ -219,17 +231,24 @@ int HeaderBodyReader::find_chunk_size_from_recv() {
 		std::size_t pos = tmp_body.find("\r\n");
 		if (pos != string::npos) {
 			string chunkSizeStr = tmp_body.substr(0, pos);
-			if (chunkSizeStr == "0" || chunkSizeStr.empty())
-				return 0;
-			return hex_to_int(chunkSizeStr);
+			if (chunkSizeStr == "0" || chunkSizeStr.empty()) {
+				len = 0;
+				break;
+			}
+			len = hex_to_int(chunkSizeStr);
+			break;
 		}
 	}
-	return 0;
+	if (len > 0)
+		this->size += len;
+	if (this->size > this->main_client->get_config_server()->get_client_max_body_size())
+		throw Error::RequestEntityTooLarge413();
+
+	return len;
 }
 
 void HeaderBodyReader::chunked_body_reading() {
-	static int n	= 0;
-	size_t	   pos1 = this->body.find("\r\n0\r\n");
+	size_t pos1 = this->body.find("\r\n0\r\n");
 
 	if (this->body_status)
 		return;

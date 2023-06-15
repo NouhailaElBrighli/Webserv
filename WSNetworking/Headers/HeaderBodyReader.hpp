@@ -6,7 +6,8 @@
 class HeaderBodyReader {
 
   private:
-	int			client_socket, length, count;
+	int			client_socket, count, length;
+	size_t		size;
 	char		buffer[MAXLINE];
 	MainClient *main_client;
 

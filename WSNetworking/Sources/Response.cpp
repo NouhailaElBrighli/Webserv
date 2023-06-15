@@ -14,7 +14,7 @@ Response::Response(MainClient *Client) { this->Client = Client; }
 
 std::string	Response::Get(MainClient *client) {
 	
-	print_long_line("Handle GET");
+	PRINT_LONG_LINE("Handle GET");
 	std::string file_to_serve;
 	if (Client->get_serve_file().size() == 0)
 	{
@@ -197,7 +197,7 @@ std::string	Response::check_auto_index()
 
 std::string	Response::handle_directory()
 {
-	print_short_line("handle directory");
+	PRINT_SHORT_LINE("handle directory");
 	std::string uri = Client->get_new_url();
 	if (uri[uri.size() - 1] != '/' && Client->get_request("Request-URI").size() != 1)// redirect from /folder to /folder/
 	{
@@ -227,7 +227,7 @@ std::string	Response::handle_directory()
 
 std::string	Response::handle_file()
 {
-	print_short_line("handle file");
+	PRINT_SHORT_LINE("handle file");
 	std::ifstream file(Client->get_new_url());
 	if (!file)
 		throw Error::Forbidden403();

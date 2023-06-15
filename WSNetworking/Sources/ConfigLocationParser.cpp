@@ -108,19 +108,19 @@ bool ConfigLocationParser::check_file(string name, string input, string file_pat
 	if (stat(file_path.c_str(), &file_info) != 0)
 		// Failed to stat file
 		throw std::runtime_error(
-			str_red(name + " Error : " + input + " => '" + file_path + "' does not exist"));
+			STR_RED(name + " Error : " + input + " => '" + file_path + "' does not exist"));
 
 	if (S_ISDIR(file_info.st_mode))
 		// File is a directory
 		throw std::runtime_error(
-			str_red(name + " Error : " + input + " => '" + file_path + "' is a directory"));
+			STR_RED(name + " Error : " + input + " => '" + file_path + "' is a directory"));
 
 	if (S_ISREG(file_info.st_mode))
 		// File is a regular file
 		return true;
 
 	// File is not a directory or a regular file
-	throw std::runtime_error(str_red(name + " Error : " + input + " => '" + file_path
+	throw std::runtime_error(STR_RED(name + " Error : " + input + " => '" + file_path
 									 + "' is not a directory or a regular file"));
 	return false;
 }
@@ -134,10 +134,10 @@ vector<string> ConfigLocationParser::split_methods(const string &str) {
 		if (str_mth.length() <= 6)
 			vect_mth.push_back(str_mth);
 		else
-			throw std::runtime_error(str_red("Allow methods Bad Input : " + str));
+			throw std::runtime_error(STR_RED("Allow methods Bad Input : " + str));
 	}
 	if (vect_mth.size() > 3)
-		throw std::runtime_error(str_red("Allow methods Bad Input : " + str));
+		throw std::runtime_error(STR_RED("Allow methods Bad Input : " + str));
 
 	return vect_mth;
 }
@@ -148,13 +148,13 @@ vector<string> ConfigLocationParser::stringToMethods(string host) {
 	vect_mth = this->split_methods(host);
 	for (size_t i = 0; i < vect_mth.size(); i++) {
 		if (vect_mth[i] != "GET" && vect_mth[i] != "POST" && vect_mth[i] != "DELETE")
-			throw std::runtime_error(str_red("Allow Methods Bad Input : " + host));
+			throw std::runtime_error(STR_RED("Allow Methods Bad Input : " + host));
 	}
 
 	for (size_t i = 0; i < vect_mth.size(); i++) {
 		for (size_t j = i + 1; j < vect_mth.size(); j++) {
 			if (vect_mth[i] == vect_mth[j])
-				throw std::runtime_error(str_red("Allow Methods Bad Input : " + host));
+				throw std::runtime_error(STR_RED("Allow Methods Bad Input : " + host));
 		}
 	}
 
@@ -174,7 +174,7 @@ void ConfigLocationParser::set_location(string location, size_t pos) {
 	location = location.substr(0, location.size() - 2);
 	if (this->location_status == true || location.empty() || this->config_location[pos - 1] != '{'
 		|| this->config_location[pos - 2] != ' ' || location[0] != '/')
-		throw std::runtime_error(str_red("location Error : " + location));
+		throw std::runtime_error(STR_RED("location Error : " + location));
 
 	this->location		  = location;
 	this->location_status = true;
@@ -185,14 +185,14 @@ void ConfigLocationParser::set_autoindex(string autoindex, size_t pos) {
 
 	if (this->autoindex_status == true || autoindex.empty() || this->config_location[pos - 1] != ';'
 		|| !std::isalpha(this->config_location[pos - 2]))
-		throw std::runtime_error(str_red("autoindex Error : " + autoindex));
+		throw std::runtime_error(STR_RED("autoindex Error : " + autoindex));
 
 	if (autoindex == "on")
 		this->autoindex = true;
 	else if (autoindex == "off")
 		this->autoindex = false;
 	else
-		throw std::runtime_error(str_red("autoindex Error : " + autoindex));
+		throw std::runtime_error(STR_RED("autoindex Error : " + autoindex));
 
 	this->autoindex_status = true;
 }
@@ -201,17 +201,17 @@ void ConfigLocationParser::set_root(string root, size_t pos) {
 	root = root.substr(0, root.size() - 1);
 	if (this->root_status == true || root.empty() || this->config_location[pos - 1] != ';'
 		|| root[0] != '/' || (root.length() > 2 && !std::isalnum(this->config_location[pos - 2])))
-		throw std::runtime_error(str_red("root Error : " + root));
+		throw std::runtime_error(STR_RED("root Error : " + root));
 
 	struct stat dir_info;
 
 	if (stat(root.c_str(), &dir_info) != 0)
 		// Failed to stat directory
-		throw std::runtime_error(str_red("root Error => '" + root + "' does not exist"));
+		throw std::runtime_error(STR_RED("root Error => '" + root + "' does not exist"));
 
 	if (S_ISREG(dir_info.st_mode))
 		// File is a regular file
-		throw std::runtime_error(str_red("root Error => '" + root + "' is a regular file"));
+		throw std::runtime_error(STR_RED("root Error => '" + root + "' is a regular file"));
 
 	if (S_ISDIR(dir_info.st_mode)) {
 		// File is a directory
@@ -222,7 +222,7 @@ void ConfigLocationParser::set_root(string root, size_t pos) {
 
 	// File is not a directory or a regular file
 	throw std::runtime_error(
-		str_red("root Error => '" + root + "' is not a directory or a regular file"));
+		STR_RED("root Error => '" + root + "' is not a directory or a regular file"));
 }
 
 void ConfigLocationParser::set_index(string index, size_t pos) {
@@ -232,7 +232,7 @@ void ConfigLocationParser::set_index(string index, size_t pos) {
 
 	if (this->index_status == true || index.empty() || this->config_location[pos - 1] != ';'
 		|| !std::isalnum(this->config_location[pos - 2]))
-		throw std::runtime_error(str_red("index Error : " + index));
+		throw std::runtime_error(STR_RED("index Error : " + index));
 
 	while (std::getline(ss_index, str_idx, ' '))
 		this->index.push_back(str_idx);
@@ -245,7 +245,7 @@ void ConfigLocationParser::set_return(string return_, size_t pos) {
 	return_			   = return_.substr(0, return_.size() - 1);
 	if (this->return_status == true || return_.empty() || this->config_location[pos - 1] != ';'
 		|| !std::isalnum(this->config_location[pos - 2]))
-		throw std::runtime_error(str_red("return Error : " + return_));
+		throw std::runtime_error(STR_RED("return Error : " + return_));
 
 	this->return_		= return_;
 	this->return_status = true;
@@ -256,7 +256,7 @@ void ConfigLocationParser::set_upload(string upload, size_t pos) {
 	upload			   = upload.substr(0, upload.size() - 1);
 	if (this->upload_status == true || upload.empty() || this->config_location[pos - 1] != ';'
 		|| !std::isalnum(this->config_location[pos - 2]))
-		throw std::runtime_error(str_red("upload Error : " + upload));
+		throw std::runtime_error(STR_RED("upload Error : " + upload));
 
 	this->upload		= upload;
 	this->upload_status = true;
@@ -266,7 +266,7 @@ void ConfigLocationParser::set_methods(string methods, size_t pos) {
 	methods = methods.substr(0, methods.size() - 1);
 	if (this->methods_status == true || methods.empty() || this->config_location[pos - 1] != ';'
 		|| !std::isalnum(this->config_location[pos - 2]))
-		throw std::runtime_error(str_red("methods Error : " + methods));
+		throw std::runtime_error(STR_RED("methods Error : " + methods));
 
 	this->methods		 = this->stringToMethods(methods);
 	this->methods_status = true;
@@ -277,29 +277,29 @@ void ConfigLocationParser::set_cgi_ext_path(string cgi_ext_path, size_t pos) {
 	string cgi_ext, cgi_path;
 
 	if (cgi_ext_path.empty() == true) {
-		throw std::runtime_error(str_red("Error CGI Ext Path : " + cgi_ext_path_input));
+		throw std::runtime_error(STR_RED("Error CGI Ext Path : " + cgi_ext_path_input));
 	}
 
 	cgi_ext = cgi_ext_path.substr(0, cgi_ext_path.find(" "));
 	if (cgi_ext.empty() == true || cgi_ext.length() == 1 || cgi_ext[0] != '.') {
-		throw std::runtime_error(str_red("Error CGI Ext Path : " + cgi_ext_path_input));
+		throw std::runtime_error(STR_RED("Error CGI Ext Path : " + cgi_ext_path_input));
 	}
 	// check if cgi_ext is contain only characters
 	for (size_t i = 1; i < cgi_ext.length(); i++) {
 		if (!std::isalpha(cgi_ext[i]))
-			throw std::runtime_error(str_red("Error CGI Ext Path : " + cgi_ext_path_input));
+			throw std::runtime_error(STR_RED("Error CGI Ext Path : " + cgi_ext_path_input));
 	}
 	cgi_ext_path.erase(0, cgi_ext_path.find(" ") + 1);
 
 	if (cgi_ext_path.find(" ") != string::npos
 		&& cgi_ext_path[cgi_ext_path.find(" ") + 1] != '\0') {
-		throw std::runtime_error(str_red("Error CGI Ext Path : " + cgi_ext_path_input));
+		throw std::runtime_error(STR_RED("Error CGI Ext Path : " + cgi_ext_path_input));
 	}
 
 	cgi_path = cgi_ext_path.substr(0, cgi_ext_path.size() - 1);
 	if (cgi_path.empty() == true || this->config_location[pos - 1] != ';' || cgi_path[0] != '/'
 		|| !std::isalnum(this->config_location[pos - 2])) {
-		throw std::runtime_error(str_red("Error CGI Ext Path : " + cgi_ext_path_input));
+		throw std::runtime_error(STR_RED("Error CGI Ext Path : " + cgi_ext_path_input));
 	}
 
 	if (this->check_file("CGI Ext Path", cgi_ext_path_input, cgi_path)) {
@@ -341,7 +341,7 @@ void ConfigLocationParser::parse_config_location() {
 			this->set_cgi_ext_path(line.substr(line.find(" ") + 1), pos);
 
 		else
-			throw std::runtime_error(str_red("Error : unknown directive '" + line + "'"));
+			throw std::runtime_error(STR_RED("Error : unknown directive '" + line + "'"));
 
 		config_location.erase(0, pos + 1);
 	}
@@ -351,17 +351,17 @@ void ConfigLocationParser::parse_config_location() {
 void ConfigLocationParser::check_status() {
 
 	if (!this->location_status)
-		throw std::runtime_error(str_red("Error : location is missing"));
+		throw std::runtime_error(STR_RED("Error : location is missing"));
 	if (!this->root_status)
-		throw std::runtime_error(str_red("Error : root is missing"));
+		throw std::runtime_error(STR_RED("Error : root is missing"));
 	if (!this->cgi_ext_path_status)
-		throw std::runtime_error(str_red("Error : cgi_ext_path is missing"));
+		throw std::runtime_error(STR_RED("Error : cgi_ext_path is missing"));
 	if (!this->methods_status)
-		throw std::runtime_error(str_red("Error : methods is missing"));
+		throw std::runtime_error(STR_RED("Error : methods is missing"));
 }
 
 std::ostream &operator<<(std::ostream &os, const ConfigLocationParser &clp) {
-	print_line("Parsed Location");
+	PRINT_LINE("Parsed Location");
 
 	os << "location : " << clp.get_location() << std::endl;
 	os << "autoindex : ";
