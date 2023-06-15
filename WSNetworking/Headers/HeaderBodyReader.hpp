@@ -31,10 +31,13 @@ class HeaderBodyReader {
 	~HeaderBodyReader();
 
 	// Methods
+  private:
+	void throw_still_running();
+
+  public:
 	void header_reading();
 
   private:
-	void   throw_still_running();
 	void   check_header_body();
 	void   set_new_body_file_name();
 	string generate_random_file_name();

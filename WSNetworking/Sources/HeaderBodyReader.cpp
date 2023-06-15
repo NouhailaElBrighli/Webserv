@@ -30,7 +30,7 @@ void HeaderBodyReader::header_reading() {
 		return;
 
 	std::memset(buffer, 0, MAXLINE);
-	bytes = recv(this->client_socket, buffer, MAXLINE, 0);	// byte by byte
+	bytes = recv(this->client_socket, buffer, MAXLINE, 0);
 	if (bytes == 0)
 		return;
 	if (bytes < 0)
