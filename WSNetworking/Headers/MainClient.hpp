@@ -91,7 +91,6 @@ class MainClient {
 	void handle_read();
 	void handle_write();
 
-	void set_header_for_errors_and_redirection();
 	int		match_location();
 	void	is_method_allowed_in_location();
 	void	check_files_error();

@@ -1,36 +1,29 @@
-from flask import Flask, request, session
+#!/usr/bin/env python
 
-app = Flask(__name__)
-app.secret_key = 'your_secret_key'  # Set a secret key for session encryption
+import cgi
 
+# Create an instance of FieldStorage for processing form data
+form = cgi.FieldStorage()
 
-@app.route('/', methods=['GET', 'POST'])
-def counter():
-    if request.method == 'POST' and 'increment' in request.form:
-        if 'counter' in session:
-            session['counter'] += 1
-        else:
-            session['counter'] = 1
-            print("Counter set to 1")  # Debug statement
+# Retrieve the value entered in the 'name' field
+name = form.getvalue('name')
 
-    counter_value = session.get('counter', 0)
-    return """
-        <html>
-        <head>
-            <title>Increment Counter Example</title>
-        </head>
-        <body>
-            <h1>Counter: {}</h1>
-            <form method="POST">
-                <button type="submit" name="increment">Increment Counter</button>
-            </form>
-        </body>
-        </html>
-    """.format(counter_value)
+# HTML content
+print("<html>")
+print("<head>")
+print("<title>CGI Form Example</title>")
+print("</head>")
+print("<body>")
+print("<h1>CGI Form Example</h1>")
+print("<form method='post' action='example.cgi'>")
+print("<label for='name'>Name:</label>")
+print("<input type='text' id='name' name='name' required>")
+print("<input type='submit' value='Submit'>")
+print("</form>")
 
+# Display the entered name
+if name:
+    print("<p>Hello, {}!</p>".format(name))
 
-if __name__ == '__main__':
-    try:
-        app.run()
-    except Exception as e:
-        print("An error occurred:", str(e))
+print("</body>")
+print("</html>")

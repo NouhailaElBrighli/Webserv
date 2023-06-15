@@ -6,12 +6,11 @@
 /*   By: hsaidi <hsaidi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/27 11:30:30 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/06/11 14:17:40 by hsaidi           ###   ########.fr       */
+/*   Updated: 2023/06/14 14:54:44 by hsaidi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Delete.hpp"
-
 
 Delete::Delete(MainClient *main_client, vector<ConfigLocationParser *>config_location_parser)
 {
