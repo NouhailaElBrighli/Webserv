@@ -8,7 +8,8 @@ const string &HeaderBodyReader::get_body_file_name() const { return this->body_f
 // Constructors and destructor
 HeaderBodyReader::HeaderBodyReader(MainClient *main_client) : main_client(main_client) {
 	this->client_socket = main_client->get_client_socket();
-	this->n				= 0;
+	this->length		= 0;
+	this->count			= 0;
 	this->head_status	= false;
 	this->body_status	= false;
 }
@@ -17,7 +18,8 @@ HeaderBodyReader::~HeaderBodyReader() {}
 
 // Methods
 void HeaderBodyReader::throw_still_running() {
-	outFile.close();
+	this->outFile.eof();
+	this->outFile.close();
 	throw std::runtime_error("Still running");
 }
 
@@ -111,12 +113,12 @@ void HeaderBodyReader::open_body_file() {
 }
 
 int HeaderBodyReader::receive_data(int size) {
-	int set = MAXLINE;
+	int len = MAXLINE;
 	if (size < MAXLINE)
-		set = size;
+		len = size;
 
-	std::memset(buffer, 0, set);
-	int bytes = recv(this->client_socket, buffer, set, 0);
+	std::memset(buffer, 0, len);
+	int bytes = recv(this->client_socket, buffer, len, 0);
 	if (bytes < 0)
 		throw Error::BadRequest400();
 
@@ -124,15 +126,14 @@ int HeaderBodyReader::receive_data(int size) {
 	this->outFile.write(buffer, bytes);
 	this->outFile.flush();
 
-	// this->outFile.eof();
+	this->outFile.eof();
 	this->outFile.close();	// Close the file
 
 	return bytes;
 }
 
 void HeaderBodyReader::body_reading() {
-	static int count = 0;
-	int		   n, bytes;
+	int bytes;
 
 	if (this->body_status)
 		return;
@@ -140,24 +141,25 @@ void HeaderBodyReader::body_reading() {
 	this->open_body_file();
 
 	if (this->body.size() != 0) {
-		count = this->body.size();
-		outFile.write(this->body.c_str(), count);
+		this->count = this->body.size();
+		this->outFile.write(this->body.c_str(), this->count);
 		this->body.clear();
 	}
 
-	n = ConfigServerParser::stringToInt(main_client->get_request("Content-Length"));
-	if (n == 0 || n == count) {
+	if (this->length == 0)
+		this->length = ConfigServerParser::stringToInt(main_client->get_request("Content-Length"));
+	if (this->length == 0 || this->length == this->count) {
 		this->body_status = true;
-		count			  = 0;
+		this->count		  = 0;
 		return;
 	}
 
 	bytes = this->receive_data(MAXLINE);
-	count += bytes;
+	this->count += bytes;
 
-	if (count == n || bytes == 0) {
+	if (this->count == this->length || bytes == 0) {
 		this->body_status = true;
-		count			  = 0;
+		this->count		  = 0;
 		return;
 	} else {
 		throw std::runtime_error("Still running");
@@ -177,7 +179,6 @@ int HeaderBodyReader::find_chunk_size_in_body_str() {
 	size_t pos1 = this->body.find("\r\n0\r\n");
 
 	if (pos0 != string::npos && pos0 != 0) {
-		cout << "pos0 : " << pos0 << endl;
 		string chunkSizeStr = this->body.substr(0, pos0);
 		i					= hex_to_int(chunkSizeStr);
 	} else if (pos1 != string::npos) {
@@ -217,7 +218,6 @@ int HeaderBodyReader::find_chunk_size_from_recv() {
 
 		std::size_t pos = tmp_body.find("\r\n");
 		if (pos != string::npos) {
-			cout << "tmp_body = " << tmp_body << endl;
 			string chunkSizeStr = tmp_body.substr(0, pos);
 			if (chunkSizeStr == "0" || chunkSizeStr.empty())
 				return 0;
@@ -237,81 +237,64 @@ void HeaderBodyReader::chunked_body_reading() {
 	this->open_body_file();
 
 	if (this->body.size() > 0 && pos1 != string::npos) {
-		cout << "omar" << endl;
 		this->chunked_body_from_header();
 		this->chunked_body_from_header();
 	}
 
-	else {
-		cout << "omar2" << endl;
+	else
 		this->chunked_body();
-	}
 }
 
 void HeaderBodyReader::chunked_body_from_header() {
-	int count = 0;
+	this->count = 0;
 
-	if (this->n == 0) {
-		this->n = find_chunk_size_in_body_str();
-		cout << "find_chunk_size_in_body_str() = " << this->n << endl;
-		if (this->n == 0) {	 // ? if really 0 => end of body (chunked), what can we do ?
-			cout << "done" << endl;
+	if (this->length == 0) {
+		this->length = find_chunk_size_in_body_str();
+
+		if (this->length == 0) {
 			this->body_status = true;
-			this->n			  = 0;
+			this->length	  = 0;
 			return;
-		} else if (this->n == -1) {
-			this->n = 0;
+		} else if (this->length == -1) {
+			this->length = 0;
 			this->throw_still_running();
 		}
 	}
 	std::size_t pos = this->body.find("\r\n\r\n");
-	cout << "pos = " << pos << endl;
-	cout << "n = " << this->n << endl;
 	if (pos != string::npos) {
-		string to_write = this->body.substr(0, this->n);
-		cout << "to_write = " << to_write << endl;
-		count = this->n;
-		outFile.write(to_write.c_str(), this->n);
-		this->body.erase(0, this->n);
+		string to_write = this->body.substr(0, this->length);
+		this->count		= this->length;
+		this->outFile.write(to_write.c_str(), this->length);
+		this->body.erase(0, this->length);
 	} else {
 		string to_write = this->body;
-		cout << "to_write = " << to_write << endl;
-		count = to_write.size();
-		outFile.write(to_write.c_str(), to_write.size());
+		this->count		= to_write.size();
+		this->outFile.write(to_write.c_str(), to_write.size());
 		this->body.clear();
 	}
-	this->n -= count;
+	this->length -= this->count;
 }
 
 void HeaderBodyReader::chunked_body() {
 	int bytes;
 
-	cout << 1 << endl;
-	cout << "this->body.size() = " << this->body.size() << endl;
-
 	if (this->body.size() > 0) {
 		chunked_body_from_header();
 		this->throw_still_running();
 	}
-	cout << 2 << endl;
-	cout << "n = " << n << endl;
-	if (this->n == 0) {
-		this->n = find_chunk_size_from_recv();
-		cout << "find_chunk_size_from_recv(1) => n = " << this->n << endl;
-	}
-	cout << 3 << endl;
-	bytes = this->receive_data(this->n);
-	this->n -= bytes;
-	cout << 4 << endl;
-	if (this->n == 0) {
-		this->n = find_chunk_size_from_recv();
-		cout << "find_chunk_size_from_recv(2) => n = " << this->n << endl;
-	}
-	cout << 5 << endl;
-	if (bytes == 0 && this->n == 0) {
-		cout << "done" << endl;
+
+	if (this->length == 0)
+		this->length = find_chunk_size_from_recv();
+
+	bytes = this->receive_data(this->length);
+	this->length -= bytes;
+
+	if (this->length == 0)
+		this->length = find_chunk_size_from_recv();
+
+	if (bytes == 0 && this->length == 0) {
 		this->body_status = true;
-		this->n			  = 0;
+		this->length	  = 0;
 		return;
 	} else {
 		throw std::runtime_error("Still running");
