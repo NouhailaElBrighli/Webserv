@@ -493,8 +493,8 @@ void MainClient::send_to_socket() {
 	{
 		print_short_line("send header");
 		send(client_socket, this->header.c_str(), header.size(), 0);
-		if (this->status == 301)
-			this->send_receive_status = true;
+		// if (this->status == 301)
+		// 	this->send_receive_status = true;
 		write_header = true;
 		return;
 	}
@@ -522,6 +522,12 @@ void MainClient::send_to_socket() {
 	if (position == - 1)
 	{
 		file.close();
+		std::cout << "connection : " << this->get_request("Connection") << std::endl;
+		// if (this->get_request("Connection") == "keep-alive")
+		// {
+		// 	print_error("don't close");	//!you should remove the data
+		// 	return;
+		// }
 		print_error("close the socket now");
 		this->send_receive_status = false;
 		return;

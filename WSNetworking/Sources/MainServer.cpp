@@ -214,6 +214,7 @@ void MainServer::create_client(int client_socket) {
 
 void MainServer::handle(int client_socket, string task) {
 	print_long_line("handle " + task);
+	cout << "current client socket : " << client_socket << endl;
 
 	if (this->clients.find(client_socket) != this->clients.end())
 		this->clients[client_socket]->start(task);

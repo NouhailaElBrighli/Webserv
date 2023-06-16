@@ -42,7 +42,6 @@ void Response::SetContentType() {
 	if (start != string::npos)
 	{
 		this->extention = filename.substr(start, filename.size() - 1);
-		this->ContentType = Client->get_content_type(this->extention);
 		if (this->extention == ".py" || this->extention == ".php")
 		{
 			check_cgi_location();
@@ -53,6 +52,7 @@ void Response::SetContentType() {
 			this->ContentType = "text/html";
 			return;
 		}
+		this->ContentType = Client->get_content_type(this->extention);
 	}
 	else
 		this->ContentType = "application/octetstream";
@@ -327,5 +327,4 @@ void	Response::set_extention_for_body_and_move_it()
 	if (std::rename(Client->get_body_file_name().c_str(), this->new_path.c_str()) != 0)
 		throw Error::BadRequest400();
 	Client->reset_body_file_name(this->new_path);
-	std::cout << "new_name :" << Client->get_body_file_name() << std::endl;
 }
