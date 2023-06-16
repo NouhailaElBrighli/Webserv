@@ -43,7 +43,7 @@ void Response::SetContentType() {
 	{
 		this->extention = filename.substr(start, filename.size() - 1);
 		this->ContentType = Client->get_content_type(this->extention);
-		if (ContentType == "cgi")
+		if (this->extention == ".py" || this->extention == ".php")
 		{
 			check_cgi_location();
 			print_long_line("handle cgi");
@@ -79,7 +79,6 @@ void Response::SetVars(std::string file_to_serve) {
 	this->SetContentType();
 	if(this->extention == ".php")
 	{
-		print_error("here");
 		handle_php();
 		Client->set_header(header);
 		return;
@@ -249,7 +248,6 @@ void	Response::set_outfile_cgi(std::string outfile)
 }
 
 std::string	Response::Get() {
-	
 	print_long_line("Handle GET");
 	if (Client->get_serve_file().size() == 0)
 	{
@@ -295,8 +293,9 @@ void	Response::handle_php()
 	
 }
 
-std::string	Response::post()
+void	Response::post()
 {
+	print_long_line("handle post");
 	if (Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_upload().size() != 0)
 	{
 		this->upload_path = Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_root() + Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_upload();
@@ -306,26 +305,27 @@ std::string	Response::post()
 			throw Error::InternalServerError500();
 		closedir(upload_dir);
 		set_extention_for_body_and_move_it();
+		throw Accurate::Created201();
 	}
-	this->header = "HTTP/1.1 ";
-	this->header += "200 ok\r\n";
-	this->header += "ContentType: text/html\r\n";
-	this->header += "ContentLength: 3\r\n\r\n";
-	Client->set_header(this->header);
-	
-	return ("folder/post_file.html");
+	else
+		throw Error::InternalServerError500();
 }
 
 void	Response::set_extention_for_body_and_move_it()
 {
-	std::string extention;
+	std::string filename;
 	if (Client->get_request("Content-Type").size() == 0)
-		extention = ".bin";
+		this->extention = ".bin";
 	else 
-		extention = Client->get_extention(Client->get_request("Content-Type"));
-	std::string new_name  = Client->get_body_file_name() + extention;
-	if (std::rename(Client->get_body_file_name().c_str(), new_name.c_str()) != 0)
+		this->extention = Client->get_extention(Client->get_request("Content-Type"));
+	std::string path = Client->get_body_file_name();
+	size_t found = path.find_last_of('/');
+	if (found != std::string::npos)// !you should create the folder tmp by any function
+		filename = path.substr(found, path.size() - found);
+	this->new_path = this->upload_path + filename + extention;
+	std::cout << "new_path: " << new_path << std::endl;
+	if (std::rename(Client->get_body_file_name().c_str(), this->new_path.c_str()) != 0)
 		throw Error::BadRequest400();
-	Client->reset_body_file_name(new_name);
+	Client->reset_body_file_name(this->new_path);
 	std::cout << "new_name :" << Client->get_body_file_name() << std::endl;
 }

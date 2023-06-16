@@ -16,7 +16,7 @@ class Accurate {
 
 	class Created201 : public std::exception {
 	  public:
-		virtual const char *what() const throw() { return "201Created"; }
+		virtual const char *what() const throw() { return "201 Created"; }
 	};
 
 	class Accepted202 : public std::exception {

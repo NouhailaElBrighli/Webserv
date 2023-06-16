@@ -17,9 +17,9 @@ class Response {
 	std::string cgi_outfile;
 	std::string	serve_file;
 	std::string	upload_path;
+	std::string	new_path;
 	int	start;
 	int	cgi_status;
-	int post_status;
   public:
 	Response();
 	~Response();
@@ -39,7 +39,7 @@ class Response {
 	std::string	check_auto_index();
 	std::string	handle_file();
 	std::string	set_error_body(std::string msg_status,std::string body_file);
-	std::string post();
+	void	post();
 	void	check_cgi_location();
 	void	set_outfile_cgi(std::string outfile);
 	void	handle_php();

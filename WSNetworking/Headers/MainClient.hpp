@@ -27,6 +27,7 @@ class MainClient {
 	bool				write_header;
 	bool				write_body;
 	bool				file_open;
+	bool				write_status;
 
   private:
 	// Copy constructor and assignation operator

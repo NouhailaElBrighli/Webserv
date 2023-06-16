@@ -31,7 +31,7 @@ MainClient::MainClient() { std::memset(buffer, 0, MAXLINE + 1); }
 MainClient::MainClient(int client_socket, ConfigServerParser *config_server_parser)
 	: config_server_parser(config_server_parser), request_parser(new RequestParser()),
 	  send_receive_status(true), msg_status(Accurate::OK200().what()), client_socket(client_socket),
-	  status(200), phase(READ_PHASE), head_status(false), body_status(false), php_status(0), write_header(false), write_body(false), file_open(false) {
+	  status(200), phase(READ_PHASE), head_status(false), body_status(false), php_status(0), write_header(false), write_body(false), file_open(false), write_status(false) {
 	std::memset(buffer, 0, MAXLINE + 1);
 }
 
@@ -51,9 +51,12 @@ void MainClient::start_handle(string task) {
 			this->handle_read();
 			this->phase = WRITE_PHASE;
 		}
-
 		else if (task == "write")
-			this->handle_write();
+		{
+			if (this->write_status == false)
+				this->handle_write();
+			send_to_socket();
+		}
 
 	} catch (const std::exception &e) {
 		print_short_line("catch something");
@@ -66,12 +69,7 @@ void MainClient::start_handle(string task) {
 			return;
 
 		set_header_for_errors_and_redirection(e.what());
-		
-		send_to_socket();
-	}
-
-	if (task == "write") {
-		send_to_socket();
+		this->phase = WRITE_PHASE;
 	}
 }
 
@@ -303,11 +301,12 @@ void MainClient::handle_write() {
 	set_extention_map();
 	Response Response(this);
 	if (this->request_parser->get_request("Request-Type") == "GET") {
-
+		write_status = true;
 		serve_file = Response.Get();
 	}
 	else if (this->request_parser->get_request("Request-Type") == "POST"){
-		serve_file = Response.post();
+		write_status = true;
+		Response.post();
 	}
 	else if (this->request_parser->get_request("Request-Type") == "DELETE") {
 		// DELETE
@@ -357,7 +356,7 @@ void MainClient::set_header_for_errors_and_redirection(const char *what) {
 	this->status	 = convert_to_int(this->msg_status);
 	if (this->status >= 400)
 		check_files_error();
-	if (this->status < 400) // redirection
+	if (this->status < 400 && this->status > 300) // redirection
 	{
 		this->header = "HTTP/1.1 ";
 		this->header += this->msg_status;
@@ -459,8 +458,6 @@ void MainClient::set_content_type_map() {
 	this->content_type[".docs"] = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 	this->content_type["xls"] = "application/vnd.ms-excel";
 	this->content_type["xlsx"] = "application/vnd.ms-excel";
-	this->content_type[".py"] = "cgi";
-	this->content_type[".php"] = "cgi";
 }
 
 std::string	MainClient::get_content_type(std::string extention)
@@ -476,7 +473,6 @@ int	MainClient::check_for_root_directory()
 		if ((*itr)->get_location() == "/")
 		{
 			this->new_url = this->config_server_parser->get_config_location_parser()[location]->get_root() + this->request_parser->get_request("Request-URI");
-			std::cout << "new_url: " << new_url  << std::endl;
 			return(location);
 		}
 		location++;
@@ -493,18 +489,15 @@ void	MainClient::set_start_php(int start)
 void MainClient::send_to_socket() {
 
 	print_line("sending");
-
 	if (write_header == false)
 	{
 		print_short_line("send header");
-		std::cout << "this->header: " << this->header << std::endl;
 		send(client_socket, this->header.c_str(), header.size(), 0);
 		if (this->status == 301)
 			this->send_receive_status = true;
 		write_header = true;
 		return;
 	}
-
 	std::ifstream file(serve_file, std::ios::binary);
 
 	if(file_open == false)
@@ -519,16 +512,17 @@ void MainClient::send_to_socket() {
 			this->position = file.tellg();
 		}
 		file_open = true;
+		file.close();
 		return ;
 	}
-	print_short_line("start sending body");
+	print_short_line("sending body");
 	file.seekg(position);
-	print_short_line("moving the position");
 	if (!file.is_open())
 		throw Error::BadRequest400();
 	if (position == - 1)
 	{
 		file.close();
+		print_error("close the socket now");
 		this->send_receive_status = false;
 		return;
 	}
@@ -540,6 +534,18 @@ void MainClient::send_to_socket() {
 	if (send(client_socket, buff, file.gcount(), 0) < 0)
 		throw Error::BadRequest400();
 	file.close();
+	// while (!file.eof())
+	// {
+	// 	char buff[MAXLINE];
+
+	// 	file.read(buff, MAXLINE);
+
+	// 	send(client_socket, buff, file.gcount(), 0);
+
+	// }
+	// file.close();
+	// print_error("sala");
+	// this->send_receive_status = false;
 }
 
 void	MainClient::reset_body_file_name(std::string new_name)
@@ -574,7 +580,6 @@ void	MainClient::set_extention_map()
 	extention["application/vnd.ms-excel"] = ".xlsx";
 	extention["application/x-httpd-php"] = ".php";
 }
-
 
 std::string	MainClient::get_extention(std::string content)
 {

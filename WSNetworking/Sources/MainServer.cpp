@@ -245,7 +245,6 @@ void MainServer::destroy_client(int client_socket) {
 
 	this->clients.erase(client_socket);
 	this->socket_client.erase(client_socket);
-
 	close(client_socket);
 	cout << C_RED << "current socket closed: " << client_socket << C_RES << endl;
 }
@@ -279,9 +278,9 @@ void MainServer::routine() {
 					if (FD_ISSET(i, &this->read_sockets))
 						this->handle(i, "read");
 
-					// if the socket is ready for writing, call the handle_write function
 					else if (FD_ISSET(i, &this->write_sockets))
 						this->handle(i, "write");
+					// if the socket is ready for writing, call the handle_write function
 
 				} catch (const std::exception &e) {
 					this->clients[i]->set_send_receive_status(false);
