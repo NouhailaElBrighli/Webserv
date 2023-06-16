@@ -92,13 +92,10 @@ string HeaderBodyReader::generate_random_file_name() {
 
 	// Seed the random number generator
 	std::srand(static_cast<unsigned int>(std::time(0)));
-	if (Content_Type.empty())
-		ss << "./body_" << std::hex << now << "_" << std::rand() << ".txt";
-	else if (main_client->get_mime_type().find(Content_Type) != main_client->get_mime_type().end())
+	if (main_client->get_mime_type().find(Content_Type) != main_client->get_mime_type().end())
 		ss << "./body_" << std::hex << now << "_" << std::rand() << main_client->get_mime_type(Content_Type);
 	else
 		ss << "./body_" << std::hex << now << "_" << std::rand() << ".bin";
-
 	return ss.str();
 }
 

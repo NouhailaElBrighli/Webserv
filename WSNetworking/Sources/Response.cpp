@@ -310,12 +310,6 @@ void	Response::post()
 
 void	Response::set_extention_for_body_and_move_it()
 {
-
-	std::string filename;
-	// if (Client->get_request("Content-Type").size() == 0)
-	// 	this->extention = ".bin";
-	// else 
-	// 	this->extention = Client->get_extention(Client->get_request("Content-Type"));
 	std::string path = Client->get_body_file_name();
 
 	if (access(path.c_str(), F_OK) == 0) {

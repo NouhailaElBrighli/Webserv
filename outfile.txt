@@ -1,5 +1,4 @@
 X-Powered-By: PHP/8.0.2
-Set-Cookie: PHPSESSID=12a213e9e5c5eab38c33b4a677b8daf7; path=/
 Expires: Thu, 19 Nov 1981 08:52:00 GMT
 Cache-Control: no-store, no-cache, must-revalidate
 Pragma: no-cache
