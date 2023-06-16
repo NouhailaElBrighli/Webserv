@@ -1,13 +1,18 @@
 #ifndef WSNETWORKING_HPP
 #define WSNETWORKING_HPP
 
-// Clients Prototypes
-class MainClient;
+// CGI Prototype
 class Cgi;
+
+// Client Prototype
+class MainClient;
 
 // Exceptions Prototypes
 class Accurate;
 class Error;
+
+// HeaderBodyReader Prototype
+class HeaderBodyReader;
 
 // Parsers Prototypes
 class ConfigFileParser;
@@ -15,7 +20,7 @@ class ConfigLocationParser;
 class ConfigServerParser;
 class RequestParser;
 
-// Servers Prototypes
+// Server Prototype
 class MainServer;
 
 // Sockets Prototypes
@@ -29,12 +34,18 @@ class Response;
 // Include
 #include "Include.hpp"
 
+// CGI
+#include "Cgi.hpp"
+
 // Clients
 #include "MainClient.hpp"
 
 // Exceptions
 #include "Accurate.hpp"
 #include "Error.hpp"
+
+// HeaderBodyReader
+#include "HeaderBodyReader.hpp"
 
 // Parsers
 #include "ConfigFileParser.hpp"
@@ -51,9 +62,6 @@ class Response;
 #include "BindSocket.hpp"
 
 #include "ListenSocket.hpp"
-
-// CGI
-#include "Cgi.hpp"
 
 // response
 #include "Delete.hpp"

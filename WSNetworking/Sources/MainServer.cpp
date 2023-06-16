@@ -122,7 +122,7 @@ int MainServer::right_port(int client_socket) {
 
 	// Get the socket address structure for the client socket
 	if (getsockname(client_socket, (struct sockaddr *)&addr, &addr_len) == -1)
-		throw std::runtime_error(str_red("Error getting socket information"));
+		throw std::runtime_error(STR_RED("Error getting socket information"));
 
 	// Extract the port number
 	return (ntohs(addr.sin_port));
@@ -185,7 +185,7 @@ void MainServer::accepter(int fd_socket) {
 
 	this->accept_socket = accept(fd_socket, (t_sockaddr *)&address, &addrlen);
 	if (this->accept_socket == -1)
-		throw std::runtime_error(str_red("Error accept"));
+		throw std::runtime_error(STR_RED("Error accept"));
 
 	if (this->accept_socket > this->max_socket)
 		this->max_socket = this->accept_socket;
@@ -198,7 +198,7 @@ void MainServer::accepter(int fd_socket) {
 void MainServer::create_client(int client_socket) {
 	int i;
 
-	print_long_line("create client");
+	PRINT_LONG_LINE("create client");
 	if ((i = this->right_server(client_socket)) != -1) {
 		MainClient *mainClient
 			= new MainClient(client_socket, this->config_file_parser->get_config_server_parser(i));
@@ -213,7 +213,7 @@ void MainServer::create_client(int client_socket) {
 }
 
 void MainServer::handle(int client_socket, string task) {
-	print_long_line("handle " + task);
+	PRINT_LONG_LINE("handle " + task);
 
 	if (this->clients.find(client_socket) != this->clients.end())
 		this->clients[client_socket]->start(task);
@@ -225,18 +225,25 @@ void MainServer::handle(int client_socket, string task) {
 }
 
 void MainServer::destroy_client(int client_socket) {
-	print_long_line("destroy client");
+	string			  show;
+	std::stringstream sscs;
+
+	sscs << client_socket;
+	PRINT_LONG_LINE("destroy client");
+
 	// Check if the client is a master socket
-	cout << C_YELLOW << "current socket to be close: " << client_socket << C_RES << endl;
+	show = string(C_YELLOW) + "current socket to be close: " + sscs.str();
+	SHOW_INFO(show);
 	if (this->clients.find(client_socket) != this->clients.end()
 		&& this->clients[client_socket]->get_send_receive_status() == true) {
-		cout << C_RED << "current client '" << client_socket
-			 << "' can't be closed now, until the response is done." << C_RES << endl;
+		show = string(C_RED) + "current client '" + sscs.str()
+			   + "' can't be closed now, until the response is done.";
+		SHOW_INFO(show);
 		return;
 	}
 	if (this->socket_server.find(client_socket) != this->socket_server.end()) {
-		cout << C_GREEN << "current socket '" << client_socket
-			 << "' mustn't be close, because it's a master socket." << C_RES << endl;
+		show = string(C_RED) + "current socket '" + sscs.str()
+			   + "' mustn't be close, because it's a master socket.";
 		return;
 	}
 	// Destroy the client
@@ -245,22 +252,23 @@ void MainServer::destroy_client(int client_socket) {
 
 	this->clients.erase(client_socket);
 	this->socket_client.erase(client_socket);
-
 	close(client_socket);
-	cout << C_RED << "current socket closed: " << client_socket << C_RES << endl;
+	show = string(C_RED) + "current socket closed: " + sscs.str();
+	SHOW_INFO(show);
 }
 
 // Main routine
 void MainServer::routine() {
+	signal(SIGPIPE, SIG_IGN);
 	while (true) {
 
 		this->reset();
 
-		print_long_line("select wait for client");
+		PRINT_LONG_LINE("select wait for client");
 		// select() will block until there is activity on one of the sockets
 		if (select(this->max_socket + 1, &this->read_sockets, &this->write_sockets, NULL, NULL)
 			== -1)
-			throw std::runtime_error(str_red("Error select : ") + strerror(errno));
+			throw std::runtime_error(STR_RED("Error select : ") + strerror(errno));
 
 		// check if the listening socket is ready
 		for (int i = 3; i <= this->max_socket; i++) {
@@ -279,9 +287,9 @@ void MainServer::routine() {
 					if (FD_ISSET(i, &this->read_sockets))
 						this->handle(i, "read");
 
-					// if the socket is ready for writing, call the handle_write function
 					else if (FD_ISSET(i, &this->write_sockets))
 						this->handle(i, "write");
+					// if the socket is ready for writing, call the handle_write function
 
 				} catch (const std::exception &e) {
 					this->clients[i]->set_send_receive_status(false);

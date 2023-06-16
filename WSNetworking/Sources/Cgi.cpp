@@ -6,7 +6,7 @@
 /*   By: hsaidi <hsaidi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:38:43 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/06/16 15:24:39 by hsaidi           ###   ########.fr       */
+/*   Updated: 2023/06/16 18:07:19 by hsaidi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -117,7 +117,7 @@ void Cgi::set_cgi_env()
 	char *const *av2 = const_cast<char *const *>(av);
 
 	this->env = mapToCharConstArray(cgi_env);
-
+	
 	for (size_t i = 0; cgi_env.size() > i; i++)
 		cout <<"| "<< this->env[i] <<" |"<< endl;
 	cout << "-----------------------------------------------------------------------------------\n";
@@ -140,6 +140,7 @@ void Cgi::set_cgi_env()
 		cout << "++++"<< execve(av[0], av2, this->env) << endl;
 	}
 	waitpid(pid, NULL, 0);
+	PRINT_LONG_LINE("finish cgi");
 		// execve(av[0], av2, const_cast<char *const *>(&cgi_env[0]));
 }
 

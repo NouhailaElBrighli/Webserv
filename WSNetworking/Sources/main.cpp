@@ -3,7 +3,7 @@
 int main(int ac, char **av) {
 
 	if (ac == 2) {
-		cout << str_cyan("Run Config File Parser ...") << endl;
+		cout << STR_CYAN("Run Config File Parser ...") << endl;
 
 		ConfigFileParser *config_file_parser = new ConfigFileParser(av[1]);
 
@@ -11,21 +11,21 @@ int main(int ac, char **av) {
 			config_file_parser->parse();
 			// config_file_parser->print_parsed_config_file();
 
-			cout << str_green("Config File Parsed Successfully") << endl;
+			cout << STR_GREEN("Config File Parsed Successfully") << endl;
 		} catch (const std::exception &e) {
 			delete config_file_parser;
 			cerr << e.what() << endl;
 			return EXIT_FAILURE;
 		}
 
-		cout << str_cyan("Run Main Server ...") << endl;
+		cout << STR_CYAN("Run Main Server ...") << endl;
 
 		MainServer main_server(config_file_parser, 10);
 
 		try {
 
 			main_server.launch();
-			cout << str_green("Main Server Terminate Successfully") << endl;
+			cout << STR_GREEN("Main Server Terminate Successfully") << endl;
 		} catch (const std::exception &e) {
 			delete config_file_parser;
 			cerr << e.what() << endl;

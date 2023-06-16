@@ -42,15 +42,22 @@ SRCS		+= \
 	$(MAIN_DIR)/Sources/BindSocket.cpp				\
 	$(MAIN_DIR)/Sources/ListenSocket.cpp
 
-# ***************CGI**************** #
+# *****************CGI****************** #
 
 SRCS		+= \
 	$(MAIN_DIR)/Sources/Cgi.cpp					\
 	$(MAIN_DIR)/Sources/Delete.cpp
 
+# ***********HEADERBODYREADER*********** #
+
+SRCS		+= \
+	$(MAIN_DIR)/Sources/HeaderBodyReader.cpp
+
 # ***************RESPONSE*************** #
+
 SRCS		+= \
 	$(MAIN_DIR)/Sources/Response.cpp
+
 
 # *************************************************************************** # 
 #                                   FOLDERS                                   #
@@ -59,6 +66,7 @@ SRCS		+= \
 DEP_DIR = dependencies
 EXE_DIR	= executable
 OBJ_DIR	= objects
+
 DIRS	= $(DEP_DIR) $(EXE_DIR) $(OBJ_DIR)
 MKDIR	= mkdir -p $(DIRS)
 
@@ -67,7 +75,7 @@ MKDIR	= mkdir -p $(DIRS)
 # *************************************************************************** #
 
 CPP			= c++
-CPPFLAGS	= # -Wall -Wextra -Werror
+CPPFLAGS	= -Wall -Wextra -Werror
 CPPFLAGS	+= -std=c++98
 CPPFLAGS	+= -fsanitize=address -g3
 
@@ -147,20 +155,18 @@ fclean : clean
 
 re : fclean all
 
-tmp_clean :
-	$(RM) ./tmp/*
-
-run : all tmp_clean
+run : all
 	$(M_RUN_S)
+	$(RM) ./fol1/*
 	./$(NAME) default_anajmi.conf
 	$(M_RGS_E)
 
-go : all tmp_clean
+go : all
 	$(M_GO_S)
 	./$(NAME) default_hsaidi.conf
 	$(M_RGS_E)
 
-start : all tmp_clean
+start : all
 	$(M_START_S)
 	./$(NAME) default_nel-brig.conf
 	$(M_RGS_E)

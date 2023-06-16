@@ -9,7 +9,7 @@ BindSocket::BindSocket(const char *host, const char *port) : Socket(host, port) 
 	if (this->bind_sock == -1) {
 		close(this->socket_listen);
 		throw std::runtime_error(
-			str_red("Error: Bind socket failed on " + this->host + ":" + this->port));
+			STR_RED("Error: Bind socket failed on " + this->host + ":" + this->port));
 	}
 }
 
