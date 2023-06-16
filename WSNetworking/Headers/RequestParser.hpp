@@ -20,7 +20,7 @@ class RequestParser {
 	const string			  &get_request(string key);
 
 	// Setters
-	void set_head(string &head);
+	void set_head(const string &head);
 	void set_request_uri(string &str);
 
 	// Constructors and destructor
@@ -28,7 +28,7 @@ class RequestParser {
 	~RequestParser();
 
 	// Methods
-	void run_parse(string &head);
+	void run_parse(const string &head);
 
   private:
 	// Methods

@@ -6,7 +6,7 @@
 /*   By: nel-brig <nel-brig@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:38:43 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/06/16 11:36:53 by nel-brig         ###   ########.fr       */
+/*   Updated: 2023/06/16 15:51:47 by nel-brig         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -120,7 +120,7 @@ void Cgi::check_extention()
 	// 		else if (getFileType(this->filename) == 2)
 	// 		{
 	// 			this->script = (*it)->get_cgi_ext_path(".php");
-	// 			print_error(this->script);
+	// 			PRINT_ERROR(this->script);
 	// 		}
 	// 		else
 	// 			throw Error::NotImplemented501();
@@ -175,6 +175,7 @@ void Cgi::set_cgi_env()
 	}
 	else if (pid == 0)
 	{
+		dup2(output_file, 2);
 		dup2(output_file, 1);
 		close(output_file);
 		dup2(input_file, 0);
@@ -182,7 +183,7 @@ void Cgi::set_cgi_env()
 		execve(av[0], av2, this->env);
 	}
 	waitpid(pid, NULL, 0);
-	print_long_line("finish cgi");
+	PRINT_LONG_LINE("finish cgi");
 		// execve(av[0], av2, const_cast<char *const *>(&cgi_env[0]));
 }
 
