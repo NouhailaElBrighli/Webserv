@@ -28,9 +28,7 @@ ListenSocket MainServer::get_listen_socket(int index) const { return listen_sock
 
 vector<ListenSocket> MainServer::get_listen_socket() const { return listen_socket; }
 
-string MainServer::get_request(int client_socket, string key) {
-	return this->clients[client_socket]->get_request(key);
-}
+string MainServer::get_request(int client_socket, string key) { return this->clients[client_socket]->get_request(key); }
 
 // Constructors and destructor
 MainServer::MainServer(ConfigFileParser *config_file_parser, int backlog)
@@ -96,9 +94,9 @@ void MainServer::run_sockets() {
 	size_t j = 0;
 	for (size_t i = 0; i < config_file_parser->get_config_server_parser().size(); i++) {
 		try {
-			listen_socket.push_back(ListenSocket(
-				config_file_parser->get_config_server_parser(i)->get_host().c_str(),
-				config_file_parser->get_config_server_parser(i)->get_port_str().c_str(), backlog));
+			listen_socket.push_back(
+				ListenSocket(config_file_parser->get_config_server_parser(i)->get_host().c_str(),
+							 config_file_parser->get_config_server_parser(i)->get_port_str().c_str(), backlog));
 			this->port_socket[config_file_parser->get_config_server_parser(i)->get_port()]
 				= listen_socket[j].get_socket_listen();
 			j++;
@@ -149,8 +147,7 @@ void MainServer::init_server_sockets() {
 	FD_ZERO(&this->write_sockets);
 	std::memset(&this->write_sockets, 0, sizeof(this->write_sockets));
 
-	for (map<int, int>::iterator it = this->socket_server.begin(); it != this->socket_server.end();
-		 it++)
+	for (map<int, int>::iterator it = this->socket_server.begin(); it != this->socket_server.end(); it++)
 		FD_SET((*it).second, &this->read_sockets);
 
 	// max element of the socket map
@@ -165,12 +162,10 @@ void MainServer::reset() {
 	FD_ZERO(&this->write_sockets);
 	std::memset(&this->write_sockets, 0, sizeof(this->write_sockets));
 
-	for (map<int, int>::iterator it = this->socket_server.begin(); it != this->socket_server.end();
-		 it++)
+	for (map<int, int>::iterator it = this->socket_server.begin(); it != this->socket_server.end(); it++)
 		FD_SET((*it).second, &this->read_sockets);
 
-	for (map<int, int>::iterator it = this->socket_client.begin(); it != this->socket_client.end();
-		 it++) {
+	for (map<int, int>::iterator it = this->socket_client.begin(); it != this->socket_client.end(); it++) {
 		if (this->clients[(*it).second]->get_phase() == READ_PHASE)
 			FD_SET((*it).second, &this->read_sockets);
 		else if (this->clients[(*it).second]->get_phase() == WRITE_PHASE)
@@ -200,13 +195,11 @@ void MainServer::create_client(int client_socket) {
 
 	PRINT_LONG_LINE("create client");
 	if ((i = this->right_server(client_socket)) != -1) {
-		MainClient *mainClient
-			= new MainClient(client_socket, this->config_file_parser->get_config_server_parser(i));
+		MainClient *mainClient = new MainClient(client_socket, this->config_file_parser->get_config_server_parser(i));
 		this->clients[client_socket] = mainClient;
 		return;
 	} else if (i == -1) {
-		MainClient *mainClient
-			= new MainClient(client_socket, this->config_file_parser->get_config_server_parser(0));
+		MainClient *mainClient = new MainClient(client_socket, this->config_file_parser->get_config_server_parser(0));
 		this->clients[client_socket] = mainClient;
 		return;
 	}
@@ -236,14 +229,12 @@ void MainServer::destroy_client(int client_socket) {
 	SHOW_INFO(show);
 	if (this->clients.find(client_socket) != this->clients.end()
 		&& this->clients[client_socket]->get_send_receive_status() == true) {
-		show = string(C_RED) + "current client '" + sscs.str()
-			   + "' can't be closed now, until the response is done.";
+		show = string(C_RED) + "current client '" + sscs.str() + "' can't be closed now, until the response is done.";
 		SHOW_INFO(show);
 		return;
 	}
 	if (this->socket_server.find(client_socket) != this->socket_server.end()) {
-		show = string(C_RED) + "current socket '" + sscs.str()
-			   + "' mustn't be close, because it's a master socket.";
+		show = string(C_RED) + "current socket '" + sscs.str() + "' mustn't be close, because it's a master socket.";
 		return;
 	}
 	// Destroy the client
@@ -266,8 +257,7 @@ void MainServer::routine() {
 
 		PRINT_LONG_LINE("select wait for client");
 		// select() will block until there is activity on one of the sockets
-		if (select(this->max_socket + 1, &this->read_sockets, &this->write_sockets, NULL, NULL)
-			== -1)
+		if (select(this->max_socket + 1, &this->read_sockets, &this->write_sockets, NULL, NULL) == -1)
 			throw std::runtime_error(STR_RED("Error select : ") + strerror(errno));
 
 		// check if the listening socket is ready

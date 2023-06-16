@@ -38,7 +38,6 @@ const string &ConfigLocationParser::get_return() const {
 	return this->return_;
 }
 
-
 const string &ConfigLocationParser::get_upload() const {
 	if (this->upload_status == false) {
 		// upload an empty string if upload is not set
@@ -85,8 +84,7 @@ const string &ConfigLocationParser::get_cgi_ext_path(string key) const {
 }
 
 // Constructors and copy constructor and copy assignment operator and destructor
-ConfigLocationParser::ConfigLocationParser(string config_location)
-	: config_location(config_location) {
+ConfigLocationParser::ConfigLocationParser(string config_location) : config_location(config_location) {
 	this->location_status	  = false;
 	this->root_status		  = false;
 	this->autoindex_status	  = false;
@@ -107,21 +105,19 @@ bool ConfigLocationParser::check_file(string name, string input, string file_pat
 
 	if (stat(file_path.c_str(), &file_info) != 0)
 		// Failed to stat file
-		throw std::runtime_error(
-			STR_RED(name + " Error : " + input + " => '" + file_path + "' does not exist"));
+		throw std::runtime_error(STR_RED(name + " Error : " + input + " => '" + file_path + "' does not exist"));
 
 	if (S_ISDIR(file_info.st_mode))
 		// File is a directory
-		throw std::runtime_error(
-			STR_RED(name + " Error : " + input + " => '" + file_path + "' is a directory"));
+		throw std::runtime_error(STR_RED(name + " Error : " + input + " => '" + file_path + "' is a directory"));
 
 	if (S_ISREG(file_info.st_mode))
 		// File is a regular file
 		return true;
 
 	// File is not a directory or a regular file
-	throw std::runtime_error(STR_RED(name + " Error : " + input + " => '" + file_path
-									 + "' is not a directory or a regular file"));
+	throw std::runtime_error(
+		STR_RED(name + " Error : " + input + " => '" + file_path + "' is not a directory or a regular file"));
 	return false;
 }
 
@@ -199,8 +195,8 @@ void ConfigLocationParser::set_autoindex(string autoindex, size_t pos) {
 
 void ConfigLocationParser::set_root(string root, size_t pos) {
 	root = root.substr(0, root.size() - 1);
-	if (this->root_status == true || root.empty() || this->config_location[pos - 1] != ';'
-		|| root[0] != '/' || (root.length() > 2 && !std::isalnum(this->config_location[pos - 2])))
+	if (this->root_status == true || root.empty() || this->config_location[pos - 1] != ';' || root[0] != '/'
+		|| (root.length() > 2 && !std::isalnum(this->config_location[pos - 2])))
 		throw std::runtime_error(STR_RED("root Error : " + root));
 
 	struct stat dir_info;
@@ -221,8 +217,7 @@ void ConfigLocationParser::set_root(string root, size_t pos) {
 	}
 
 	// File is not a directory or a regular file
-	throw std::runtime_error(
-		STR_RED("root Error => '" + root + "' is not a directory or a regular file"));
+	throw std::runtime_error(STR_RED("root Error => '" + root + "' is not a directory or a regular file"));
 }
 
 void ConfigLocationParser::set_index(string index, size_t pos) {
@@ -299,8 +294,7 @@ void ConfigLocationParser::set_cgi_ext_path(string cgi_ext_path, size_t pos) {
 	}
 	cgi_ext_path.erase(0, cgi_ext_path.find(" ") + 1);
 
-	if (cgi_ext_path.find(" ") != string::npos
-		&& cgi_ext_path[cgi_ext_path.find(" ") + 1] != '\0') {
+	if (cgi_ext_path.find(" ") != string::npos && cgi_ext_path[cgi_ext_path.find(" ") + 1] != '\0') {
 		throw std::runtime_error(STR_RED("Error CGI Ext Path : " + cgi_ext_path_input));
 	}
 
