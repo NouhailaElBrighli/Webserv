@@ -18,6 +18,18 @@ void RequestParser::set_head(const string &head) { this->head = head; }
 
 void RequestParser::set_request_uri(string &str) { this->request["Request-URI"] = str; }
 
+// Set query string
+void RequestParser::set_query_string() {
+	string query_string;
+	size_t pos;
+
+	if ((pos = this->request["Request-URI"].find("?")) != string::npos) {
+		query_string = this->request["Request-URI"].substr(pos + 1);
+		this->request["Request-URI"].erase(pos);
+		this->request["Query-String"] = query_string;
+	}
+}
+
 // Constructors and destructor
 RequestParser::RequestParser() : parse_status(false) {}
 
@@ -42,6 +54,7 @@ void RequestParser::parse_head() {
 	this->is_first_line_valid();
 	this->parse_rest_lines();
 	this->last_check();
+	this->set_query_string();
 }
 
 void RequestParser::is_head_valid() {
@@ -124,13 +137,10 @@ void RequestParser::parse_rest_lines() {
 }
 
 void RequestParser::last_check() {
-	if (this->get_request("Transfer-Encoding").size() != 0
-		&& this->get_request("Transfer-Encoding") != "chunked")
+	if (this->get_request("Transfer-Encoding").size() != 0 && this->get_request("Transfer-Encoding") != "chunked")
 		throw Error::NotImplemented501();  // transfer encoding exist and different to chunked
-	if (((this->get_request("Content-Length").size() == 0
-		  && this->get_request("Transfer-Encoding").size() == 0)
-		 || (this->get_request("Content-Length").size() != 0
-			 && this->get_request("Transfer-Encoding").size() != 0))
+	if (((this->get_request("Content-Length").size() == 0 && this->get_request("Transfer-Encoding").size() == 0)
+		 || (this->get_request("Content-Length").size() != 0 && this->get_request("Transfer-Encoding").size() != 0))
 		&& this->get_request("Request-Type") == "POST")
 		throw Error::BadRequest400();  // post without content-length or transfer encoding
 }

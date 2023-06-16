@@ -22,6 +22,7 @@ class RequestParser {
 	// Setters
 	void set_head(const string &head);
 	void set_request_uri(string &str);
+	void set_query_string();
 
 	// Constructors and destructor
 	RequestParser();
