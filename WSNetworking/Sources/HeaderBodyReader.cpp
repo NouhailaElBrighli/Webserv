@@ -76,12 +76,9 @@ void HeaderBodyReader::set_new_body_file_name() {
 		return;
 	size_t size = pos2 - pos1 - len;
 
-	this->body_file_name = "./" + this->head_body.substr(pos1 + len, size);
-	if (access(this->body_file_name.c_str(), F_OK) == 0) {
-		std::stringstream ss;
-		ss << "_" << std::hex << std::rand();
-		this->body_file_name.insert(this->body_file_name.find_last_of('.'), ss.str());
-	}
+	std::stringstream ss;
+	ss << "_" << std::hex << std::rand();
+	this->body_file_name = "./body_" + this->head_body.substr(pos1 + len, size) + ss.str();
 	SHOW_INFO("new body file name : " + this->body_file_name);
 }
 
@@ -92,9 +89,7 @@ string HeaderBodyReader::generate_random_file_name() {
 
 	// Seed the random number generator
 	std::srand(static_cast<unsigned int>(std::time(0)));
-	if (Content_Type.empty())
-		ss << "./body_" << std::hex << now << "_" << std::rand() << ".txt";
-	else if (main_client->get_mime_type().find(Content_Type) != main_client->get_mime_type().end())
+	if (main_client->get_mime_type().find(Content_Type) != main_client->get_mime_type().end())
 		ss << "./body_" << std::hex << now << "_" << std::rand() << main_client->get_mime_type(Content_Type);
 	else
 		ss << "./body_" << std::hex << now << "_" << std::rand() << ".bin";

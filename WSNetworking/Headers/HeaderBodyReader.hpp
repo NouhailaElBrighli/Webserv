@@ -28,7 +28,7 @@ class HeaderBodyReader {
 	const string &get_body_file_name() const;
 
 	// Setters
-	void set_body_file_name(const string & new_name);
+	void set_body_file_name(const string &new_name);
 
 	// Constructors and destructor
 	HeaderBodyReader(MainClient *main_client);
