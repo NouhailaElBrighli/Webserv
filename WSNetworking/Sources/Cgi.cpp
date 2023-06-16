@@ -6,7 +6,7 @@
 /*   By: hsaidi <hsaidi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:38:43 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/06/16 18:07:19 by hsaidi           ###   ########.fr       */
+/*   Updated: 2023/06/16 18:39:44 by hsaidi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,11 +83,18 @@ void Cgi::check_extention()
 }
 void Cgi::query_string()
 {
-	cout<<"*****in query_string***\n";
-	std::string store_url = this->main_client->get_new_url();
-	cout << "store_url: " << store_url << std::endl;
-	std::string query_string = store_url.substr(store_url.find("?") + 1);
-	cout << "query_string: " << query_string << std::endl;
+	std::string token;
+	
+	std::string delimiter = "&";
+	std::string queryString = this->main_client->get_request("Query-String");
+	cout << "-----------------------------------------------------------------------------------\n";
+	cout << "query string : " << queryString << endl;
+
+	for(size_t pos = 0;(pos = queryString.find(delimiter)) != std::string::npos) 
+    	token = queryString.substr(0, pos);
+	cout <<"token : " << token << endl;
+	cout << "-----------------------------------------------------------------------------------\n";
+
 }
 
 void Cgi::set_cgi_env()
@@ -137,7 +144,7 @@ void Cgi::set_cgi_env()
 		close(output_file);
 		dup2(input_file, 0);
 		close(input_file);
-		cout << "++++"<< execve(av[0], av2, this->env) << endl;
+		execve(av[0], av2, this->env);
 	}
 	waitpid(pid, NULL, 0);
 	PRINT_LONG_LINE("finish cgi");
