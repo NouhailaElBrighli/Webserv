@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Cgi.hpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nel-brig <nel-brig@student.42.fr>          +#+  +:+       +#+        */
+/*   By: hsaidi <hsaidi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:33:49 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/06/12 11:31:19 by nel-brig         ###   ########.fr       */
+/*   Updated: 2023/06/16 15:24:16 by hsaidi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,17 +26,18 @@ class Cgi
     public:
         Cgi(MainClient *main_client, vector<ConfigLocationParser *>config_location_parser, std::string filename);
         ~Cgi();
-        std::string filename;
-        std::string script;
-        int output_file;
-        int input_file;
-        void check_extention();
-        void set_cgi_env();
-        char *const *env;
-        void readFileContents() ;
-        int getFileType(const std::string& filename);
-        char* const* mapToCharConstArray(const std::map<std::string, std::string>& envMap);
-		std::string get_outfile();
+        std::string     filename;
+        std::string     script;
+        int             output_file;
+        int             input_file;
+        void            check_extention();
+        void            set_cgi_env();
+        char            *const *env;
+        void            readFileContents();
+        void            query_string();
+        int             getFileType(const std::string& filename);
+        char* const*    mapToCharConstArray(const std::map<std::string, std::string>& envMap);
+		std::string     get_outfile();
 }; 
 
 #endif // CGI_HPP

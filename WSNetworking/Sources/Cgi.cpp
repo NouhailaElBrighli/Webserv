@@ -6,7 +6,7 @@
 /*   By: hsaidi <hsaidi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:38:43 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/06/15 11:58:15 by hsaidi           ###   ########.fr       */
+/*   Updated: 2023/06/16 15:24:39 by hsaidi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,9 +81,18 @@ void Cgi::check_extention()
 	}
 	readFileContents();
 }
+void Cgi::query_string()
+{
+	cout<<"*****in query_string***\n";
+	std::string store_url = this->main_client->get_new_url();
+	cout << "store_url: " << store_url << std::endl;
+	std::string query_string = store_url.substr(store_url.find("?") + 1);
+	cout << "query_string: " << query_string << std::endl;
+}
 
 void Cgi::set_cgi_env()
 {
+	query_string();
 	cgi_env["REQUEST_METHOD="] = this->main_client->get_request("Request-Type");
 	cgi_env["PATH_INFO="] = this->main_client->get_new_url();
 	cgi_env["QUERY_STRING="] = this->main_client->get_request("Query-String");
@@ -122,12 +131,13 @@ void Cgi::set_cgi_env()
 		return ;
 	}
 	else if (pid == 0)
-	{
+	{ 
+		dup2(output_file, 2);
 		dup2(output_file, 1);
 		close(output_file);
 		dup2(input_file, 0);
 		close(input_file);
-		execve(av[0], av2, this->env);
+		cout << "++++"<< execve(av[0], av2, this->env) << endl;
 	}
 	waitpid(pid, NULL, 0);
 		// execve(av[0], av2, const_cast<char *const *>(&cgi_env[0]));
