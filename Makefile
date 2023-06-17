@@ -156,7 +156,7 @@ re : fclean all
 
 run : all
 	$(M_RUN_S)
-	$(RM) ./fol1/*
+	$(RM) ./fol1/body_*
 	./$(NAME) default_anajmi.conf
 	$(M_RGS_E)
 

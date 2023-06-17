@@ -8,9 +8,7 @@ const bool &MainClient::get_send_receive_status() const { return send_receive_st
 
 const int &MainClient::get_phase() const { return phase; }
 
-const string &MainClient::get_body_file_name() const {
-	return header_body_reader->get_body_file_name();
-}
+const string &MainClient::get_body_file_name() const { return header_body_reader->get_body_file_name(); }
 
 const int &MainClient::get_client_socket() const { return (client_socket); }
 
@@ -23,24 +21,20 @@ const map<string, string> &MainClient::get_mime_type() const { return (this->ext
 const string &MainClient::get_mime_type(const string &type) const { return (this->extention.at(type)); }
 
 // Setters
-void MainClient::set_send_receive_status(bool send_receive_status) {
-	this->send_receive_status = send_receive_status;
-}
+void MainClient::set_send_receive_status(bool send_receive_status) { this->send_receive_status = send_receive_status; }
 
 void MainClient::set_location(int location) { this->location = location; }
 
 void MainClient::set_header(std::string header) { this->header = header; }
 
-void MainClient::reset_body_file_name(std::string new_name) {
-	this->header_body_reader->set_body_file_name(new_name);
-}
+void MainClient::reset_body_file_name(std::string new_name) { this->header_body_reader->set_body_file_name(new_name); }
 
 // Constructors and destructor
 MainClient::MainClient(int client_socket, ConfigServerParser *config_server_parser)
-	: config_server_parser(config_server_parser), request_parser(new RequestParser()),
-	  send_receive_status(true), msg_status(Accurate::OK200().what()), client_socket(client_socket),
-	  status(200), phase(READ_PHASE), php_status(0), write_header(false), write_body(false),
-	  write_status(false), file_open(false), header_body_reader(new HeaderBodyReader(this)){
+	: config_server_parser(config_server_parser), request_parser(new RequestParser()), send_receive_status(true),
+	  msg_status(Accurate::OK200().what()), client_socket(client_socket), status(200), phase(READ_PHASE), php_status(0),
+	  write_header(false), write_body(false), write_status(false), file_open(false),
+	  header_body_reader(new HeaderBodyReader(this)) {
 
 	set_content_type_map();
 	set_extention_map();
@@ -64,9 +58,7 @@ void MainClient::start_handle(string task) {
 		if (task == "read") {
 			this->handle_read();
 			this->phase = WRITE_PHASE;
-		}
-		else if (task == "write")
-		{
+		} else if (task == "write") {
 			if (this->write_status == false && this->status != 301)
 				this->handle_write();
 			send_to_socket();
@@ -118,20 +110,17 @@ void MainClient::handle_write() {
 	Response Response(this);
 	if (this->get_request("Request-Type") == "GET") {
 		write_status = true;
-		serve_file = Response.Get();
-	}
-	else if (this->get_request("Request-Type") == "POST"){
+		serve_file	 = Response.Get();
+	} else if (this->get_request("Request-Type") == "POST") {
 		write_status = true;
 		Response.post();
-	}
-	else if (this->get_request("Request-Type") == "DELETE") {
+	} else if (this->get_request("Request-Type") == "DELETE") {
 		// DELETE
 	}
 }
 
 void MainClient::is_method_allowed_in_location() {
-	for (vector<ConfigLocationParser *>::const_iterator it
-		 = config_server_parser->get_config_location_parser().begin();
+	for (vector<ConfigLocationParser *>::const_iterator it = config_server_parser->get_config_location_parser().begin();
 		 it != config_server_parser->get_config_location_parser().end(); it++) {
 		if (this->get_request("Request-URI").find((*it)->get_location()) != string::npos
 			|| this->get_request("Request-URI").find((*it)->get_root()) != string::npos) {
@@ -155,10 +144,9 @@ int MainClient::match_location() {
 			 = config_server_parser->get_config_location_parser().begin();
 			 itr != config_server_parser->get_config_location_parser().end(); itr++) {
 			if ((*itr)->get_location() == str) {
-				str			  = this->get_request("Request-URI");
-				this->new_url = this->get_request("Request-URI");
-				std::string root
-					= this->config_server_parser->get_config_location_parser()[locate]->get_root();
+				str				 = this->get_request("Request-URI");
+				this->new_url	 = this->get_request("Request-URI");
+				std::string root = this->config_server_parser->get_config_location_parser()[locate]->get_root();
 				this->new_url.erase(0, (*itr)->get_location().size());
 				std::cout << "erase location :" << this->new_url << std::endl;
 				this->new_url
@@ -179,7 +167,7 @@ void MainClient::set_header_for_errors_and_redirection(const char *what) {
 	this->status	 = convert_to_int(this->msg_status);
 	if (this->status >= 400)
 		check_files_error();
-	if (this->status < 400 && this->status > 300) // redirection
+	if (this->status < 400 && this->status > 300)  // redirection
 	{
 		this->header = "HTTP/1.1 ";
 		this->header += this->msg_status;
@@ -249,7 +237,7 @@ int MainClient::convert_to_int(const std::string &str) {
 
 void MainClient::set_content_type_map() {
 	this->content_type[".txt"]	= "text/plain";
-	this->content_type[".text"]	= "text/plain";
+	this->content_type[".text"] = "text/plain";
 	this->content_type[".csv"]	= "text/plain";
 	this->content_type[".html"] = "text/html";
 	this->content_type[".htm"]	= "text/plain";
@@ -258,59 +246,54 @@ void MainClient::set_content_type_map() {
 	this->content_type[".jpg"]	= "image/jpeg";
 	this->content_type[".png"]	= "image/png";
 	this->content_type[".gif"]	= "image/gif";
-	this->content_type[".bmp"] = "image/bmp";
-	this->content_type[".svg"] = "image/svg+xml";
+	this->content_type[".bmp"]	= "image/bmp";
+	this->content_type[".svg"]	= "image/svg+xml";
 	this->content_type[".ico"]	= "image/icon";
 	this->content_type[".svg"]	= "image/svg+xml";
 	this->content_type[".mp3"]	= "audio/mpeg";
 	this->content_type[".wav"]	= "audio/wav";
 	this->content_type[".mp4"]	= "video/mp4";
-	this->content_type[".webm"]	= "video/webm";
+	this->content_type[".webm"] = "video/webm";
 	this->content_type[".mov"]	= "video/quicktime";
 	this->content_type[".js"]	= "application/javascript";
 	this->content_type[".js"]	= "application/json";
 	this->content_type[".xml"]	= "application/xml";
 	this->content_type[".pdf"]	= "application/pdf";
-	this->content_type[".zip"] = "application/zip";
-	this->content_type[".gz"] = "application/gzip";
-	this->content_type[".xls"] = "application/vnd.ms-excel";
-	this->content_type[".doc"] = "application/msword";
+	this->content_type[".zip"]	= "application/zip";
+	this->content_type[".gz"]	= "application/gzip";
+	this->content_type[".xls"]	= "application/vnd.ms-excel";
+	this->content_type[".doc"]	= "application/msword";
 	this->content_type[".docs"] = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-	this->content_type["xls"] = "application/vnd.ms-excel";
-	this->content_type["xlsx"] = "application/vnd.ms-excel";
+	this->content_type["xls"]	= "application/vnd.ms-excel";
+	this->content_type["xlsx"]	= "application/vnd.ms-excel";
 }
 
-std::string	MainClient::get_content_type(std::string extention)
-{
-	return(this->content_type[extention]);
-}
+std::string MainClient::get_content_type(std::string extention) { return (this->content_type[extention]); }
 
-int	MainClient::check_for_root_directory()
-{
+int MainClient::check_for_root_directory() {
 	int location = 0;
-	for (vector<ConfigLocationParser *>::const_iterator itr = config_server_parser->get_config_location_parser().begin(); itr != config_server_parser->get_config_location_parser().end(); itr++)
-	{
-		if ((*itr)->get_location() == "/")
-		{
-			this->new_url = this->config_server_parser->get_config_location_parser()[location]->get_root() + this->get_request("Request-URI");
-			return(location);
+	for (vector<ConfigLocationParser *>::const_iterator itr
+		 = config_server_parser->get_config_location_parser().begin();
+		 itr != config_server_parser->get_config_location_parser().end(); itr++) {
+		if ((*itr)->get_location() == "/") {
+			this->new_url = this->config_server_parser->get_config_location_parser()[location]->get_root()
+							+ this->get_request("Request-URI");
+			return (location);
 		}
 		location++;
 	}
 	throw Error::NotFound404();
 }
 
-void	MainClient::set_start_php(int start)
-{
+void MainClient::set_start_php(int start) {
 	this->php_status = 1;
-	this->start_php = start;
+	this->start_php	 = start;
 }
 
 void MainClient::send_to_socket() {
 
 	PRINT_LINE("sending");
-	if (write_header == false)
-	{
+	if (write_header == false) {
 		std::cout << "this->header :" << this->header << std::endl;
 		PRINT_SHORT_LINE("send header");
 		send(client_socket, this->header.c_str(), header.size(), 0);
@@ -326,34 +309,38 @@ void MainClient::send_to_socket() {
 	}
 	std::ifstream file(serve_file, std::ios::binary);
 
-	if(file_open == false)
-	{
+	if (file_open == false) {
 		PRINT_SHORT_LINE("open the file");
 		if (!file.is_open())
 			throw Error::Forbidden403();
-		if (this->php_status)
-		{
+		if (this->php_status) {
 			char buff[start_php];
 			file.read(buff, start_php);
 			this->position = file.tellg();
 		}
 		file_open = true;
 		file.close();
-		return ;
+		return;
 	}
 	PRINT_SHORT_LINE("sending body");
 	file.seekg(position);
 	if (!file.is_open())
 		throw Error::BadRequest400();
-	if (position == - 1)
-	{
+	if (position == -1) {
+		file.close();
+		std::cout << "connection : " << this->get_request("Connection") << std::endl;
+		// if (this->get_request("Connection") == "keep-alive")
+		// {
+		// 	PRINT_ERROR("don't close");	//!you should remove the data
+		// 	return;
+		// }
 		PRINT_ERROR("close the socket now");
 		file.close();
 		this->send_receive_status = false;
 		return;
 	}
 	char buff[MAXLINE];
-	
+
 	file.read(buff, MAXLINE);
 
 	this->position = file.tellg();
@@ -374,32 +361,31 @@ void MainClient::send_to_socket() {
 	// this->send_receive_status = false;
 }
 
-void	MainClient::set_extention_map()
-{
-	this->extention["text/plain"] = ".txt";
-	this->extention["text/html"] = ".html";
-	this->extention["text/css"] = ".css";
-	this->extention["image/jpeg"] = ".jpeg";
-	this->extention["image/png"] = ".png";
-	this->extention["image/bmp"] = ".bmp";
-	this->extention["text/png"] = ".png";
-	this->extention["image/svg+xml"] = ".svg";
-	this->extention["image/icon"] = ".icon";
-	this->extention["audio/mpeg"] = ".mp3";
-	this->extention["audio/wav"] = ".wav";
-	this->extention["video/mp4"] = ".mp4";
-	this->extention["video/webm"] = ".webm";
-	this->extention["video/quicktime"] = ".mov";
-	this->extention["application/json"] = ".js";
-	this->extention["application/xml"] = ".xml";
-	this->extention["application/pdf"] = ".pdf";
-	this->extention["application/zip"] = ".zip";
-	this->extention["application/gzip"] = ".gz";
-	this->extention["application/msword"] = ".doc";
+void MainClient::set_extention_map() {
+	this->extention["text/plain"]															   = ".txt";
+	this->extention["text/html"]															   = ".html";
+	this->extention["text/css"]																   = ".css";
+	this->extention["image/jpeg"]															   = ".jpeg";
+	this->extention["image/png"]															   = ".png";
+	this->extention["image/bmp"]															   = ".bmp";
+	this->extention["text/png"]																   = ".png";
+	this->extention["image/svg+xml"]														   = ".svg";
+	this->extention["image/icon"]															   = ".icon";
+	this->extention["audio/mpeg"]															   = ".mp3";
+	this->extention["audio/wav"]															   = ".wav";
+	this->extention["video/mp4"]															   = ".mp4";
+	this->extention["video/webm"]															   = ".webm";
+	this->extention["video/quicktime"]														   = ".mov";
+	this->extention["application/json"]														   = ".js";
+	this->extention["application/xml"]														   = ".xml";
+	this->extention["application/pdf"]														   = ".pdf";
+	this->extention["application/zip"]														   = ".zip";
+	this->extention["application/gzip"]														   = ".gz";
+	this->extention["application/msword"]													   = ".doc";
 	this->extention["application/vnd.openxmlformats-officedocument.wordprocessingml.document"] = ".docx";
-	this->extention["application/vnd.ms-excel"] = ".xls";
-	this->extention["application/vnd.ms-excel"] = ".xlsx";
-	this->extention["application/x-httpd-php"] = ".php";
+	this->extention["application/vnd.ms-excel"]												   = ".xls";
+	this->extention["application/vnd.ms-excel"]												   = ".xlsx";
+	this->extention["application/x-httpd-php"]												   = ".php";
 }
 
 
