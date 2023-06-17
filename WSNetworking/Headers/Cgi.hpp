@@ -6,7 +6,7 @@
 /*   By: hsaidi <hsaidi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:33:49 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/06/16 15:24:16 by hsaidi           ###   ########.fr       */
+/*   Updated: 2023/06/17 11:12:39 by hsaidi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,8 @@
 #define CGI_HPP
 
 #include "WSNetworking.hpp"
+#include <sstream>
+#include <iomanip>
 
 class Cgi
 {
@@ -35,6 +37,7 @@ class Cgi
         char            *const *env;
         void            readFileContents();
         void            query_string();
+        std::string urlDecode(const std::string& encoded);
         int             getFileType(const std::string& filename);
         char* const*    mapToCharConstArray(const std::map<std::string, std::string>& envMap);
 		std::string     get_outfile();

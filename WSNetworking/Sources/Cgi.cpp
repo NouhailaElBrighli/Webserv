@@ -6,7 +6,7 @@
 /*   By: hsaidi <hsaidi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:38:43 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/06/16 18:39:44 by hsaidi           ###   ########.fr       */
+/*   Updated: 2023/06/17 15:53:44 by hsaidi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,21 +81,75 @@ void Cgi::check_extention()
 	}
 	readFileContents();
 }
-void Cgi::query_string()
-{
-	std::string token;
-	
-	std::string delimiter = "&";
-	std::string queryString = this->main_client->get_request("Query-String");
-	cout << "-----------------------------------------------------------------------------------\n";
-	cout << "query string : " << queryString << endl;
 
-	for(size_t pos = 0;(pos = queryString.find(delimiter)) != std::string::npos) 
-    	token = queryString.substr(0, pos);
-	cout <<"token : " << token << endl;
-	cout << "-----------------------------------------------------------------------------------\n";
+std::string Cgi::urlDecode(const std::string& encoded) {
+  std::ostringstream decoded;
 
+  for (std::size_t i = 0; i < encoded.length(); ++i) {
+    if (encoded[i] == '%') {
+      if (i + 2 < encoded.length() && isxdigit(encoded[i + 1]) && isxdigit(encoded[i + 2])) {
+        // Decode the URL-encoded sequence
+        std::string hexStr = encoded.substr(i + 1, 2);
+        int hexValue;
+        std::istringstream(hexStr) >> std::hex >> hexValue;
+        decoded << static_cast<char>(hexValue); 
+        i += 2;
+      } else {
+        // Invalid encoding, treat '%' as a regular character
+        decoded << encoded[i];
+      }
+    } else if (encoded[i] == '+') {
+      // Replace '+' with space character
+      decoded << ' ';
+    } else {
+      // Copy the character as is
+      decoded << encoded[i];
+    }
+  }
+
+  return decoded.str();
 }
+void Cgi::query_string() {
+  std::string queryString = this->main_client->get_request("Query-String");
+  std::string delimiter = "&";
+  std::string pairDelimiter = "=";
+
+  size_t pos = 0;
+  std::string token;
+
+  while ((pos = queryString.find(delimiter)) != std::string::npos) {
+    token = queryString.substr(0, pos);
+    size_t pairPos = token.find(pairDelimiter);
+    if (pairPos != std::string::npos) {
+      std::string key = token.substr(0, pairPos);
+      std::string value = token.substr(pairPos + 1);
+
+      // URL decode the key and value
+      key = urlDecode(key);
+      value = urlDecode(value);
+
+      // Store key-value pair in cgi_env
+      cgi_env[key] = value;
+    }
+
+    queryString.erase(0, pos + delimiter.length());
+  }
+
+  // Process the last key-value pair
+  size_t pairPos = queryString.find(pairDelimiter);
+  if (pairPos != std::string::npos) {
+    std::string key = queryString.substr(0, pairPos);
+    std::string value = queryString.substr(pairPos + 1);
+
+    // URL decode the key and value
+    key = urlDecode(key);
+    value = urlDecode(value);
+
+    // Store key-value pair in cgi_env
+    cgi_env[key] = value;
+  }
+}
+
 
 void Cgi::set_cgi_env()
 {
@@ -113,12 +167,6 @@ void Cgi::set_cgi_env()
 	cgi_env["CONTENT_TYPE="] =this->main_client->get_request("Content-Type");
 	cgi_env["CONTENT_LENGTH="] = this->main_client->get_request("Content-Length");
 	cout << "------------------- Printing the env variables ------------------------------------\n";
-    // std::map<std::string, std::string>::const_iterator it;
-    // for (it = cgi_env.begin(); it != cgi_env.end(); ++it) {
-    //     const std::string& key = it->first;
-    //     const std::string& value = it->second;
-    //     std::cout <<"|________|"<< key << value << "|________|"<< std::endl;
-    // }
 	std::cout << main_client->get_location() << std::endl;
 	const char  *av[] = {script.c_str(), this->filename.c_str(), NULL};
 	char *const *av2 = const_cast<char *const *>(av);
