@@ -11,9 +11,7 @@ const string &ConfigServerParser::get_host() const { return this->host_s; }
 
 const string &ConfigServerParser::get_server_name() const { return this->server_name; }
 
-const size_t &ConfigServerParser::get_client_max_body_size() const {
-	return this->client_max_body_size;
-}
+const size_t &ConfigServerParser::get_client_max_body_size() const { return this->client_max_body_size; }
 
 const map<int, string> &ConfigServerParser::get_error_page() const {
 	if (this->error_page_status) {
@@ -162,14 +160,12 @@ bool ConfigServerParser::find_compare(string &line, const string &str) {
 // Setters
 void ConfigServerParser::set_port(string port, size_t pos) {
 	port = port.substr(0, port.length() - 1);
-	if (this->port_status == true || port.empty() == true || checkType(port) != 1
-		|| this->config_server[pos - 1] != ';' || !std::isalnum(this->config_server[pos - 2])) {
+	if (this->port_status == true || port.empty() == true || checkType(port) != 1 || this->config_server[pos - 1] != ';'
+		|| !std::isalnum(this->config_server[pos - 2])) {
 		throw std::runtime_error(STR_RED("Port Error : " + port));
 	}
-	if (port.length() < 4 || port.length() > 5 || stringToInt(port) < 1024
-		|| stringToInt(port) > 65535) {
-		throw std::runtime_error(
-			STR_RED("Port Error : " + port + " => Port must be between 1024 and 65535"));
+	if (port.length() < 4 || port.length() > 5 || stringToInt(port) < 1024 || stringToInt(port) > 65535) {
+		throw std::runtime_error(STR_RED("Port Error : " + port + " => Port must be between 1024 and 65535"));
 	}
 	this->port		  = this->stringToInt(port);
 	this->port_str	  = port;
@@ -191,8 +187,8 @@ void ConfigServerParser::set_host(string host, size_t pos) {
 
 void ConfigServerParser::set_server_name(string server_name, size_t pos) {
 	server_name = server_name.substr(0, server_name.length() - 1);
-	if (this->server_name_status == true || server_name.empty() == true
-		|| this->config_server[pos - 1] != ';' || !std::isalnum(this->config_server[pos - 2])) {
+	if (this->server_name_status == true || server_name.empty() == true || this->config_server[pos - 1] != ';'
+		|| !std::isalnum(this->config_server[pos - 2])) {
 		throw std::runtime_error(STR_RED("Server Name Error : " + server_name));
 	}
 	// check if server_name is contain only alphanumeric characters and the characters
@@ -240,8 +236,8 @@ void ConfigServerParser::set_error_page(string error_page, size_t pos) {
 
 	status_code		= stringToInt(status_code_str);
 	error_page_path = error_page.substr(0, error_page.size() - 1);
-	if (status_code < 400 || 599 < status_code || error_page_path.empty() == true
-		|| this->config_server[pos - 1] != ';' || !std::isalnum(this->config_server[pos - 2])) {
+	if (status_code < 400 || 599 < status_code || error_page_path.empty() == true || this->config_server[pos - 1] != ';'
+		|| !std::isalnum(this->config_server[pos - 2])) {
 		throw std::runtime_error(STR_RED("Error Page Error : " + error_page_input));
 	}
 
@@ -356,8 +352,7 @@ std::ostream &operator<<(std::ostream &out, const ConfigServerParser &config_ser
 	} else {
 		out << "error_page_status: off" << endl;
 	}
-	for (vector<ConfigLocationParser *>::const_iterator it
-		 = config_server_parser.get_config_location_parser().begin();
+	for (vector<ConfigLocationParser *>::const_iterator it = config_server_parser.get_config_location_parser().begin();
 		 it != config_server_parser.get_config_location_parser().end(); ++it) {
 		out << **it;
 	}

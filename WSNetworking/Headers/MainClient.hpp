@@ -6,16 +6,15 @@
 class MainClient {
 
   private:
-	ConfigServerParser				  *config_server_parser;
-	RequestParser					  *request_parser;
-	bool							   send_receive_status;
-	string							   msg_status;
-	int								   client_socket, status, phase;
-	int								   php_status;
-	bool							   write_header, write_body, write_status; 
-	bool							   file_open;
-	HeaderBodyReader				  *header_body_reader;
-
+	ConfigServerParser *config_server_parser;
+	RequestParser	   *request_parser;
+	bool				send_receive_status;
+	string				msg_status;
+	int					client_socket, status, phase;
+	int					php_status;
+	bool				write_header, write_body, write_status;
+	bool				file_open;
+	HeaderBodyReader   *header_body_reader;
 
   private:
 	std::map<std::string, std::string> content_type;
@@ -29,7 +28,6 @@ class MainClient {
 	std::string						   serve_file;
 	std::string						   body_file;
 	int								   start_php;
-
 
   private:
 	// Copy constructor and assignation operator
@@ -68,7 +66,7 @@ class MainClient {
 	std::string get_new_url();
 	void		set_extention_map();
 	void		set_start_php(int start);
-	std::string	get_extention(std::string content);
+	std::string get_extention(std::string content);
 
 	std::string get_serve_file();
 	std::string write_into_file(DIR *directory, std::string root);
@@ -85,10 +83,10 @@ class MainClient {
 	void handle_read();
 	void handle_write();
 
-	int		match_location();
-	void	is_method_allowed_in_location();
-	void	check_files_error();
-	int		check_for_root_directory();
+	int	 match_location();
+	void is_method_allowed_in_location();
+	void check_files_error();
+	int	 check_for_root_directory();
 };
 
 #endif	// MAINCLIENT_HPP
