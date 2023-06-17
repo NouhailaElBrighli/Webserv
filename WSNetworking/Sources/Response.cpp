@@ -46,7 +46,6 @@ void Response::SetContentType() {
 			Cgi cgi(this->Client, Client->get_config_server()->get_config_location_parser(), Client->get_new_url());
 			cgi.check_extention();
 			this->serve_file = cgi.get_outfile();
-			this->ContentType = "text/html";
 			return;
 		}
 		this->ContentType = Client->get_content_type(this->extention);
@@ -102,7 +101,10 @@ void	Response::check_request_uri()
 	}
 	this->check_inside_root(root, uri);
 	if (this->type.size() == 0)
+	{
+		PRINT_ERROR("ERROR HERE");
 		throw Error::NotFound404();
+	}
 }
 
 void	Response::check_inside_root(std::string &root, std::string uri)
@@ -131,8 +133,10 @@ void	Response::check_inside_root(std::string &root, std::string uri)
 			}
 		}
 		else if (list->d_type == DT_REG)
-		{	
+		{
 			std::string filename = root + '/' + list->d_name;
+			// std::cout << "filename: " << filename  << std::endl;
+			// std::cout << "uri:" << uri << std::endl;
 			if (filename == uri)
 			{
 				this->type = "file";
@@ -302,6 +306,27 @@ void	Response::post()
 			throw Error::InternalServerError500();
 		closedir(upload_dir);
 		set_extention_for_body_and_move_it();
+		check_request_uri();
+		if (this->type == "directory")
+		{
+			//
+		}
+		else
+		{
+			size_t found = Client->get_new_url().find('.');
+			if (found != std::string::npos)
+			{
+				this->extention = Client->get_new_url().substr(found, Client->get_new_url().size() - found);
+				std::cout << "this->extention: " << this->extention << std::endl;
+				if (this->extention == ".php" || this->extention == ".py")
+				{
+					check_cgi_location();
+					Cgi cgi(this->Client, Client->get_config_server()->get_config_location_parser(), Client->get_new_url());
+					cgi.check_extention();
+					this->serve_file = cgi.get_outfile();
+				}
+			}
+		}
 		throw Accurate::Created201();
 	}
 	else
@@ -321,15 +346,12 @@ void	Response::set_extention_for_body_and_move_it()
 	size_t found = path.find_last_of('/');
 	if (found != std::string::npos)// !you should create the folder tmp by any function
 		filename = path.substr(found, path.size() - found);
-			
-			
-	if (Client->get_request("Content-Type").size() == 0)
-		this->new_path = this->upload_path + filename + ".bin";
-	else 
-		this->new_path = this->upload_path + filename;
+
+	this->new_path = this->upload_path + filename;
 
 	std::cout << "new_path: " << new_path << std::endl;
 	if (std::rename(Client->get_body_file_name().c_str(), this->new_path.c_str()) != 0)
 		throw Error::BadRequest400();
 	Client->reset_body_file_name(this->new_path);
+
 }

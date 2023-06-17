@@ -67,7 +67,7 @@ void MainClient::start_handle(string task) {
 		}
 		else if (task == "write")
 		{
-			if (this->write_status == false)
+			if (this->write_status == false && this->status != 301)
 				this->handle_write();
 			send_to_socket();
 		}
@@ -82,9 +82,9 @@ void MainClient::start_handle(string task) {
 
 		if (string(e.what()) == "Still running")
 			return;
-
+		else
+			this->phase = WRITE_PHASE;
 		set_header_for_errors_and_redirection(e.what());
-		this->phase = WRITE_PHASE;
 	}
 }
 
@@ -106,7 +106,8 @@ void MainClient::handle_read() {
 	if (this->config_server_parser->get_config_location_parser()[get_location()]->get_return().size() != 0) {
 		std::string root = this->config_server_parser->get_config_location_parser()[get_location()]->get_root();
 		std::string ret	 = this->config_server_parser->get_config_location_parser()[get_location()]->get_return();
-		redirection		 = root + '/' + ret;
+		redirection		 =  ret;
+		std::cout << "redirection: " << redirection << std::endl;
 		throw Accurate::MovedPermanently301();
 	}
 	is_method_allowed_in_location();
@@ -159,8 +160,10 @@ int MainClient::match_location() {
 				std::string root
 					= this->config_server_parser->get_config_location_parser()[locate]->get_root();
 				this->new_url.erase(0, (*itr)->get_location().size());
+				std::cout << "erase location :" << this->new_url << std::endl;
 				this->new_url
-					= root + new_url;  // ? I shouldn't reset the uri for redirect it later
+					= root + new_url; // ? I shouldn't reset the uri for redirect it later
+				std::cout << "this->new_url: " << this->new_url << std::endl;
 				return (locate);
 			}
 			locate++;
@@ -183,6 +186,7 @@ void MainClient::set_header_for_errors_and_redirection(const char *what) {
 		this->header += "\r\nContent-Length: 0\r\n";
 		this->header += "Location: ";  //? should i use port and host or not
 		this->header += redirection;
+		this->header += "\r\nConnection: Close";
 		this->header += "\r\n\r\n";
 	} else	// errors
 	{
@@ -307,10 +311,16 @@ void MainClient::send_to_socket() {
 	PRINT_LINE("sending");
 	if (write_header == false)
 	{
+		std::cout << "this->header :" << this->header << std::endl;
 		PRINT_SHORT_LINE("send header");
 		send(client_socket, this->header.c_str(), header.size(), 0);
-		// if (this->status == 301)
-		// 	this->send_receive_status = true;
+		if (this->status == 301)
+		{
+			PRINT_ERROR("close the socket now");
+			this->send_receive_status = false;
+			this->phase = READ_PHASE;
+			return;
+		}
 		write_header = true;
 		return;
 	}
@@ -337,14 +347,8 @@ void MainClient::send_to_socket() {
 		throw Error::BadRequest400();
 	if (position == - 1)
 	{
-		file.close();
-		std::cout << "connection : " << this->get_request("Connection") << std::endl;
-		// if (this->get_request("Connection") == "keep-alive")
-		// {
-		// 	PRINT_ERROR("don't close");	//!you should remove the data
-		// 	return;
-		// }
 		PRINT_ERROR("close the socket now");
+		file.close();
 		this->send_receive_status = false;
 		return;
 	}
@@ -398,14 +402,6 @@ void	MainClient::set_extention_map()
 	this->extention["application/x-httpd-php"] = ".php";
 }
 
-std::string	MainClient::get_extention(std::string content)
-{
-	std::cout << "content: " << content << std::endl;
-	std::cout << "extention: " << extention[content] << std::endl;
-	if (extention[content].size() != 0)
-		return (extention[content]);
-	return(".bin");
-}
 
 // import os
 // file_path = "./error/404.html"
