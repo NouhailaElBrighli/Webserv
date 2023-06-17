@@ -120,7 +120,7 @@ void MainClient::handle_write() {
 			Delete Delete(this, this->config_server_parser->get_config_location_parser());
 			Delete.delete_file();
 	}
-}`
+}
 
 void MainClient::is_method_allowed_in_location() {
 	for (vector<ConfigLocationParser *>::const_iterator it = config_server_parser->get_config_location_parser().begin();

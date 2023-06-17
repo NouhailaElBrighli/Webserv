@@ -1,4 +1,12 @@
 X-Powered-By: PHP/8.0.2
 Content-type: text/html; charset=UTF-8
 
-Name: hajar saidi<br>Age: 21<br>Occupation: student<br>
+<!DOCTYPE html>
+<div>
+            <form method="post" enctype="multipart/form-data">
+            <input type="text" name="name" placeholder="Name" />
+            <input type="text" name="email" placeholder="Email" />
+            <input type="file" id="avatar" name="avatar" accept="image/png, image/jpeg" />
+            <input type="submit" value="Submit" />
+        </form>
+    </div>
