@@ -66,8 +66,7 @@ void MainClient::start_handle(string task) {
 
 	} catch (const std::exception &e) {
 		PRINT_SHORT_LINE("catch something");
-		if (string(e.what()).find("can't open file") != string::npos
-			|| string(e.what()).find("Bad Input") != string::npos)
+		if (string(e.what()).find("can't open file") != string::npos || string(e.what()).find("Bad Input") != string::npos)
 			throw std::runtime_error(string(e.what()));
 
 		PRINT_ERROR(string(e.what()));
@@ -96,9 +95,10 @@ void MainClient::handle_read() {
 	}
 	this->location = this->match_location();
 	if (this->config_server_parser->get_config_location_parser()[get_location()]->get_return().size() != 0) {
-		std::string root = this->config_server_parser->get_config_location_parser()[get_location()]->get_root();
-		std::string ret	 = this->config_server_parser->get_config_location_parser()[get_location()]->get_return();
-		redirection		 =  ret;
+		std::string ret = this->config_server_parser->get_config_location_parser()[get_location()]->get_return();
+		redirection		= ret;
+		if (redirection[0] != '/')
+			redirection = '/' + redirection;
 		std::cout << "redirection: " << redirection << std::endl;
 		throw Accurate::MovedPermanently301();
 	}
@@ -122,8 +122,7 @@ void MainClient::handle_write() {
 void MainClient::is_method_allowed_in_location() {
 	for (vector<ConfigLocationParser *>::const_iterator it = config_server_parser->get_config_location_parser().begin();
 		 it != config_server_parser->get_config_location_parser().end(); it++) {
-		if (this->get_request("Request-URI").find((*it)->get_location()) != string::npos
-			|| this->get_request("Request-URI").find((*it)->get_root()) != string::npos) {
+		if (this->get_request("Request-URI").find((*it)->get_location()) != string::npos || this->get_request("Request-URI").find((*it)->get_root()) != string::npos) {
 			for (size_t i = 0; i < (*it)->get_methods().size(); i++) {
 				if ((*it)->get_methods(i) == this->get_request("Request-Type"))
 					return;
@@ -140,8 +139,7 @@ int MainClient::match_location() {
 	this->new_url	   = this->get_request("Request-URI");
 	while (str.size() != 0) {
 		locate = 0;
-		for (vector<ConfigLocationParser *>::const_iterator itr
-			 = config_server_parser->get_config_location_parser().begin();
+		for (vector<ConfigLocationParser *>::const_iterator itr = config_server_parser->get_config_location_parser().begin();
 			 itr != config_server_parser->get_config_location_parser().end(); itr++) {
 			if ((*itr)->get_location() == str) {
 				str				 = this->get_request("Request-URI");
@@ -149,8 +147,10 @@ int MainClient::match_location() {
 				std::string root = this->config_server_parser->get_config_location_parser()[locate]->get_root();
 				this->new_url.erase(0, (*itr)->get_location().size());
 				std::cout << "erase location :" << this->new_url << std::endl;
-				this->new_url
-					= root + new_url; // ? I shouldn't reset the uri for redirect it later
+				std::cout << "this->new_url before: " << this->new_url << std::endl;
+				std::cout << "root :" << root << std::endl;
+				this->new_url = root + new_url; // ? I shouldn't reset the uri for redirect it later
+				std::cout << "this->new_url after: " << this->new_url << std::endl;
 				std::cout << "this->new_url: " << this->new_url << std::endl;
 				return (locate);
 			}
@@ -167,16 +167,16 @@ void MainClient::set_header_for_errors_and_redirection(const char *what) {
 	this->status	 = convert_to_int(this->msg_status);
 	if (this->status >= 400)
 		check_files_error();
-	if (this->status < 400 && this->status > 300)  // redirection
+	if (this->status < 400 && this->status > 300) // redirection
 	{
 		this->header = "HTTP/1.1 ";
 		this->header += this->msg_status;
 		this->header += "\r\nContent-Length: 0\r\n";
-		this->header += "Location: ";  //? should i use port and host or not
+		this->header += "Location: "; //? should i use port and host or not
 		this->header += redirection;
 		this->header += "\r\nConnection: Close";
 		this->header += "\r\n\r\n";
-	} else	// errors
+	} else // errors
 	{
 		Response Error;
 		this->body_file = Error.SetError(msg_status, body_file);
@@ -272,12 +272,14 @@ std::string MainClient::get_content_type(std::string extention) { return (this->
 
 int MainClient::check_for_root_directory() {
 	int location = 0;
-	for (vector<ConfigLocationParser *>::const_iterator itr
-		 = config_server_parser->get_config_location_parser().begin();
+	for (vector<ConfigLocationParser *>::const_iterator itr = config_server_parser->get_config_location_parser().begin();
 		 itr != config_server_parser->get_config_location_parser().end(); itr++) {
 		if ((*itr)->get_location() == "/") {
-			this->new_url = this->config_server_parser->get_config_location_parser()[location]->get_root()
-							+ this->get_request("Request-URI");
+			std::string root = this->config_server_parser->get_config_location_parser()[location]->get_root();
+			if (root == "/")
+				this->new_url = this->get_request("Request-URI");
+			else
+				this->new_url = root + this->get_request("Request-URI");
 			return (location);
 		}
 		location++;
@@ -297,11 +299,11 @@ void MainClient::send_to_socket() {
 		std::cout << "this->header :" << this->header << std::endl;
 		PRINT_SHORT_LINE("send header");
 		send(client_socket, this->header.c_str(), header.size(), 0);
-		if (this->status == 301)
-		{
+		if (this->status == 301) {
 			PRINT_ERROR("close the socket now");
 			this->send_receive_status = false;
-			this->phase = READ_PHASE;
+			// delete this->config_server_parser;
+			// delete this->request_parser;
 			return;
 		}
 		write_header = true;
@@ -328,14 +330,7 @@ void MainClient::send_to_socket() {
 		throw Error::BadRequest400();
 	if (position == -1) {
 		file.close();
-		std::cout << "connection : " << this->get_request("Connection") << std::endl;
-		// if (this->get_request("Connection") == "keep-alive")
-		// {
-		// 	PRINT_ERROR("don't close");	//!you should remove the data
-		// 	return;
-		// }
 		PRINT_ERROR("close the socket now");
-		file.close();
 		this->send_receive_status = false;
 		return;
 	}
@@ -387,7 +382,6 @@ void MainClient::set_extention_map() {
 	this->extention["application/vnd.ms-excel"]												   = ".xlsx";
 	this->extention["application/x-httpd-php"]												   = ".php";
 }
-
 
 // import os
 // file_path = "./error/404.html"

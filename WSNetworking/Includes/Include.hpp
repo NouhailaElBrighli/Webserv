@@ -33,7 +33,7 @@
 
 enum { READ_PHASE, WRITE_PHASE };
 
-#define MAXLINE 1024
+#define MAXLINE 10024
 
 #define C_RES "\033[0m"
 #define C_RED "\033[1;31m"
