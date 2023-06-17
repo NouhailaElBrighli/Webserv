@@ -34,7 +34,6 @@ void HeaderBodyReader::header_reading() {
 		return;
 
 	std::memset(buffer, 0, MAXLINE);
-	cout << "this->client_socket : " << this->client_socket << endl;
 	bytes = recv(this->client_socket, buffer, MAXLINE, 0);
 	cout << "bytes : " << bytes << endl;
 	if (bytes == 0)
@@ -59,29 +58,6 @@ void HeaderBodyReader::header_reading() {
 	}
 }
 
-void HeaderBodyReader::check_header_body() {
-	if (!this->body.empty() && this->body.find("\r\n\r\n") != string::npos) {
-		this->head_body = this->body.substr(0, this->body.find("\r\n\r\n") + 4);
-		if (this->head_body.find("Content-Disposition") != string::npos) {
-			set_new_body_file_name();
-		}
-	}
-}
-
-void HeaderBodyReader::set_new_body_file_name() {
-	size_t len	= 10;
-	size_t pos1 = this->head_body.find("filename=");
-	size_t pos2 = this->head_body.find("\"\r\n");
-	if (pos1 == string::npos || pos2 == string::npos)
-		return;
-	size_t size = pos2 - pos1 - len;
-
-	std::stringstream ss;
-	ss << "_" << std::hex << std::rand();
-	this->body_file_name = "./body_" + this->head_body.substr(pos1 + len, size) + ss.str();
-	SHOW_INFO("new body file name : " + this->body_file_name);
-}
-
 string HeaderBodyReader::generate_random_file_name() {
 	std::stringstream ss;
 	std::time_t		  now		   = std::time(0);
@@ -100,7 +76,6 @@ void HeaderBodyReader::open_body_file() {
 	if (this->body_file_name.empty()) {
 		this->body_file_name = generate_random_file_name();
 		SHOW_INFO("body file name : " + this->body_file_name);
-		this->check_header_body();
 	}
 
 	// Open the file for writing if it's not already open

@@ -206,7 +206,10 @@ void MainServer::create_client(int client_socket) {
 }
 
 void MainServer::handle(int client_socket, string task) {
-	PRINT_LONG_LINE("handle " + task);
+	std::stringstream sscs;
+
+	sscs << client_socket;
+	PRINT_LONG_LINE("handle " + task + " for client with socket '" + sscs.str() + "'");
 
 	if (this->clients.find(client_socket) != this->clients.end())
 		this->clients[client_socket]->start(task);
@@ -224,17 +227,23 @@ void MainServer::destroy_client(int client_socket) {
 	sscs << client_socket;
 	PRINT_LONG_LINE("destroy client");
 
-	// Check if the client is a master socket
-	show = string(C_YELLOW) + "current socket to be close: " + sscs.str();
+	show = string(C_YELLOW) + "client with socket '" + sscs.str() + "' to be close.";
 	SHOW_INFO(show);
 	if (this->clients.find(client_socket) != this->clients.end()
 		&& this->clients[client_socket]->get_send_receive_status() == true) {
-		show = string(C_RED) + "current client '" + sscs.str() + "' can't be closed now, until the response is done.";
+		show = string(C_CYAN) + "client with socket '" + sscs.str() + "' can't be closed now, until ";
+		if (this->clients[client_socket]->get_phase() == READ_PHASE)
+			show += string(C_RED) + "READ && RESPONSE" + string(C_CYAN);
+		else if (this->clients[client_socket]->get_phase() == WRITE_PHASE)
+			show += string(C_RED) + "RESPONSE" + string(C_CYAN);
+		show += " is done.";
 		SHOW_INFO(show);
 		return;
 	}
+	// Check if the client is a main socket
 	if (this->socket_server.find(client_socket) != this->socket_server.end()) {
-		show = string(C_RED) + "current socket '" + sscs.str() + "' mustn't be close, because it's a master socket.";
+		show = string(C_PURPLE) + "client with socket '" + sscs.str()
+			   + "' mustn't be close, because it's a MAIN socket.";
 		return;
 	}
 	// Destroy the client
@@ -244,7 +253,7 @@ void MainServer::destroy_client(int client_socket) {
 	this->clients.erase(client_socket);
 	this->socket_client.erase(client_socket);
 	close(client_socket);
-	show = string(C_RED) + "current socket closed: " + sscs.str();
+	show = string(C_RED) + "client with socket '" + sscs.str() + "' closed.";
 	SHOW_INFO(show);
 }
 
@@ -277,9 +286,9 @@ void MainServer::routine() {
 					if (FD_ISSET(i, &this->read_sockets))
 						this->handle(i, "read");
 
+					// if the socket is ready for writing, call the handle_write function
 					else if (FD_ISSET(i, &this->write_sockets))
 						this->handle(i, "write");
-					// if the socket is ready for writing, call the handle_write function
 
 				} catch (const std::exception &e) {
 					this->clients[i]->set_send_receive_status(false);

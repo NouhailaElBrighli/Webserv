@@ -42,8 +42,6 @@ class HeaderBodyReader {
 	void header_reading();
 
   private:
-	void   check_header_body();
-	void   set_new_body_file_name();
 	string generate_random_file_name();
 	void   open_body_file();
 	int	   receive_data(int set);
