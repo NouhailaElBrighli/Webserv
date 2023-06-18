@@ -99,7 +99,6 @@ void MainClient::handle_read() {
 		redirection		= ret;
 		if (redirection[0] != '/')
 			redirection = '/' + redirection;
-		std::cout << "redirection: " << redirection << std::endl;
 		throw Accurate::MovedPermanently301();
 	}
 	is_method_allowed_in_location();
@@ -113,7 +112,8 @@ void MainClient::handle_write() {
 		serve_file	 = Response.Get();
 	} else if (this->get_request("Request-Type") == "POST") {
 		write_status = true;
-		Response.post();
+		serve_file = Response.post();
+		std::cout << "serve_file:" << serve_file << std::endl;
 	} else if (this->get_request("Request-Type") == "DELETE") {
 		// DELETE
 	}
@@ -163,8 +163,9 @@ int MainClient::match_location() {
 }
 
 void MainClient::set_header_for_errors_and_redirection(const char *what) {
-	this->msg_status = what;
-	this->status	 = convert_to_int(this->msg_status);
+	this->msg_status   = what;
+	this->status	   = convert_to_int(this->msg_status);
+	this->write_status = true;
 	if (this->status >= 400)
 		check_files_error();
 	if (this->status < 400 && this->status > 300) // redirection
@@ -296,14 +297,11 @@ void MainClient::send_to_socket() {
 
 	PRINT_LINE("sending");
 	if (write_header == false) {
-		std::cout << "this->header :" << this->header << std::endl;
 		PRINT_SHORT_LINE("send header");
 		send(client_socket, this->header.c_str(), header.size(), 0);
 		if (this->status == 301) {
 			PRINT_ERROR("close the socket now");
 			this->send_receive_status = false;
-			// delete this->config_server_parser;
-			// delete this->request_parser;
 			return;
 		}
 		write_header = true;
@@ -313,8 +311,10 @@ void MainClient::send_to_socket() {
 
 	if (file_open == false) {
 		PRINT_SHORT_LINE("open the file");
-		if (!file.is_open())
+		std::cout << "this->serve_file: " << this->serve_file << std::endl;
+		if (!file.is_open()) {
 			throw Error::Forbidden403();
+		}
 		if (this->php_status) {
 			char buff[start_php];
 			file.read(buff, start_php);

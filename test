@@ -1,4 +1,4 @@
-//NOT ALLOWED CHARACTERS
+// NOT ALLOWED CHARACTERS
 
 // Less than ("<")
 // Greater than (">")
@@ -13,3 +13,4 @@
 // upload in location
 // why it fail to return 405 in head method
 
+// --> return / ==> doesn't work

@@ -39,7 +39,7 @@ class Response {
 	std::string check_auto_index();
 	std::string handle_file();
 	std::string set_error_body(std::string msg_status, std::string body_file);
-	void		post();
+	std::string	post();
 	void		check_cgi_location();
 	void		set_outfile_cgi(std::string outfile);
 	void		handle_php();

@@ -74,6 +74,7 @@ void Response::SetVars() {
 	if (this->extention == ".php") {
 		handle_php();
 		Client->set_header(header);
+		SHOW_INFO(this->header);
 		return;
 	}
 	this->SetContentLength(serve_file);
@@ -86,6 +87,8 @@ void Response::SetVars() {
 	Client->set_header(header);
 }
 
+//! check if it's not a valid
+
 void Response::check_request_uri() {
 	std::string root = Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_root();
 	std::string uri	 = Client->get_new_url();
@@ -96,12 +99,22 @@ void Response::check_request_uri() {
 		return;
 	}
 	if (root == "/") {
-		std::ifstream file(uri);
-		if (file.is_open()) {
-			this->type = "file";
-			file.close();
+		if (Client->get_new_url() == "/") {
+			this->type = "directory";
 			return;
 		}
+		std::ifstream check(uri);
+		if(check.is_open())
+		{
+			DIR *dir = opendir(uri.c_str());
+			if (dir == NULL)
+				this->type = "file";
+			else
+				this->type = "directory";
+			return;
+		}
+		else
+			throw Error::NotFound404();
 	}
 	this->check_inside_root(root, uri);
 	if (this->type.size() == 0) {
@@ -113,8 +126,7 @@ void Response::check_request_uri() {
 void Response::check_inside_root(std::string &root, std::string uri) {
 	DIR *directory = opendir(root.c_str());
 	if (!directory) {
-		std::cout << "failed to open directory: " << uri << std::endl;
-		throw Error::BadRequest400();
+		return;
 	}
 	dirent *list;
 	while ((list = readdir(directory))) {
@@ -130,8 +142,6 @@ void Response::check_inside_root(std::string &root, std::string uri) {
 			}
 		} else if (list->d_type == DT_REG) {
 			std::string filename = root + '/' + list->d_name;
-			// std::cout << "filename: " << filename  << std::endl;
-			// std::cout << "uri:" << uri << std::endl;
 			if (filename == uri) {
 				this->type = "file";
 				break;
@@ -270,7 +280,7 @@ void Response::handle_php() {
 	}
 }
 
-void Response::post() {
+std::string Response::post() {
 	PRINT_LONG_LINE("handle post");
 	if (Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_upload().size() != 0) {
 		this->upload_path = Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_root() + Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_upload();
@@ -289,13 +299,15 @@ void Response::post() {
 				this->extention = Client->get_new_url().substr(found, Client->get_new_url().size() - found);
 				std::cout << "this->extention: " << this->extention << std::endl;
 				if (this->extention == ".php" || this->extention == ".py") {
-					check_cgi_location();
-					Cgi cgi(this->Client, Client->get_config_server()->get_config_location_parser(), Client->get_new_url());
-					cgi.check_extention();
-					this->serve_file = cgi.get_outfile();
+					return (this->Get());
+				// 	check_cgi_location();
+				// 	Cgi cgi(this->Client, Client->get_config_server()->get_config_location_parser(), Client->get_new_url());
+				// 	cgi.check_extention();
+				// 	this->serve_file = cgi.get_outfile();
 				}
 			}
 		}
+		SHOW_INFO("here");
 		throw Accurate::Created201();
 	} else
 		throw Error::InternalServerError500();
