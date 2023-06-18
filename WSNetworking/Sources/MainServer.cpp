@@ -268,7 +268,6 @@ void MainServer::routine() {
 		// select() will block until there is activity on one of the sockets
 		if (select(this->max_socket + 1, &this->read_sockets, &this->write_sockets, NULL, NULL) == -1)
 			throw std::runtime_error(STR_RED("Error select : ") + strerror(errno));
-
 		// check if the listening socket is ready
 		for (int i = 3; i <= this->max_socket; i++) {
 			if (FD_ISSET(i, &this->read_sockets) || FD_ISSET(i, &this->write_sockets)) {

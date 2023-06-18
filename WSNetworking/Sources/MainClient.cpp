@@ -85,6 +85,16 @@ void MainClient::handle_read() {
 	header_body_reader->header_reading();
 	this->request_parser->run_parse(header_body_reader->get_head());
 
+	this->location = this->match_location();
+	if (this->config_server_parser->get_config_location_parser()[get_location()]->get_return().size() != 0) {
+		std::string ret = this->config_server_parser->get_config_location_parser()[get_location()]->get_return();
+		redirection		= ret;
+		if (redirection[0] != '/')
+			redirection = '/' + redirection;
+		std::cout << "redirect to :" << redirection << std::endl;
+		throw Accurate::MovedPermanently301();
+	}
+	is_method_allowed_in_location();
 	if (this->get_request("Request-Type") == "POST") {
 		if (this->get_request("Content-Length").size() != 0)
 			header_body_reader->body_reading();
@@ -93,15 +103,6 @@ void MainClient::handle_read() {
 		else
 			throw Error::BadRequest400();
 	}
-	this->location = this->match_location();
-	if (this->config_server_parser->get_config_location_parser()[get_location()]->get_return().size() != 0) {
-		std::string ret = this->config_server_parser->get_config_location_parser()[get_location()]->get_return();
-		redirection		= ret;
-		if (redirection[0] != '/')
-			redirection = '/' + redirection;
-		throw Accurate::MovedPermanently301();
-	}
-	is_method_allowed_in_location();
 }
 
 void MainClient::handle_write() {
@@ -113,7 +114,6 @@ void MainClient::handle_write() {
 	} else if (this->get_request("Request-Type") == "POST") {
 		write_status = true;
 		serve_file = Response.post();
-		std::cout << "serve_file:" << serve_file << std::endl;
 	} else if (this->get_request("Request-Type") == "DELETE") {
 		// DELETE
 	}
@@ -298,6 +298,7 @@ void MainClient::send_to_socket() {
 	PRINT_LINE("sending");
 	if (write_header == false) {
 		PRINT_SHORT_LINE("send header");
+		SHOW_INFO(this->header);
 		send(client_socket, this->header.c_str(), header.size(), 0);
 		if (this->status == 301) {
 			PRINT_ERROR("close the socket now");
@@ -337,7 +338,7 @@ void MainClient::send_to_socket() {
 	char buff[MAXLINE];
 
 	file.read(buff, MAXLINE);
-
+	
 	this->position = file.tellg();
 	if (send(client_socket, buff, file.gcount(), 0) < 0)
 		throw Error::BadRequest400();
