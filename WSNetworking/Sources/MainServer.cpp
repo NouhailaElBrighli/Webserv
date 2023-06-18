@@ -259,14 +259,17 @@ void MainServer::destroy_client(int client_socket) {
 
 // Main routine
 void MainServer::routine() {
-	signal(SIGPIPE, SIG_IGN);
+	// Set timeout to 5 seconds
+	struct timeval timeout;
+	timeout.tv_sec	= 5;
+	timeout.tv_usec = 0;
 	while (true) {
 
 		this->reset();
 
 		PRINT_LONG_LINE("select wait for client");
 		// select() will block until there is activity on one of the sockets
-		if (select(this->max_socket + 1, &this->read_sockets, &this->write_sockets, NULL, NULL) == -1)
+		if (select(this->max_socket + 1, &this->read_sockets, &this->write_sockets, NULL, &timeout) == -1)
 			throw std::runtime_error(STR_RED("Error select : ") + strerror(errno));
 		// check if the listening socket is ready
 		for (int i = 3; i <= this->max_socket; i++) {

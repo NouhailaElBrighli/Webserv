@@ -85,6 +85,15 @@ void MainClient::handle_read() {
 	header_body_reader->header_reading();
 	this->request_parser->run_parse(header_body_reader->get_head());
 
+	if (this->get_request("Request-Type") == "POST") {
+		if (this->get_request("Content-Length").size() != 0)
+			header_body_reader->body_reading();
+		else if (this->get_request("Transfer-Encoding") == "chunked")
+			header_body_reader->chunked_body_reading();
+		else
+			throw Error::BadRequest400();
+	}
+	
 	this->location = this->match_location();
 	if (this->config_server_parser->get_config_location_parser()[get_location()]->get_return().size() != 0) {
 		std::string ret = this->config_server_parser->get_config_location_parser()[get_location()]->get_return();
@@ -95,14 +104,6 @@ void MainClient::handle_read() {
 		throw Accurate::MovedPermanently301();
 	}
 	is_method_allowed_in_location();
-	if (this->get_request("Request-Type") == "POST") {
-		if (this->get_request("Content-Length").size() != 0)
-			header_body_reader->body_reading();
-		else if (this->get_request("Transfer-Encoding") == "chunked")
-			header_body_reader->chunked_body_reading();
-		else
-			throw Error::BadRequest400();
-	}
 }
 
 void MainClient::handle_write() {
