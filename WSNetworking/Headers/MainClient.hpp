@@ -6,35 +6,34 @@
 class MainClient {
 
   private:
-  	std::map<std::string, std::string>content_type;
 	ConfigServerParser *config_server_parser;
 	RequestParser	   *request_parser;
-	std::ifstream		*send_file;
-	std::streampos	position;
 	bool				send_receive_status;
 	string				msg_status;
-	int					client_socket;
-	char				buffer[MAXLINE];
-	string				header;
-	int					location;
-	std::string			redirection;
-	std::string			new_url;
-	std::string			serve_file;
-	std::string			body_file;
-	int					status, phase;
-	int					start_php;
+	int					client_socket, status, phase;
 	int					php_status;
-	bool				write_header;
-	bool				write_body;
+	bool				write_header, write_body, write_status;
 	bool				file_open;
+	HeaderBodyReader   *header_body_reader;
+
+  private:
+	std::map<std::string, std::string> content_type;
+	std::map<std::string, std::string> extention;
+	map<string, string>				   type_mime;
+	std::streampos					   position;
+	string							   header;
+	int								   location;
+	std::string						   redirection;
+	std::string						   new_url;
+	std::string						   serve_file;
+	std::string						   body_file;
+	int								   start_php;
 
   private:
 	// Copy constructor and assignation operator
+	MainClient();
 	MainClient(const MainClient &);
 	MainClient &operator=(const MainClient &);
-
-	string head, body, body_file_name;
-	bool   head_status, body_status;
 
   public:
 	// Getters
@@ -46,48 +45,41 @@ class MainClient {
 	const int				  &get_client_socket() const;
 	const int				  &get_location() const;
 	ConfigServerParser		  *get_config_server() const;
-	std::string				get_content_type(std::string extention);
+	std::string				   get_content_type(std::string extention);
+	const map<string, string> &get_mime_type() const;
+	const string			  &get_mime_type(const string &type) const;
 
 	// Setters
 	void set_send_receive_status(bool send_receive_status);
 	void set_location(int location);
 	void set_header(std::string header);
+	void reset_body_file_name(std::string new_name);
 
 	// Constructors and destructor
-	MainClient();
 	MainClient(int client_socket, ConfigServerParser *config_server_parser);
 	~MainClient();
 
 	// Methods
-	int		GetClientSocket();
-	void	set_header_for_errors_and_redirection(const char *what);
-	void set_redirection(std::string &redirection);
+	int			GetClientSocket();
+	void		set_header_for_errors_and_redirection(const char *what);
+	void		set_redirection(std::string &redirection);
 	std::string get_new_url();
-	std::string	get_serve_file();
-	std::string	write_into_file(DIR *directory, std::string root);
-	int	convert_to_int(std::string	&str);
-	void	set_serve_file(std::string file_to_serve);
-	void	send_to_socket();
-	void	set_content_type_map();
-	void	set_start_php(int start);
+	void		set_extention_map();
+	void		set_start_php(int start);
+	std::string get_extention(std::string content);
 
+	std::string get_serve_file();
+	std::string write_into_file(DIR *directory, std::string root);
+	int			convert_to_int(const std::string &str);
+	void		set_serve_file(std::string file_to_serve);
+	void		send_to_socket();
+	void		set_content_type_map();
 
-	void start_handle();
 	void start(string task);
 
   private:
 	// Methods
 	void start_handle(string task);
-
-	void header_reading();
-
-	string generate_random_file_name();
-	void   body_reading();
-
-	int	 find_chunk_size0();
-	int	 find_chunk_size1();
-	void chunked_body_reading();
-
 	void handle_read();
 	void handle_write();
 

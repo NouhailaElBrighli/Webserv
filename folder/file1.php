@@ -1,26 +1,67 @@
 <?php
-session_start(); // start session to store the counter value
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
-if(isset($_POST['increment'])) { // check if the increment button is clicked
-    if(isset($_SESSION['counter'])) { // check if the counter variable is set in the session
-        $_SESSION['counter']++; // increment the counter
+    // save $_FILES['avatar'] to a inside a folder
+    $avatar = $_FILES['avatar'];
+    $avatar_name = $avatar['name'];
+    $avatar_tmp_name = $avatar['tmp_name'];
+    $avatar_size = $avatar['size'];
+    $avatar_error = $avatar['error'];
+
+    $avatar_ext = explode('.', $avatar_name);
+    $avatar_actual_ext = strtolower(end($avatar_ext));
+
+    $allowed = array('jpg', 'jpeg', 'png');
+
+    if (in_array($avatar_actual_ext, $allowed)) {
+        if ($avatar_error === 0) {
+            if ($avatar_size < 10000000000000000) {
+                $avatar_name_new = uniqid('', true) . '.' . $avatar_actual_ext;
+                $avatar_destination = 'folder/' . $avatar_name_new;
+                move_uploaded_file($avatar_tmp_name, $avatar_destination);
+                $_COOKIE['name'] = $_POST['name'];
+                $_COOKIE['email'] = $_POST['email'];
+                $_COOKIE['avatar'] = $avatar_destination;
+                setcookie('name', $_POST['name'], time() + 3600 * 24 * 7);
+                setcookie('email', $_POST['email'], time() + 3600 * 24 * 7);
+                setcookie('avatar', $avatar_destination, time() + 3600 * 24 * 7);
+            } else {
+                echo 'File too big';
+                exit(1);
+            }
+        } else {
+            echo 'Error';
+            exit(1);
+        }
     } else {
-        $_SESSION['counter'] = 1; // set the counter to 1 if it's not set in the session
-        echo "Counter set to 1"; // debug statement
+        echo 'Not allowed';
+        exit(1);
     }
+} else if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['logout'])) {
+    unset($_COOKIE['name']);
+    unset($_COOKIE['email']);
+    unset($_COOKIE['avatar']);
+    setcookie('name', '', time() - 3600);
+    setcookie('email', '', time() - 3600);
+    setcookie('avatar', '', time() - 3600);
 }
-
 ?>
-
 <!DOCTYPE html>
-<html>
-<head>
-    <title>Increment Counter Example</title>
-</head>
-<body>
-    <h1>Counter: <?php echo isset($_SESSION['counter']) ? $_SESSION['counter'] : 0; ?></h1>
-    <form method="POST">
-        <button type="submit" name="increment">Increment Counter</button>
-    </form>
-</body>
-</html>
+<div>
+    <?php if (isset($_COOKIE['name']) && isset($_COOKIE['email'])): ?>
+        <p>
+            <center><h1>Hello, <?= $_COOKIE['name'] ?>!</h1></center><hr>
+            <center><img src="<?= $_COOKIE['avatar'] ?>" alt="avatar" width="300" height="300" style="object-fit: cover;"></center><hr><br/>
+            <center><?php echo $_COOKIE['name']; ?></center>
+            <center><?php echo $_COOKIE['email']; ?></center><br/><br/>
+            <center><a href="?logout">Logout</a></center>
+        </p>
+    <?php else: ?>
+        <form method="post" enctype="multipart/form-data">
+            <input type="text" name="name" placeholder="Name" />
+            <input type="text" name="email" placeholder="Email" />
+            <input type="file" id="avatar" name="avatar" accept="image/png, image/jpeg" />
+            <input type="submit" value="Submit" />
+        </form>
+    <?php endif; ?>
+</div>

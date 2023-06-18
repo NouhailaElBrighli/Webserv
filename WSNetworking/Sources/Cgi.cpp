@@ -6,7 +6,7 @@
 /*   By: hsaidi <hsaidi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:38:43 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/06/14 14:14:20 by hsaidi           ###   ########.fr       */
+/*   Updated: 2023/06/18 10:29:07 by hsaidi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -119,7 +119,7 @@ void Cgi::check_extention()
 	// 		else if (getFileType(this->filename) == 2)
 	// 		{
 	// 			this->script = (*it)->get_cgi_ext_path(".php");
-	// 			print_error(this->script);
+	// 			PRINT_ERROR(this->script);
 	// 		}
 	// 		else
 	// 			throw Error::NotImplemented501();
@@ -159,7 +159,7 @@ void Cgi::set_cgi_env()
 	char *const *av2 = const_cast<char *const *>(av);
 
 	this->env = mapToCharConstArray(cgi_env);
-
+	
 	for (size_t i = 0; cgi_env.size() > i; i++)
 		cout <<"| "<< this->env[i] <<" |"<< endl;
 	cout << "-----------------------------------------------------------------------------------\n";
@@ -174,6 +174,7 @@ void Cgi::set_cgi_env()
 	}
 	else if (pid == 0)
 	{
+		dup2(output_file, 2);
 		dup2(output_file, 1);
 		close(output_file);
 		dup2(input_file, 0);
@@ -181,6 +182,7 @@ void Cgi::set_cgi_env()
 		execve(av[0], av2, this->env);
 	}
 	waitpid(pid, NULL, 0);
+	PRINT_LONG_LINE("finish cgi");
 		// execve(av[0], av2, const_cast<char *const *>(&cgi_env[0]));
 }
 

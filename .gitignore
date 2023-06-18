@@ -9,4 +9,4 @@
 **/executable
 **/objects
 folder/serve_file*
-tmp/*
+**/body_*

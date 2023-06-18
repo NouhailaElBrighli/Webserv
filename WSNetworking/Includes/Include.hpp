@@ -33,7 +33,7 @@
 
 enum { READ_PHASE, WRITE_PHASE };
 
-#define MAXLINE 1024
+#define MAXLINE 10024
 
 #define C_RES "\033[0m"
 #define C_RED "\033[1;31m"
@@ -43,18 +43,33 @@ enum { READ_PHASE, WRITE_PHASE };
 #define C_CYAN "\033[1;36m"
 #define C_YELLOW "\033[1;33m"
 
-#define print_error(str)                                                                           \
+#define PRINT_FUNCTION false  // ! TO DEACTIVATE ALL PRINT FUNCTIONS
+
+#ifdef PRINT_FUNCTION
+
+#define PRINT_ERROR(str)                                                                           \
 	cerr << C_RED << "----------------------------------------------------------------" << str     \
 		 << C_RES << endl;
-#define print_long_line(str)                                                                       \
+#define PRINT_LONG_LINE(str)                                                                       \
 	cout << C_GREEN << "------------------------------------------------" << str << C_RES << endl;
-#define print_line(str)                                                                            \
+#define PRINT_LINE(str)                                                                            \
 	cout << C_YELLOW << "--------------------------------" << str << C_RES << endl;
-#define print_short_line(str) cout << C_CYAN << "----------------" << str << C_RES << endl;
+#define PRINT_SHORT_LINE(str) cout << C_CYAN << "----------------" << str << C_RES << endl;
+#define SHOW_INFO(str) cout << str << C_RES << endl;
 
-#define str_red(str) (std::string(C_RED) + std::string(str) + std::string(C_RES))
-#define str_green(str) (std::string(C_GREEN) + std::string(str) + std::string(C_RES))
-#define str_cyan(str) (std::string(C_CYAN) + std::string(str) + std::string(C_RES))
+#else
+
+#define PRINT_ERROR(str)
+#define PRINT_LONG_LINE(str)
+#define PRINT_LINE(str)
+#define PRINT_SHORT_LINE(str)
+#define SHOW_INFO(str)
+
+#endif
+
+#define STR_RED(str) (std::string(C_RED) + std::string(str) + std::string(C_RES))
+#define STR_GREEN(str) (std::string(C_GREEN) + std::string(str) + std::string(C_RES))
+#define STR_CYAN(str) (std::string(C_CYAN) + std::string(str) + std::string(C_RES))
 
 typedef struct addrinfo	   t_addrinfo;
 typedef struct sockaddr	   t_sockaddr;
