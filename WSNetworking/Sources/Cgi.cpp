@@ -6,7 +6,7 @@
 /*   By: hsaidi <hsaidi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:38:43 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/06/18 10:32:08 by hsaidi           ###   ########.fr       */
+/*   Updated: 2023/06/18 12:29:39 by hsaidi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -162,7 +162,7 @@ void Cgi::set_cgi_env()
 	cgi_env["SERVER_PROTOCOL="] = this->main_client->get_request("Protocol-Version");
 	cgi_env["GATEWAY_INTERFACE="] = "CGI/1.1";
 	cgi_env["REDIRECT_STATUS="] = "200";
-	cgi_env["REQUEST_URI="] = this->main_client->get_new_url();
+	cgi_env["REQUEST_URI="] = this->main_client->get_new_url(); 
 	cgi_env["HTTP_HOST="] = this->main_client->get_request("Host");
 	cgi_env["CONTENT_TYPE="] =this->main_client->get_request("Content-Type");
 	cgi_env["CONTENT_LENGTH="] = this->main_client->get_request("Content-Length");
@@ -178,7 +178,7 @@ void Cgi::set_cgi_env()
 	cout << "-----------------------------------------------------------------------------------\n";
 	outfile = "./outfile.txt";
 	output_file = open(outfile.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
-	input_file = open(this->main_client->get_body_file_name().c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
+	// input_file = open(this->main_client->get_body_file_name().c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
 	int pid = fork();
 	if(pid < 0)
 	{
@@ -190,11 +190,12 @@ void Cgi::set_cgi_env()
 		dup2(output_file, 2);
 		dup2(output_file, 1);
 		close(output_file);
-		dup2(input_file, 0);
-		close(input_file);
+		// dup2(input_file, 0);
+		// close(input_file);
 		execve(av[0], av2, this->env);
 	}
 	waitpid(pid, NULL, 0);
+	// close(output_file);
 	PRINT_LONG_LINE("finish cgi");
 		// execve(av[0], av2, const_cast<char *const *>(&cgi_env[0]));
 }

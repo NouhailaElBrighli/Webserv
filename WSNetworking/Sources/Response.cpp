@@ -74,6 +74,7 @@ void Response::SetVars() {
 	if (this->extention == ".php") {
 		handle_php();
 		Client->set_header(header);
+		std::cout << "server_file in cg:" << serve_file << std::endl;
 		SHOW_INFO(this->header);
 		return;
 	}
@@ -194,6 +195,7 @@ std::string Response::handle_directory() {
 
 std::string Response::handle_file() {
 	std::ifstream file(Client->get_new_url());
+	std::cout << "444: " << Client->get_new_url() << std::endl;
 	if (!file)
 		throw Error::Forbidden403();
 	return (Client->get_new_url());
@@ -284,7 +286,6 @@ std::string Response::post() {
 	PRINT_LONG_LINE("handle post");
 	if (Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_upload().size() != 0) {
 		this->upload_path = Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_root() + Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_upload();
-		std::cout << "the location support upload -> folder_path:" << upload_path << std::endl;
 		DIR *upload_dir = opendir(upload_path.c_str());
 		if (upload_dir == NULL)
 			throw Error::InternalServerError500();
@@ -297,8 +298,9 @@ std::string Response::post() {
 			size_t found = Client->get_new_url().find('.');
 			if (found != std::string::npos) {
 				this->extention = Client->get_new_url().substr(found, Client->get_new_url().size() - found);
-				std::cout << "this->extention: " << this->extention << std::endl;
 				if (this->extention == ".php" || this->extention == ".py") {
+					// std::cout << "serve_file :" << serve_file << std::endl;
+					serve_file = Client->get_new_url();
 					return (this->Get());
 				// 	check_cgi_location();
 				// 	Cgi cgi(this->Client, Client->get_config_server()->get_config_location_parser(), Client->get_new_url());

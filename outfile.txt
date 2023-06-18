@@ -1,15 +1,4 @@
 X-Powered-By: PHP/8.0.2
 Content-type: text/html; charset=UTF-8
 
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Increment Counter Example</title>
-</head>
-<body>
-    <h1>Counter: 0</h1>
-    <form method="POST">
-        <button type="submit" name="increment">Increment Counter</button>
-    </form>
-</body>
-</html>
+Name: hajar saidi<br>Age: 21<br>Occupation: stude0nt<br>

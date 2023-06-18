@@ -112,7 +112,7 @@ void MainClient::handle_write() {
 		serve_file	 = Response.Get();
 	} else if (this->get_request("Request-Type") == "POST") {
 		write_status = true;
-		Response.post();
+		this->serve_file = Response.post();
 	}
 	else if (this->request_parser->get_request("Request-Type") == "DELETE") {
 		cout << "++ in delete ++" << endl;
