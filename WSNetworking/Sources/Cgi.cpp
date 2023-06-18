@@ -6,7 +6,7 @@
 /*   By: hsaidi <hsaidi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:38:43 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/06/18 10:29:07 by hsaidi           ###   ########.fr       */
+/*   Updated: 2023/06/18 20:48:37 by hsaidi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,41 +21,11 @@ Cgi::~Cgi(){}
 
 void Cgi::readFileContents() 
 {
-    // std::cout << "*****in readFileContents***\n";
-    // std::string requestUri = this->main_client->get_request("Request-URI");
-    // std::string location, file;
-
-    // // Check if the Request-URI contains a location or root
-    // for (std::vector<ConfigLocationParser*>::const_iterator it = this->config_location_parser.begin();
-    //      it != this->config_location_parser.end(); it++) {
-    //     if ((*it)->get_location().length() <= requestUri.length()
-    //         && requestUri.substr(0, (*it)->get_location().length()) == (*it)->get_location()) {
-    //         location = (*it)->get_root(); // Replace location with root
-    //         file = requestUri.substr((*it)->get_location().length());
-    //         break;
-    //     } else if ((*it)->get_root().length() <= requestUri.length()
-    //                && requestUri.substr(0, (*it)->get_root().length()) == (*it)->get_root()) {
-    //         location = (*it)->get_root();
-    //         file = requestUri.substr((*it)->get_root().length());
-    //         break;
-    //     }
-    // }
-
-    // // If a location or root is found, update the filename
-    // if (!location.empty()) {
-    //     if (!file.empty() && file[0] == '/')
-    //         file.erase(0, 1); // Remove leading slash if present
-    //     this->filename = location + '/' + file; // Add '/' between location and file
-    // } else {
-    //     this->filename = requestUri; // Use the original filename
-    // }
-	
     std::ifstream fileStream(this->filename.c_str());
     if (fileStream.is_open())
         getFileType(this->filename);
     else
 		throw Error::BadRequest400();
-    	// std::cout << "Failed to open file: " << this->filename << std::endl;
 }
 
 int Cgi::getFileType(const std::string& filename) 
@@ -84,7 +54,8 @@ int Cgi::getFileType(const std::string& filename)
 	return -1;
 }
 
-char* const* Cgi::mapToCharConstArray(const std::map<std::string, std::string>& cgi_env) {
+char* const* Cgi::mapToCharConstArray(const std::map<std::string, std::string>& cgi_env) 
+{
     char** envp = new char*[cgi_env.size() + 1];
     int i = 0;
 	string envVar;
@@ -108,30 +79,81 @@ void Cgi::check_extention()
 		cout << it->first << " : " << it->second << endl;          
 	}
 	readFileContents();
-	
-	// for (vector<ConfigLocationParser *>::const_iterator it
-	// 		= this->config_location_parser.begin(); it != this->config_location_parser.end(); it++)
-	// {  
-	// 	if ((*it)->get_location().find("cgi") != string::npos)
-	// 	{
-	// 		if (getFileType(this->filename) == 1)
-	// 			this->script = (*it)->get_cgi_ext_path(".py");
-	// 		else if (getFileType(this->filename) == 2)
-	// 		{
-	// 			this->script = (*it)->get_cgi_ext_path(".php");
-	// 			PRINT_ERROR(this->script);
-	// 		}
-	// 		else
-	// 			throw Error::NotImplemented501();
-	// 	}
-	// }
-	
 }
-// setting the cgi_env map
+
+std::string Cgi::urlDecode(const std::string& encoded) {
+  std::ostringstream decoded;
+
+  for (std::size_t i = 0; i < encoded.length(); ++i) {
+    if (encoded[i] == '%') {
+      if (i + 2 < encoded.length() && isxdigit(encoded[i + 1]) && isxdigit(encoded[i + 2])) {
+        // Decode the URL-encoded sequence
+        std::string hexStr = encoded.substr(i + 1, 2);
+        int hexValue;
+        std::istringstream(hexStr) >> std::hex >> hexValue;
+        decoded << static_cast<char>(hexValue); 
+        i += 2;
+      } else {
+        // Invalid encoding, treat '%' as a regular character
+        decoded << encoded[i];
+      }
+    } else if (encoded[i] == '+') {
+      // Replace '+' with space character
+      decoded << ' ';
+    } else {
+      // Copy the character as is
+      decoded << encoded[i];
+    }
+  }
+
+  return decoded.str();
+}
+void Cgi::query_string() {
+  std::string queryString = this->main_client->get_request("Query-String");
+  std::string delimiter = "&";
+  std::string pairDelimiter = "=";
+
+  size_t pos = 0;
+  std::string token;
+
+  while ((pos = queryString.find(delimiter)) != std::string::npos) {
+    token = queryString.substr(0, pos);
+    size_t pairPos = token.find(pairDelimiter);
+    if (pairPos != std::string::npos) {
+      std::string key = token.substr(0, pairPos);
+      std::string value = token.substr(pairPos + 1);
+
+      // URL decode the key and value
+      key = urlDecode(key);
+      value = urlDecode(value);
+
+      // Store key-value pair in cgi_env
+      cgi_env[key] = value;
+    }
+
+    queryString.erase(0, pos + delimiter.length());
+  }
+
+  // Process the last key-value pair
+  size_t pairPos = queryString.find(pairDelimiter);
+  if (pairPos != std::string::npos) {
+    std::string key = queryString.substr(0, pairPos);
+    std::string value = queryString.substr(pairPos + 1);
+
+    // URL decode the key and value
+    key = urlDecode(key);
+    value = urlDecode(value);
+
+    // Store key-value pair in cgi_env
+    cgi_env[key] = value;
+  }
+}
+
+
 void Cgi::set_cgi_env()
 {
+	query_string();
 	cgi_env["REQUEST_METHOD="] = this->main_client->get_request("Request-Type");
-	// cgi_env["PATH_INFO="] = this->main_client->get_request("Request-URI");
 	cgi_env["PATH_INFO="] = this->main_client->get_new_url();
 	cgi_env["QUERY_STRING="] = this->main_client->get_request("Query-String");
 	cgi_env["HTTP_COOKIE="] = this->main_client->get_request("Cookie");
@@ -139,21 +161,11 @@ void Cgi::set_cgi_env()
 	cgi_env["SERVER_PROTOCOL="] = this->main_client->get_request("Protocol-Version");
 	cgi_env["GATEWAY_INTERFACE="] = "CGI/1.1";
 	cgi_env["REDIRECT_STATUS="] = "200";
-	// cgi_env["REQUEST_URI="] = this->main_client->get_request("Request-URI");
 	cgi_env["REQUEST_URI="] = this->main_client->get_new_url();
 	cgi_env["HTTP_HOST="] = this->main_client->get_request("Host");
 	cgi_env["CONTENT_TYPE="] =this->main_client->get_request("Content-Type");
 	cgi_env["CONTENT_LENGTH="] = this->main_client->get_request("Content-Length");
-	// if (this->main_client->get_request("Request-Type") == "POST")
-	// {
-	// }
 	cout << "------------------- Printing the env variables ------------------------------------\n";
-    // std::map<std::string, std::string>::const_iterator it;
-    // for (it = cgi_env.begin(); it != cgi_env.end(); ++it) {
-    //     const std::string& key = it->first;
-    //     const std::string& value = it->second;
-    //     std::cout <<"|________|"<< key << value << "|________|"<< std::endl;
-    // }
 	std::cout << main_client->get_location() << std::endl;
 	const char  *av[] = {script.c_str(), this->filename.c_str(), NULL};
 	char *const *av2 = const_cast<char *const *>(av);
