@@ -1,4 +1,14 @@
 X-Powered-By: PHP/8.0.2
 Content-type: text/html; charset=UTF-8
 
-Name: hajar saidi<br>Age: 21<br>Occupation: stude0nt<br>
+<br />
+<b>Warning</b>:  Undefined array key "avatar" in <b>/Users/hsaidi/Desktop/teamserv/folder/file1.php</b> on line <b>5</b><br />
+<br />
+<b>Warning</b>:  Trying to access array offset on value of type null in <b>/Users/hsaidi/Desktop/teamserv/folder/file1.php</b> on line <b>6</b><br />
+<br />
+<b>Warning</b>:  Trying to access array offset on value of type null in <b>/Users/hsaidi/Desktop/teamserv/folder/file1.php</b> on line <b>7</b><br />
+<br />
+<b>Warning</b>:  Trying to access array offset on value of type null in <b>/Users/hsaidi/Desktop/teamserv/folder/file1.php</b> on line <b>8</b><br />
+<br />
+<b>Warning</b>:  Trying to access array offset on value of type null in <b>/Users/hsaidi/Desktop/teamserv/folder/file1.php</b> on line <b>9</b><br />
+Not allowed

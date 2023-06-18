@@ -6,7 +6,7 @@
 /*   By: hsaidi <hsaidi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:38:43 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/06/18 20:53:04 by hsaidi           ###   ########.fr       */
+/*   Updated: 2023/06/18 21:06:06 by hsaidi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -191,8 +191,8 @@ void Cgi::set_cgi_env()
 		dup2(output_file, 2);
 		dup2(output_file, 1);
 		close(output_file);
-		// dup2(input_file, 0);
-		// close(input_file);
+		dup2(input_file, 0);
+		close(input_file);
 		execve(av[0], av2, this->env);
 	}
 	waitpid(pid, NULL, 0);
