@@ -47,13 +47,11 @@ enum { READ_PHASE, WRITE_PHASE };
 
 #ifdef PRINT_FUNCTION
 
-#define PRINT_ERROR(str)                                                                           \
-	cerr << C_RED << "----------------------------------------------------------------" << str     \
-		 << C_RES << endl;
-#define PRINT_LONG_LINE(str)                                                                       \
+#define PRINT_ERROR(str)                                                                                               \
+	cerr << C_RED << "----------------------------------------------------------------" << str << C_RES << endl;
+#define PRINT_LONG_LINE(str)                                                                                           \
 	cout << C_GREEN << "------------------------------------------------" << str << C_RES << endl;
-#define PRINT_LINE(str)                                                                            \
-	cout << C_YELLOW << "--------------------------------" << str << C_RES << endl;
+#define PRINT_LINE(str) cout << C_YELLOW << "--------------------------------" << str << C_RES << endl;
 #define PRINT_SHORT_LINE(str) cout << C_CYAN << "----------------" << str << C_RES << endl;
 #define SHOW_INFO(str) cout << str << C_RES << endl;
 

@@ -33,13 +33,17 @@ void HeaderBodyReader::header_reading() {
 	if (this->head_status)
 		return;
 
+	// int flags = fcntl(this->client_socket, F_GETFL, 0);
+	// fcntl(this->client_socket, F_SETFL, flags | O_NONBLOCK);
+
 	std::memset(buffer, 0, MAXLINE);
 	bytes = recv(this->client_socket, buffer, MAXLINE, 0);
-	cout << "bytes : " << bytes << endl;
+	SHOW_INFO(bytes);
 	if (bytes == 0)
 		return;
 	if (bytes < 0)
 		throw Error::BadRequest400();
+
 	this->head.append(buffer, bytes);
 
 	if (this->head.find("\r\n\r\n") != string::npos) {
