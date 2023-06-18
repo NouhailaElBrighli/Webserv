@@ -101,7 +101,7 @@ int HeaderBodyReader::receive_data(int size) {
 	this->outFile.flush();
 
 	this->outFile.eof();
-	this->outFile.close();	// Close the file
+	this->outFile.close(); // Close the file
 
 	return bytes;
 }

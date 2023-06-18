@@ -157,7 +157,7 @@ re : fclean all
 
 run : all
 	$(M_RUN_S)
-	$(RM) ./body_* ./fol1/body_*
+	$(RM) ./body_* **/body_*
 	./$(NAME) default_anajmi.conf
 	$(M_RGS_E)
 
@@ -168,6 +168,7 @@ go : all
 
 start : all
 	$(M_START_S)
+	$(RM) ./body_* **/body_*
 	./$(NAME) default_nel-brig.conf
 	$(M_RGS_E)
 
