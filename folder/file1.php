@@ -34,8 +34,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             exit(1);
         }
     } else {
-        echo 'Not allowed';
-        exit(1);
+        echo 'Not allowed';  
+		exit(1);
     }
 } else if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['logout'])) {
     unset($_COOKIE['name']);

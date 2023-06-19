@@ -6,7 +6,7 @@
 /*   By: hsaidi <hsaidi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:38:43 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/06/19 16:13:46 by hsaidi           ###   ########.fr       */
+/*   Updated: 2023/06/19 16:48:32 by hsaidi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -109,6 +109,7 @@ std::string Cgi::urlDecode(const std::string& encoded) {
 
   return decoded.str();
 }
+
 void Cgi::query_string() {
   std::string queryString = this->main_client->get_request("Query-String");
   std::string delimiter = "&";
@@ -154,6 +155,8 @@ void Cgi::query_string() {
 void Cgi::set_cgi_env()
 {
 	query_string();
+	cgi_env["CONTENT_TYPE="] =this->main_client->get_request("Content-Type");
+	cgi_env["CONTENT_LENGTH="] = this->main_client->get_request("Content-Length");
 	cgi_env["REQUEST_METHOD="] = this->main_client->get_request("Request-Type");
 	cgi_env["PATH_INFO="] = this->main_client->get_new_url();
 	cgi_env["QUERY_STRING="] = this->main_client->get_request("Query-String");
@@ -164,21 +167,25 @@ void Cgi::set_cgi_env()
 	cgi_env["SERVER_PORT="] ="8888";
 	cgi_env["REQUEST_URI="] = this->main_client->get_new_url();
 	cgi_env["HTTP_HOST="] = this->main_client->get_request("Host");
-	cgi_env["CONTENT_TYPE="] =this->main_client->get_request("Content-Type");
-	cgi_env["CONTENT_LENGTH="] = this->main_client->get_request("Content-Length");
 	cout << "------------------- Printing the env variables ------------------------------------\n";
 	std::cout << main_client->get_location() << std::endl;
-	const char  *av[] = {script.c_str(), this->filename.c_str(), NULL};
-	char *const *av2 = const_cast<char *const *>(av);
+	char  *av[] = {(char *)script.c_str(), (char *)this->filename.c_str(), NULL};
+	// char *const *av2 = const_cast<char *const *>(av);
 
+	std::cout << "av[0]----------->" << av[0] << std::endl;
+	std::cout << "av[1]----------->" << av[1] << std::endl;
+	std::cout << "av[1]----------->" << av[1] << std::endl;
 	this->env = mapToCharConstArray(cgi_env);
 	
 	for (size_t i = 0; cgi_env.size() > i; i++)
-		cout <<"| "<< this->env[i] <<" |"<< endl;
+		cout <<"|"<< this->env[i] <<"|"<< endl;
 	cout << "-----------------------------------------------------------------------------------\n";
-	outfile = "./outfile.txt";
+	outfile = "./folder/outfile.txt";
 	output_file = open(outfile.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
-	// input_file = open(this->main_client->get_body_file_name().c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
+	std::cout << "body file: " << this->main_client->get_body_file_name() << std::endl;
+	input_file = open(this->main_client->get_body_file_name().c_str(), O_WRONLY | O_TRUNC);
+	std::cout << "out-------->: " << output_file << std::endl;
+	std::cout << "in-------->: " << input_file << std::endl;
 	int pid = fork();
 	if(pid < 0)
 	{
@@ -186,16 +193,18 @@ void Cgi::set_cgi_env()
 		return ;
 	}
 	else if (pid == 0)
-	{ 
+	{
 		dup2(output_file, 2);
 		dup2(output_file, 1);
 		close(output_file);
 		dup2(input_file, 0);
 		close(input_file);
-		execve(av[0], av2, this->env);
+		execve(av[0], av, this->env);
 	}
 	// waitpid(pid, NULL,WNOHANG);
 	waitpid(pid, NULL, 0);
+	close(output_file);
+	close(input_file);
 	PRINT_LONG_LINE("finish cgi");
 		// execve(av[0], av2, const_cast<char *const *>(&cgi_env[0]));
 }

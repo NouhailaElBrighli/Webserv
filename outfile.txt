@@ -1,14 +1,9 @@
 X-Powered-By: PHP/8.0.2
 Content-type: text/html; charset=UTF-8
 
-<br />
-<b>Warning</b>:  Undefined array key "avatar" in <b>/Users/hsaidi/Desktop/teamserv/folder/file1.php</b> on line <b>5</b><br />
-<br />
-<b>Warning</b>:  Trying to access array offset on value of type null in <b>/Users/hsaidi/Desktop/teamserv/folder/file1.php</b> on line <b>6</b><br />
-<br />
-<b>Warning</b>:  Trying to access array offset on value of type null in <b>/Users/hsaidi/Desktop/teamserv/folder/file1.php</b> on line <b>7</b><br />
-<br />
-<b>Warning</b>:  Trying to access array offset on value of type null in <b>/Users/hsaidi/Desktop/teamserv/folder/file1.php</b> on line <b>8</b><br />
-<br />
-<b>Warning</b>:  Trying to access array offset on value of type null in <b>/Users/hsaidi/Desktop/teamserv/folder/file1.php</b> on line <b>9</b><br />
-Not allowed
+Hi <br />
+<b>Warning</b>:  Undefined array key "name" in <b>/Users/nel-brig/Desktop/webserv/folder/action.php</b> on line <b>1</b><br />
+.
+You are <br />
+<b>Warning</b>:  Undefined array key "age" in <b>/Users/nel-brig/Desktop/webserv/folder/action.php</b> on line <b>2</b><br />
+0 years old.

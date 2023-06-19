@@ -35,7 +35,7 @@ void HeaderBodyReader::header_reading() {
 
 	// int flags = fcntl(this->client_socket, F_GETFL, 0);
 	// fcntl(this->client_socket, F_SETFL, flags | O_NONBLOCK);
-
+	
 	std::memset(buffer, 0, MAXLINE);
 	bytes = recv(this->client_socket, buffer, MAXLINE, 0);
 	SHOW_INFO(bytes);
