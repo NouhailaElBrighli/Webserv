@@ -88,8 +88,8 @@ void MainClient::handle_read() {
 	if (this->config_server_parser->get_config_location_parser()[get_location()]->get_return().size() != 0) {
 		std::string ret = this->config_server_parser->get_config_location_parser()[get_location()]->get_return();
 		redirection		= ret;
-		if (redirection[0] != '/')
-			redirection = '/' + redirection;
+		// if (redirection[0] != '/')
+		// 	redirection = '/' + redirection;
 		throw Accurate::MovedPermanently301();
 	}
 	is_method_allowed_in_location();
@@ -177,6 +177,7 @@ void MainClient::set_header_for_errors_and_redirection(const char *what) {
 		this->header += redirection;
 		this->header += "\r\nConnection: Close";
 		this->header += "\r\n\r\n";
+		PRINT_ERROR(redirection);
 	} else // errors
 	{
 		Response Error;
