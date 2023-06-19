@@ -84,8 +84,17 @@ void MainClient::handle_read() {
 
 	header_body_reader->header_reading();
 	this->request_parser->run_parse(header_body_reader->get_head());
-
+	this->location = this->match_location();
+	if (this->config_server_parser->get_config_location_parser()[get_location()]->get_return().size() != 0) {
+		std::string ret = this->config_server_parser->get_config_location_parser()[get_location()]->get_return();
+		redirection		= ret;
+		if (redirection[0] != '/')
+			redirection = '/' + redirection;
+		throw Accurate::MovedPermanently301();
+	}
+	is_method_allowed_in_location();
 	if (this->get_request("Request-Type") == "POST") {
+		check_upload_path();
 		if (this->get_request("Content-Length").size() != 0)
 			header_body_reader->body_reading();
 		else if (this->get_request("Transfer-Encoding") == "chunked")
@@ -93,17 +102,6 @@ void MainClient::handle_read() {
 		else
 			throw Error::BadRequest400();
 	}
-	
-	this->location = this->match_location();
-	if (this->config_server_parser->get_config_location_parser()[get_location()]->get_return().size() != 0) {
-		std::string ret = this->config_server_parser->get_config_location_parser()[get_location()]->get_return();
-		redirection		= ret;
-		if (redirection[0] != '/')
-			redirection = '/' + redirection;
-		std::cout << "redirect to :" << redirection << std::endl;
-		throw Accurate::MovedPermanently301();
-	}
-	is_method_allowed_in_location();
 }
 
 void MainClient::handle_write() {
@@ -147,12 +145,7 @@ int MainClient::match_location() {
 				this->new_url	 = this->get_request("Request-URI");
 				std::string root = this->config_server_parser->get_config_location_parser()[locate]->get_root();
 				this->new_url.erase(0, (*itr)->get_location().size());
-				std::cout << "erase location :" << this->new_url << std::endl;
-				std::cout << "this->new_url before: " << this->new_url << std::endl;
-				std::cout << "root :" << root << std::endl;
 				this->new_url = root + new_url; // ? I shouldn't reset the uri for redirect it later
-				std::cout << "this->new_url after: " << this->new_url << std::endl;
-				std::cout << "this->new_url: " << this->new_url << std::endl;
 				return (locate);
 			}
 			locate++;
@@ -286,6 +279,7 @@ int MainClient::check_for_root_directory() {
 		}
 		location++;
 	}
+	SHOW_INFO("should throw here");
 	throw Error::NotFound404();
 }
 
@@ -313,7 +307,6 @@ void MainClient::send_to_socket() {
 
 	if (file_open == false) {
 		PRINT_SHORT_LINE("open the file");
-		std::cout << "this->serve_file: " << this->serve_file << std::endl;
 		if (!file.is_open()) {
 			throw Error::Forbidden403();
 		}
@@ -344,18 +337,6 @@ void MainClient::send_to_socket() {
 	if (send(client_socket, buff, file.gcount(), 0) < 0)
 		throw Error::BadRequest400();
 	file.close();
-	// while (!file.eof())
-	// {
-	// 	char buff[MAXLINE];
-
-	// 	file.read(buff, MAXLINE);
-
-	// 	send(client_socket, buff, file.gcount(), 0);
-
-	// }
-	// file.close();
-	// PRINT_ERROR("sala");
-	// this->send_receive_status = false;
 }
 
 void MainClient::set_extention_map() {
@@ -385,8 +366,27 @@ void MainClient::set_extention_map() {
 	this->extention["application/x-httpd-php"]												   = ".php";
 }
 
-// import os
-// file_path = "./error/404.html"
-// file_size = os.path.getsize(file_path)
-// print("File size:", file_size, "bytes")
-//
+
+
+void		MainClient::check_upload_path()
+{
+	if (this->get_config_server()->get_config_location_parser()[this->get_location()]->get_upload().size() != 0)
+	{
+		this->upload_path = this->get_config_server()->get_config_location_parser()[this->get_location()]->get_root() + this->get_config_server()->get_config_location_parser()[get_location()]->get_upload();
+		DIR *directory = opendir(this->upload_path.c_str());
+		if (directory == NULL)
+		{
+			std::cout << "this->upload_path" << this->upload_path << std::endl;
+			throw Error::BadRequest400();
+		}
+		closedir(directory);
+		return;
+	}
+	// throw Error::InternalServerError500();
+}
+
+
+std::string MainClient::get_upload_path()
+{
+	return(upload_path);
+}

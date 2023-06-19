@@ -1,12 +1,9 @@
 X-Powered-By: PHP/8.0.2
 Content-type: text/html; charset=UTF-8
 
-<!DOCTYPE html>
-<div>
-            <form method="post" enctype="multipart/form-data">
-            <input type="text" name="name" placeholder="Name" />
-            <input type="text" name="email" placeholder="Email" />
-            <input type="file" id="avatar" name="avatar" accept="image/png, image/jpeg" />
-            <input type="submit" value="Submit" />
-        </form>
-    </div>
+Hi <br />
+<b>Warning</b>:  Undefined array key "name" in <b>/Users/nel-brig/Desktop/webserv/folder/action.php</b> on line <b>1</b><br />
+.
+You are <br />
+<b>Warning</b>:  Undefined array key "age" in <b>/Users/nel-brig/Desktop/webserv/folder/action.php</b> on line <b>2</b><br />
+0 years old.

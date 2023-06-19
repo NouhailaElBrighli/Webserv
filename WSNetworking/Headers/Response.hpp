@@ -35,7 +35,7 @@ class Response {
 	std::string Get();
 	void		set_resource_type();
 	void		check_inside_root(std::string &root, std::string path);
-	std::string handle_directory();
+	std::string handle_directory(int flag);
 	std::string check_auto_index();
 	std::string handle_file();
 	std::string set_error_body(std::string msg_status, std::string body_file);
@@ -43,7 +43,7 @@ class Response {
 	void		check_cgi_location();
 	void		set_outfile_cgi(std::string outfile);
 	void		handle_php();
-	void		set_extention_for_body_and_move_it();
+	void	move_the_body();
 };
 
 std::ostream &operator<<(std::ostream &out, const Response &obj); //! here
