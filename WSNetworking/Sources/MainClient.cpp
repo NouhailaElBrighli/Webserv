@@ -95,6 +95,12 @@ void MainClient::handle_read() {
 	is_method_allowed_in_location();
 	if (this->get_request("Request-Type") == "POST") {
 		check_upload_path();
+		if (this->upload_path.size() == 0)
+		{
+			Response *tmp = new Response(this);
+			tmp->check_request_uri();
+			delete tmp;
+		}
 		if (this->get_request("Content-Length").size() != 0)
 			header_body_reader->body_reading();
 		else if (this->get_request("Transfer-Encoding") == "chunked")
@@ -366,8 +372,6 @@ void MainClient::set_extention_map() {
 	this->extention["application/x-httpd-php"]												   = ".php";
 }
 
-
-
 void		MainClient::check_upload_path()
 {
 	if (this->get_config_server()->get_config_location_parser()[this->get_location()]->get_upload().size() != 0)
@@ -384,7 +388,6 @@ void		MainClient::check_upload_path()
 	}
 	// throw Error::InternalServerError500();
 }
-
 
 std::string MainClient::get_upload_path()
 {
