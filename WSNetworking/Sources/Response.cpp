@@ -257,17 +257,30 @@ std::string Response::Get() {
 }
 
 void Response::handle_php() {
-	std::ifstream php_file(serve_file.c_str(), std::ios::binary);
+	std::ifstream php_file(serve_file.c_str());
 
 	php_file.seekg(0, std::ios::end);
 	std::ifstream::pos_type size = php_file.tellg();
 	php_file.seekg(0, std::ios::beg);
-	char buff[MAXLINE];
+	PRINT_ERROR(size);
+	// char buff[MAXLINE];
+	std::vector<char> buffer(MAXLINE);
+	if (php_file.read(buffer.data(), MAXLINE))
+	{
+		std::cout << "------------read from file-------------" << std::endl;
+	}
+	else
+	{
+		std::cout << "-------------can't read from file--------------" << std::endl;
+	}
 
-	php_file.read(buff, MAXLINE);
-	std::string content(buff);
+	// std:cout.write(buff, php_file.gcount());
+	std::string content(buffer.begin(), buffer.end());
+	std::cout << "content:" << content << std::endl;
 	size_t		found = content.find("\r\n\r\n");
+	std::cout << "found" << found << std::endl;
 	if (found != std::string::npos) {
+		PRINT_ERROR(serve_file);
 		this->header = "HTTP/1.1 200 ok\r\n";
 		content		 = content.substr(0, found);
 		this->header += content;
@@ -279,7 +292,8 @@ void Response::handle_php() {
 		this->header += this->ContentLength;
 		this->header += "\r\n\r\n";
 		Client->set_start_php(found + 4);
-		//! cgi = 1 here please
+		php_file.close();
+	// 	//! cgi = 1 here please
 	}
 }
 

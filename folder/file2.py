@@ -1,6 +1,6 @@
 from flask import Flask, request, session
 
-app = Flask(__name__)
+app = Flask(name)
 app.secret_key = 'your_secret_key'  # Set a secret key for session encryption
 
 
@@ -29,7 +29,7 @@ def counter():
     """.format(counter_value)
 
 
-if __name__ == '__main__':
+if name == 'main':
     try:
         app.run()
     except Exception as e:

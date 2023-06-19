@@ -138,6 +138,7 @@ void HeaderBodyReader::body_reading() {
 	bytes = this->receive_data(MAXLINE);
 	this->count += bytes;
 
+	// std::cout.write(buffer, bytes);
 	if (this->count == this->length || bytes == 0) {
 		this->body_status = true;
 		this->count		  = 0;

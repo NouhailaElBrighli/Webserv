@@ -13,4 +13,5 @@
 // upload in location
 // why it fail to return 405 in head method
 
-// --> return / ==> doesn't work
+"http://localhost:8888/test/files/file1.php?name=hajar%20saidi&age=21&occupation=student"
+

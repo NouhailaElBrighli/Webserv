@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Cgi.hpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nel-brig <nel-brig@student.42.fr>          +#+  +:+       +#+        */
+/*   By: hsaidi <hsaidi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:33:49 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/06/18 11:05:39 by nel-brig         ###   ########.fr       */
+/*   Updated: 2023/06/18 21:02:56 by hsaidi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,8 +14,7 @@
 #define CGI_HPP
 
 #include "WSNetworking.hpp"
-#include <sstream>
-#include <iomanip>
+
 
 class Cgi
 {
