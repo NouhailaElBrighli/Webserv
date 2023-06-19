@@ -6,7 +6,7 @@
 /*   By: hsaidi <hsaidi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:38:43 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/06/19 16:46:11 by hsaidi           ###   ########.fr       */
+/*   Updated: 2023/06/19 18:22:16 by hsaidi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -167,9 +167,7 @@ void Cgi::set_cgi_env()
 	cgi_env["REQUEST_URI="] = this->main_client->get_new_url();
 	cgi_env["HTTP_HOST="] = this->main_client->get_request("Host");
 	cout << "------------------- Printing the env variables ------------------------------------\n";
-	std::cout << main_client->get_location() << std::endl;
 	char  *av[] = {(char *)script.c_str(), (char *)this->filename.c_str(), NULL};
-	// char *const *av2 = const_cast<char *const *>(av);
 
 	std::cout << "av[0]----------->" << av[0] << std::endl;
 	std::cout << "av[1]----------->" << av[1] << std::endl;
@@ -193,7 +191,7 @@ void Cgi::set_cgi_env()
 	}
 	else if (pid == 0)
 	{
-		// dup2(output_file, 2);
+		dup2(output_file, 2);
 		dup2(output_file, 1);
 		close(output_file);
 		dup2(input_file, 0);

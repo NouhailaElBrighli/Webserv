@@ -295,9 +295,7 @@ std::string Response::post() {
 		this->serve_file = handle_directory(1);
 		std::cout << "serve_file in handle directory: " << serve_file << std::endl;
 	} else
-	{
 		this->serve_file = handle_file();
-	}
 	this->SetVars();
 	return(serve_file);
 }
@@ -306,11 +304,11 @@ void Response::move_the_body() {
 	std::string path = Client->get_body_file_name();
 
 	size_t found = path.find_last_of('/');
-	if (found != std::string::npos) // !you should create the folder tmp by any function
+	if (found != std::string::npos)
 		filename = path.substr(found, path.size() - found);
 
 	this->new_path = Client->get_upload_path() + filename;
 	if (std::rename(Client->get_body_file_name().c_str(), this->new_path.c_str()) != 0)
-		throw Error::BadRequest400();
+		throw Error::InternalServerError500();
 	Client->reset_body_file_name(this->new_path);
 }
