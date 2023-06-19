@@ -259,9 +259,9 @@ void MainServer::destroy_client(int client_socket) {
 
 // Main routine
 void MainServer::routine() {
-	// Set timeout to 5 seconds
+	// Set timeout to 10 seconds
 	struct timeval timeout;
-	timeout.tv_sec	= 5;
+	timeout.tv_sec	= 10;
 	timeout.tv_usec = 0;
 	while (true) {
 
