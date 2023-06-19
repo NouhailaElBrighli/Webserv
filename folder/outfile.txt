@@ -1,12 +1,23 @@
 X-Powered-By: PHP/8.0.2
 Content-type: text/html; charset=UTF-8
 
+<br />
+<b>Warning</b>:  move_uploaded_file(folder/6490847b6252d6.78690843.jpeg): Failed to open stream: No such file or directory in <b>/Users/hsaidi/Desktop/teamserv/folder/file1.php</b> on line <b>21</b><br />
+<br />
+<b>Warning</b>:  move_uploaded_file(): Unable to move &quot;/private/var/tmp/phpewsM6k&quot; to &quot;folder/6490847b6252d6.78690843.jpeg&quot; in <b>/Users/hsaidi/Desktop/teamserv/folder/file1.php</b> on line <b>21</b><br />
+<br />
+<b>Warning</b>:  Cannot modify header information - headers already sent by (output started at /Users/hsaidi/Desktop/teamserv/folder/file1.php:21) in <b>/Users/hsaidi/Desktop/teamserv/folder/file1.php</b> on line <b>25</b><br />
+<br />
+<b>Warning</b>:  Cannot modify header information - headers already sent by (output started at /Users/hsaidi/Desktop/teamserv/folder/file1.php:21) in <b>/Users/hsaidi/Desktop/teamserv/folder/file1.php</b> on line <b>26</b><br />
+<br />
+<b>Warning</b>:  Cannot modify header information - headers already sent by (output started at /Users/hsaidi/Desktop/teamserv/folder/file1.php:21) in <b>/Users/hsaidi/Desktop/teamserv/folder/file1.php</b> on line <b>27</b><br />
 <!DOCTYPE html>
 <div>
-            <form method="post" enctype="multipart/form-data">
-            <input type="text" name="name" placeholder="Name" />
-            <input type="text" name="email" placeholder="Email" />
-            <input type="file" id="avatar" name="avatar" accept="image/png, image/jpeg" />
-            <input type="submit" value="Submit" />
-        </form>
+            <p>
+            <center><h1>Hello, cs!</h1></center><hr>
+            <center><img src="folder/6490847b6252d6.78690843.jpeg" alt="avatar" width="300" height="300" style="object-fit: cover;"></center><hr><br/>
+            <center>cs</center>
+            <center>vf</center><br/><br/>
+            <center><a href="?logout">Logout</a></center>
+        </p>
     </div>

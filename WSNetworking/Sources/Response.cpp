@@ -74,7 +74,6 @@ void Response::SetVars() {
 	if (this->extention == ".php") {
 		handle_php();
 		Client->set_header(header);
-		std::cout << "server_file in cg:" << serve_file << std::endl;
 		SHOW_INFO(this->header);
 		return;
 	}
@@ -198,7 +197,6 @@ std::string Response::handle_directory(int flag) {
 
 std::string Response::handle_file() {
 	std::ifstream file(Client->get_new_url());
-	std::cout << "444: " << Client->get_new_url() << std::endl;
 	if (!file)
 		throw Error::Forbidden403();
 	return (Client->get_new_url());

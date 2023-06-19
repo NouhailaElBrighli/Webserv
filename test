@@ -15,16 +15,3 @@
 
 "http://localhost:8888/test/files/file1.php?name=hajar%20saidi&age=21&occupation=student"
 
-DOCUMENT_ROOT=../
-GATEWAY_INTERFACE=CGI/1.1
-HTTP_COOKIE=
-HTTP_HOST=127.0.0.1
-PATH_INFO=cgi-bin//post_script.php
-QUERY_STRING=
-REDIRECT_STATUS=200
-REQUEST_METHOD=GET
-SCRIPT_FILENAME=cgi-bin//post_script.php
-SCRIPT_NAME=cgi-bin//post_script.php
-SERVER_NAME=127.0.0.1
-SERVER_PORT=8080
-CONTENT_LENGTH=203044

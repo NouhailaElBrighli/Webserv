@@ -6,7 +6,7 @@
 /*   By: hsaidi <hsaidi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:38:43 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/06/19 16:48:32 by hsaidi           ###   ########.fr       */
+/*   Updated: 2023/06/19 17:38:07 by hsaidi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -151,7 +151,6 @@ void Cgi::query_string() {
   }
 }
 
-
 void Cgi::set_cgi_env()
 {
 	query_string();
@@ -164,7 +163,7 @@ void Cgi::set_cgi_env()
 	cgi_env["SCRIPT_FILENAME="] = this->filename;
 	cgi_env["GATEWAY_INTERFACE="] = "CGI/1.1";
 	cgi_env["REDIRECT_STATUS="] = "200";
-	cgi_env["SERVER_PORT="] ="8888";
+	// cgi_env["SERVER_PORT="] ="8888";
 	cgi_env["REQUEST_URI="] = this->main_client->get_new_url();
 	cgi_env["HTTP_HOST="] = this->main_client->get_request("Host");
 	cout << "------------------- Printing the env variables ------------------------------------\n";
@@ -183,13 +182,19 @@ void Cgi::set_cgi_env()
 	outfile = "./folder/outfile.txt";
 	output_file = open(outfile.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
 	std::cout << "body file: " << this->main_client->get_body_file_name() << std::endl;
-	input_file = open(this->main_client->get_body_file_name().c_str(), O_WRONLY | O_TRUNC);
+	input_file = open(this->main_client->get_body_file_name().c_str(), O_RDONLY);
+	// std::fstream infile(this->main_client->get_body_file_name().c_str(), std::ios::in);
+	// input_file = infile.rdbuf()->native_handle();
+	// while (true);
+	
+	std::cout << input_file << std::endl;
 	std::cout << "out-------->: " << output_file << std::endl;
 	std::cout << "in-------->: " << input_file << std::endl;
 	int pid = fork();
 	if(pid < 0)
 	{
 		cout << "fork failed" << endl;
+		
 		return ;
 	}
 	else if (pid == 0)
