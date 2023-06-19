@@ -88,8 +88,10 @@ void MainClient::handle_read() {
 
 	this->location = this->match_location();
 	if (this->config_server_parser->get_config_location_parser()[get_location()]->get_return().size() != 0) {
-		std::string ret = this->config_server_parser->get_config_location_parser()[get_location()]->get_return();
-		redirection		= ret;
+		vector<string>::const_iterator it
+			= this->config_server_parser->get_config_location_parser()[get_location()]->get_return().end() - 1;
+		string ret	= *it;
+		redirection = ret;
 		if (redirection[0] != '/')
 			redirection = '/' + redirection;
 		throw Accurate::MovedPermanently301();

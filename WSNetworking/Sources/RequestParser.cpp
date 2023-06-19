@@ -70,7 +70,7 @@ string RequestParser::urlDecode() {
 	size_t			  i	  = 0;
 
 	while (i < len) {
-		if (str[i] == '%' && i + 2 < len) {
+		if (str[i] == '%' && i + 2 < len && std::isxdigit(str[i + 1]) && std::isxdigit(str[i + 2])) {
 			char hex[3]		 = {str[i + 1], str[i + 2], '\0'};
 			char decodedChar = static_cast<char>(std::strtol(hex, NULL, 16));
 			decoded << decodedChar;
