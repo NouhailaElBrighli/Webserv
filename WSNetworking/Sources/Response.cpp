@@ -118,7 +118,6 @@ void Response::check_request_uri() {
 	}
 	this->check_inside_root(root, uri);
 	if (this->type.size() == 0) {
-		PRINT_ERROR("ERROR HERE");
 		throw Error::NotFound404();
 	}
 }
@@ -166,7 +165,7 @@ std::string Response::check_auto_index() {
 	return ("folder/serve_file.html");
 }
 
-std::string Response::handle_directory() {
+std::string Response::handle_directory(int flag) {
 	PRINT_SHORT_LINE("handle directory");
 	std::string uri = Client->get_new_url();
 	if (uri[uri.size() - 1] != '/' && Client->get_request("Request-URI").size() != 1) // redirect from /folder to /folder/
@@ -175,7 +174,9 @@ std::string Response::handle_directory() {
 		Client->set_redirection(red);
 		throw Accurate::MovedPermanently301();
 	}
+	std::cout << "location: " << Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_location() << std::endl;
 	std::vector<std::string> index_vec = Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_index();
+	std::cout << "numbers of vectors: " << index_vec.size() << std::endl;
 	if (index_vec.size() != 0) {
 		std::string root = Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_root();
 		for (std::vector<std::string>::iterator itr_index = index_vec.begin(); itr_index != index_vec.end(); itr_index++) {
@@ -189,6 +190,8 @@ std::string Response::handle_directory() {
 			}
 		}
 	}
+	if (flag)
+		throw Error::Forbidden403();
 	return (check_auto_index());
 }
 
@@ -244,7 +247,7 @@ std::string Response::Get() {
 	if (Client->get_serve_file().size() == 0) {
 		this->check_request_uri(); // * check if uri exist in the root
 		if (this->type == "directory")
-			this->serve_file = handle_directory();
+			this->serve_file = handle_directory(0);
 		else if (this->type == "file")
 			this->serve_file = handle_file();
 	} else
@@ -282,47 +285,31 @@ void Response::handle_php() {
 
 std::string Response::post() {
 	PRINT_LONG_LINE("handle post");
-	if (Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_upload().size() != 0) {
-		this->upload_path = Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_root() + Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_upload();
-		std::cout << "the location support upload -> folder_path:" << upload_path << std::endl;
-		DIR *upload_dir = opendir(upload_path.c_str());
-		if (upload_dir == NULL)
-			throw Error::InternalServerError500();
-		closedir(upload_dir);
-		set_extention_for_body_and_move_it();
-		check_request_uri();
-		if (this->type == "directory") {
-			//
-		} else {
-			size_t found = Client->get_new_url().find('.');
-			if (found != std::string::npos) {
-				this->extention = Client->get_new_url().substr(found, Client->get_new_url().size() - found);
-				std::cout << "this->extention: " << this->extention << std::endl;
-				if (this->extention == ".php" || this->extention == ".py") {
-					return (this->Get());
-				// 	check_cgi_location();
-				// 	Cgi cgi(this->Client, Client->get_config_server()->get_config_location_parser(), Client->get_new_url());
-				// 	cgi.check_extention();
-				// 	this->serve_file = cgi.get_outfile();
-				}
-			}
-		}
-		SHOW_INFO("here");
+	if (Client->get_upload_path().size() != 0)
+	{
+		move_the_body();
 		throw Accurate::Created201();
+	}
+	check_request_uri();
+	if (this->type == "directory") {
+		this->serve_file = handle_directory(1);
+		std::cout << "serve_file in handle directory: " << serve_file << std::endl;
 	} else
-		throw Error::InternalServerError500();
+	{
+		this->serve_file = handle_file();
+	}
+	this->SetVars();
+	return(serve_file);
 }
 
-void Response::set_extention_for_body_and_move_it() {
+void Response::move_the_body() {
 	std::string path = Client->get_body_file_name();
 
 	size_t found = path.find_last_of('/');
 	if (found != std::string::npos) // !you should create the folder tmp by any function
 		filename = path.substr(found, path.size() - found);
 
-	this->new_path = this->upload_path + filename;
-
-	std::cout << "new_path: " << new_path << std::endl;
+	this->new_path = Client->get_upload_path() + filename;
 	if (std::rename(Client->get_body_file_name().c_str(), this->new_path.c_str()) != 0)
 		throw Error::BadRequest400();
 	Client->reset_body_file_name(this->new_path);

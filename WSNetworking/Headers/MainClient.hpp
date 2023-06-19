@@ -28,6 +28,7 @@ class MainClient {
 	std::string						   serve_file;
 	std::string						   body_file;
 	int								   start_php;
+	std::string							upload_path;
 
   private:
 	// Copy constructor and assignation operator
@@ -67,6 +68,7 @@ class MainClient {
 	void		set_extention_map();
 	void		set_start_php(int start);
 	std::string get_extention(std::string content);
+	std::string get_upload_path();
 
 	std::string get_serve_file();
 	std::string write_into_file(DIR *directory, std::string root);
@@ -74,6 +76,7 @@ class MainClient {
 	void		set_serve_file(std::string file_to_serve);
 	void		send_to_socket();
 	void		set_content_type_map();
+	void		check_upload_path();
 
 	void start(string task);
 
