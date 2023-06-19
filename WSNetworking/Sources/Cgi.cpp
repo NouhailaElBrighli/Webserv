@@ -6,7 +6,7 @@
 /*   By: hsaidi <hsaidi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:38:43 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/06/18 21:06:06 by hsaidi           ###   ########.fr       */
+/*   Updated: 2023/06/19 15:11:31 by hsaidi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -155,18 +155,21 @@ void Cgi::set_cgi_env()
 {
 	query_string();
 	cgi_env["REQUEST_METHOD="] = this->main_client->get_request("Request-Type");
-	cgi_env["PATH_INFO="] = this->main_client->get_new_url();
+	cgi_env["PATH_INFO="] = script.c_str();
 	cgi_env["QUERY_STRING="] = this->main_client->get_request("Query-String");
 	cgi_env["HTTP_COOKIE="] = this->main_client->get_request("Cookie");
 	cgi_env["SCRIPT_FILENAME="] = this->filename;
+	cgi_env["SCRIPT_NAME="] = this->filename;
 	cgi_env["SERVER_PROTOCOL="] = this->main_client->get_request("Protocol-Version");
 	cgi_env["GATEWAY_INTERFACE="] = "CGI/1.1";
 	cgi_env["REDIRECT_STATUS="] = "200";
 	// cgi_env["REQUEST_URI="] = this->main_client->get_request("Request-URI");
 	cgi_env["REQUEST_URI="] = this->main_client->get_new_url();
-	cgi_env["HTTP_HOST="] = this->main_client->get_request("Host");
+	cgi_env["HTTP_HOST="] = "127.0.0.1";
+	cgi_env["SERVER_PORT="] = "8888";
 	cgi_env["CONTENT_TYPE="] =this->main_client->get_request("Content-Type");
 	cgi_env["CONTENT_LENGTH="] = this->main_client->get_request("Content-Length");
+	cgi_env["SERVER_NAME="] = "127.0.0.1";
 	cout << "------------------- Printing the env variables ------------------------------------\n";
 	std::cout << main_client->get_location() << std::endl;
 	const char  *av[] = {script.c_str(), this->filename.c_str(), NULL};
@@ -195,8 +198,8 @@ void Cgi::set_cgi_env()
 		close(input_file);
 		execve(av[0], av2, this->env);
 	}
+	// waitpid(pid, NULL,WNOHANG);
 	waitpid(pid, NULL, 0);
-	// close(output_file);
 	PRINT_LONG_LINE("finish cgi");
 		// execve(av[0], av2, const_cast<char *const *>(&cgi_env[0]));
 }

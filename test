@@ -14,3 +14,33 @@
 // why it fail to return 405 in head method
 
 "http://localhost:8888/test/files/file1.php?name=hajar%20saidi&age=21&occupation=student"
+
+DOCUMENT_ROOT=../
+GATEWAY_INTERFACE=CGI/1.1
+HTTP_COOKIE=
+HTTP_HOST=127.0.0.1
+PATH_INFO=cgi-bin//post_script.php
+QUERY_STRING=
+REDIRECT_STATUS=200
+REQUEST_METHOD=GET
+SCRIPT_FILENAME=cgi-bin//post_script.php
+SCRIPT_NAME=cgi-bin//post_script.php
+SERVER_NAME=127.0.0.1
+SERVER_PORT=8080
+CONTENT_LENGTH=203044
+	cgi_env["REQUEST_METHOD="] = this->main_client->get_request("Request-Type");
+	cgi_env["PATH_INFO="] = script.c_str();
+	cgi_env["QUERY_STRING="] = this->main_client->get_request("Query-String");
+	cgi_env["HTTP_COOKIE="] = this->main_client->get_request("Cookie");
+	cgi_env["SCRIPT_FILENAME="] = this->filename;
+	cgi_env["SCRIPT_NAME="] = this->filename;
+	cgi_env["SERVER_PROTOCOL="] = this->main_client->get_request("Protocol-Version");
+	cgi_env["GATEWAY_INTERFACE="] = "CGI/1.1";
+	cgi_env["REDIRECT_STATUS="] = "200";
+	// cgi_env["REQUEST_URI="] = this->main_client->get_request("Request-URI");
+	cgi_env["REQUEST_URI="] = this->main_client->get_new_url();
+	cgi_env["HTTP_HOST="] = "127.0.0.1";
+	cgi_env["SERVER_PORT="] = "8888";
+	cgi_env["CONTENT_TYPE="] =this->main_client->get_request("Content-Type");
+	cgi_env["CONTENT_LENGTH="] = this->main_client->get_request("Content-Length");
+	cgi_env["SERVER_NAME="] = "127.0.0.1";
