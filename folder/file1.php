@@ -11,13 +11,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $avatar_ext = explode('.', $avatar_name);
     $avatar_actual_ext = strtolower(end($avatar_ext));
 
-    $allowed = array('jpg', 'jpeg', 'png');
+    $allowed = array('jpg', 'jpeg', 'png' );
 
     if (in_array($avatar_actual_ext, $allowed)) {
         if ($avatar_error === 0) {
             if ($avatar_size < 10000000000000000) {
                 $avatar_name_new = uniqid('', true) . '.' . $avatar_actual_ext;
-                $avatar_destination = 'folder/' . $avatar_name_new;
+                $avatar_destination = './' . $avatar_name_new;
                 move_uploaded_file($avatar_tmp_name, $avatar_destination);
                 $_COOKIE['name'] = $_POST['name'];
                 $_COOKIE['email'] = $_POST['email'];
@@ -34,8 +34,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             exit(1);
         }
     } else {
-        echo 'Not allowed';  
-		exit(1);
+        echo 'Not allowed';
+        exit(1);
     }
 } else if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['logout'])) {
     unset($_COOKIE['name']);

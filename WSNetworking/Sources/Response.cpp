@@ -263,19 +263,9 @@ void Response::handle_php() {
 	std::ifstream::pos_type size = php_file.tellg();
 	php_file.seekg(0, std::ios::beg);
 	PRINT_ERROR(size);
-	// char buff[MAXLINE];
-	std::vector<char> buffer(MAXLINE);
-	if (php_file.read(buffer.data(), MAXLINE))
-	{
-		std::cout << "------------read from file-------------" << std::endl;
-	}
-	else
-	{
-		std::cout << "-------------can't read from file--------------" << std::endl;
-	}
-
-	// std:cout.write(buff, php_file.gcount());
-	std::string content(buffer.begin(), buffer.end());
+	char buffer[MAXLINE];
+	php_file.read(buffer, MAXLINE);
+	std::string content(buffer, php_file.gcount());
 	std::cout << "content:" << content << std::endl;
 	size_t		found = content.find("\r\n\r\n");
 	std::cout << "found" << found << std::endl;

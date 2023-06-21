@@ -24,6 +24,7 @@ HeaderBodyReader::~HeaderBodyReader() {}
 void HeaderBodyReader::throw_still_running() {
 	this->outFile.eof();
 	this->outFile.close();
+	PRINT_LONG_LINE("CLose file : " + this->body_file_name);
 	throw std::runtime_error("Still running");
 }
 
@@ -85,6 +86,8 @@ void HeaderBodyReader::open_body_file() {
 	// Open the file for writing if it's not already open
 	if (!this->outFile.is_open()) {
 		this->outFile.open(this->body_file_name.c_str(), std::ios::app | std::ios::binary);
+	PRINT_LONG_LINE("Open file : " + this->body_file_name);
+
 		if (!this->outFile)
 			throw std::runtime_error(STR_RED("can't open file " + this->body_file_name));
 	}
@@ -97,8 +100,11 @@ int HeaderBodyReader::receive_data(int size) {
 
 	std::memset(buffer, 0, len);
 	int bytes = recv(this->client_socket, buffer, len, 0);
-	if (bytes < 0)
+	if (bytes < 0) {
+		this->outFile.eof();
+		this->outFile.close(); // Close the file
 		throw Error::BadRequest400();
+	}
 
 	// Write data to the file
 	this->outFile.write(buffer, bytes);
@@ -106,6 +112,7 @@ int HeaderBodyReader::receive_data(int size) {
 
 	this->outFile.eof();
 	this->outFile.close(); // Close the file
+	PRINT_LONG_LINE("CLose file : " + this->body_file_name);
 
 	return bytes;
 }
@@ -126,12 +133,23 @@ void HeaderBodyReader::body_reading() {
 
 	if (this->length == 0) {
 		this->length = ConfigServerParser::stringToInt(main_client->get_request("Content-Length"));
-		if (static_cast<size_t>(this->length) > this->main_client->get_config_server()->get_client_max_body_size())
+		if (static_cast<size_t>(this->length) > this->main_client->get_config_server()->get_client_max_body_size()) {
+			PRINT_LONG_LINE("CLose file : " + this->body_file_name);
+			// close the file
+			this->outFile.eof();
+			this->outFile.close();
+
 			throw Error::RequestEntityTooLarge413();
+		}
 	}
 	if (this->length == 0 || this->length == this->count) {
 		this->body_status = true;
 		this->count		  = 0;
+
+		PRINT_LONG_LINE("CLose file : " + this->body_file_name);
+		// close the file
+		this->outFile.eof();
+		this->outFile.close();
 		return;
 	}
 
@@ -233,12 +251,20 @@ void HeaderBodyReader::chunked_body_reading() {
 	this->open_body_file();
 
 	if (this->body.size() > 0 && pos1 != string::npos) {
+		PRINT_LONG_LINE("1");
 		this->chunked_body_from_header();
 		this->chunked_body_from_header();
+
+		PRINT_LONG_LINE("CLose file : " + this->body_file_name);
+		this->outFile.eof();
+		this->outFile.close(); // Close the file
 	}
 
-	else
+	else{
+		PRINT_LONG_LINE("2");
+
 		this->chunked_body();
+	}
 }
 
 void HeaderBodyReader::chunked_body_from_header() {

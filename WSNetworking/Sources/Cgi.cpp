@@ -6,7 +6,7 @@
 /*   By: hsaidi <hsaidi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:38:43 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/06/19 19:15:58 by hsaidi           ###   ########.fr       */
+/*   Updated: 2023/06/21 17:31:09 by hsaidi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,30 @@ void Cgi::readFileContents()
         getFileType(this->filename);
     else
 		throw Error::BadRequest400();
+}
+
+
+void Cgi::wait(const pid_t pid)
+{
+    sleep(3);
+
+    // Gets the script's termination status
+    int status;
+	// int mStatusCode;
+    pid_t result = waitpid(pid, &status, WNOHANG);
+
+	cout << "-----------------result: " << result << endl;
+    if (result == -1)
+    {
+        throw std::runtime_error("Error waiting for script with PID");
+    }
+    else if (result == 0)
+    {
+        // Script is still running
+        kill(pid, SIGKILL);
+        // const std::string errorMsg = std::string("CGI::waitForScript(): Script with PID ") + std::to_string(pid) + " timed out";
+        // throw std::runtime_error("TIMEOUT");
+    }
 }
 
 int Cgi::getFileType(const std::string& filename) 
@@ -85,7 +109,7 @@ void Cgi::check_extention()
 std::string Cgi::urlDecode(const std::string& encoded) {
   std::ostringstream decoded;
 
-  for (std::size_t i = 0; i < encoded.length(); ++i) {
+for (std::size_t i = 0; i < encoded.length(); ++i) {
     if (encoded[i] == '%') {
       if (i + 2 < encoded.length() && isxdigit(encoded[i + 1]) && isxdigit(encoded[i + 2])) {
         // Decode the URL-encoded sequence
@@ -118,7 +142,7 @@ void Cgi::query_string() {
   size_t pos = 0;
   std::string token;
 
-  while ((pos = queryString.find(delimiter)) != std::string::npos) {
+  	while ((pos = queryString.find(delimiter)) != std::string::npos) {
     token = queryString.substr(0, pos);
     size_t pairPos = token.find(pairDelimiter);
     if (pairPos != std::string::npos) {
@@ -149,6 +173,7 @@ void Cgi::query_string() {
     // Store key-value pair in cgi_env
     cgi_env[key] = value;
   }
+	// }
 }
 
 void Cgi::set_cgi_env()
@@ -157,34 +182,41 @@ void Cgi::set_cgi_env()
 	cgi_env["CONTENT_TYPE="] =this->main_client->get_request("Content-Type");
 	cgi_env["CONTENT_LENGTH="] = this->main_client->get_request("Content-Length");
 	cgi_env["REQUEST_METHOD="] = this->main_client->get_request("Request-Type");
-	cgi_env["PATH_INFO="] = this->main_client->get_new_url();
+	cgi_env["PATH_INFO="] = this->filename;
 	cgi_env["QUERY_STRING="] = this->main_client->get_request("Query-String");
 	cgi_env["HTTP_COOKIE="] = this->main_client->get_request("Cookie");
 	cgi_env["SCRIPT_FILENAME="] = this->filename;
 	cgi_env["GATEWAY_INTERFACE="] = "CGI/1.1";
 	cgi_env["REDIRECT_STATUS="] = "200";
-	cgi_env["SERVER_PORT="] ="8888";
-	cgi_env["REQUEST_URI="] = this->main_client->get_new_url();
-	cgi_env["HTTP_HOST="] = "127.0.0.1";
+	// cgi_env["SERVER_PORT="] ="8888";
+	cgi_env["REQUEST_URI="] = this->main_client->get_request("Request-URI");
+	// cgi_env["HTTP_HOST="] = "127.0.0.1";
+	cgi_env["HTTP_HOST="] = this->main_client->get_request("Host");
 	cout << "------------------- Printing the env variables ------------------------------------\n";
 	char  *av[] = {(char *)script.c_str(), (char *)this->filename.c_str(), NULL};
 
 	std::cout << "av[0]----------->" << av[0] << std::endl;
-	std::cout << "av[1]----------->" << av[1] << std::endl;
 	std::cout << "av[1]----------->" << av[1] << std::endl;
 	this->env = mapToCharConstArray(cgi_env);
 	
 	for (size_t i = 0; cgi_env.size() > i; i++)
 		cout <<"|"<< this->env[i] <<"|"<< endl;
 	cout << "-----------------------------------------------------------------------------------\n";
-	outfile = "./folder/outfile.txt";
+	outfile = "./outfile.txt";
 	output_file = open(outfile.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0777);
 	input_file = open(this->main_client->get_body_file_name().c_str(), O_RDONLY);
+	/* char arr[100];
+	 read(input_file, arr, 100);
+	 cout << "arr: " << arr << endl;
+	 input_file = open("/Users/hsaidi/Desktop/teamserv/body_64922e07_390c0126.bin", O_RDONLY);*/
+	//  cout<<"------------------in child---2---------------\n";
+	//  char arr[105];
+	//  arr[read(input_file, arr, 100)] = 0;
+	//  std::cout << 
+	// std::cout << "BODY : " << arr << std::endl;
+	//  cout<<"------------------in child---3---------------\n";
+
 	std::cout << "body file: " << this->main_client->get_body_file_name() << std::endl;
-	// std::fstream infile(this->main_client->get_body_file_name().c_str(), std::ios::in);
-	// input_file = infile.rdbuf()->native_handle();
-	// while (true);
-	
 	std::cout << input_file << std::endl;
 	std::cout << "out-------->: " << output_file << std::endl;
 	std::cout << "in-------->: " << input_file << std::endl;
@@ -192,23 +224,21 @@ void Cgi::set_cgi_env()
 	if(pid < 0)
 	{
 		cout << "fork failed" << endl;
-		
 		return ;
 	}
 	else if (pid == 0)
 	{
 		dup2(output_file, 2);
 		dup2(output_file, 1);
-		close(output_file);
 		dup2(input_file, 0);
+		close(output_file);
 		close(input_file);
 		execve(av[0], av, this->env);
 	}
-	// waitpid(pid, NULL,WNOHANG);
+	// wait(pid);
 	waitpid(pid, NULL, 0);
-
 	PRINT_LONG_LINE("finish cgi");
-		// execve(av[0], av2, const_cast<char *const *>(&cgi_env[0]));
+	// execve(av[0], av2, const_cast<char *const *>(&cgi_env[0]));
 }
 
 std::string Cgi::get_outfile()
