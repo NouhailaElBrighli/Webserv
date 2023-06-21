@@ -35,15 +35,15 @@ class HeaderBodyReader {
 	~HeaderBodyReader();
 
 	// Methods
-  private:
-	void throw_still_running();
 
   public:
 	void header_reading();
 
   private:
+	void   throw_still_running();
 	string generate_random_file_name();
 	void   open_body_file();
+	void   close_body_file();
 	int	   receive_data(int set);
 
   public:

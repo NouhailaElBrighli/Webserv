@@ -86,6 +86,7 @@ void MainServer::print_info() {
 		cout << C_CYAN << " |" << endl;
 		cout << string(65, '-') << C_RES << endl;
 	}
+	PRINT_LONG_LINE("select wait for client");
 }
 
 // Create sockets for each port
