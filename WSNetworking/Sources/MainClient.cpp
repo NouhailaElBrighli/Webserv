@@ -88,24 +88,31 @@ void MainClient::handle_read() {
 
 	this->location = this->match_location();
 	if (this->config_server_parser->get_config_location_parser()[get_location()]->get_return().size() != 0) {
-		vector<string>::const_iterator it
-			= this->config_server_parser->get_config_location_parser()[get_location()]->get_return().end() - 1;
-		string ret	= *it;
-		redirection = ret;
-		if (redirection[0] != '/')
-			redirection = '/' + redirection;
-		throw Accurate::MovedPermanently301();
+		vector<string>::const_iterator it = this->config_server_parser->get_config_location_parser()[get_location()]->get_return().begin();
+		if (*it == "301")
+		{
+			it++;
+			redirection = *it;
+			throw Accurate::MovedPermanently301();
+		}
+		else if (*it == "302")
+		{
+			it++;
+			redirection = *it;
+			throw Accurate::TemporaryRedirect302();
+		}
+		else
+		{
+			redirection = *it;
+			throw Accurate::TemporaryRedirect302();
+		}
 	}
-
-	// Check if method is allowed in location
 	is_method_allowed_in_location();
-
 	if (this->get_request("Request-Type") == "POST") {
 		check_upload_path();
 		if (this->upload_path.size() == 0) {
-			Response *tmp = new Response(this);
-			tmp->check_request_uri();
-			delete tmp;
+			Response tmp(this);
+			tmp.check_request_uri();
 		}
 		if (this->get_request("Content-Length").size() != 0)
 			header_body_reader->body_reading();
@@ -185,7 +192,7 @@ void MainClient::set_header_for_errors_and_redirection(const char *what) {
 		this->header += redirection;
 		this->header += "\r\nConnection: Close";
 		this->header += "\r\n\r\n";
-		PRINT_ERROR(redirection);
+		PRINT_ERROR(this->header);
 	} else // errors
 	{
 		Response Error;
@@ -226,12 +233,17 @@ std::string MainClient::write_into_file(DIR *directory, std::string root) {
 	file << "</h1>\n";
 	dirent *list;
 	while ((list = readdir(directory))) {
+
 		file << "<li> <a href= ";
 		file << '"';
 		file << list->d_name;
+		if (list->d_type != DT_REG)
+			file << '/';
 		file << '"';
 		file << '>';
 		file << list->d_name;
+		if (list->d_type != DT_REG)
+			file << '/';
 		file << "</a></li>";
 	}
 	file.close();
@@ -389,7 +401,7 @@ void MainClient::check_upload_path() {
 		DIR *directory = opendir(this->upload_path.c_str());
 		if (directory == NULL) {
 			std::cout << "this->upload_path" << this->upload_path << std::endl;
-			throw Error::BadRequest400();
+			throw Error::BadRequest400();//!500
 		}
 		closedir(directory);
 		return;

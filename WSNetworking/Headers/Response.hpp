@@ -44,6 +44,7 @@ class Response {
 	void		set_outfile_cgi(std::string outfile);
 	void		handle_php();
 	void	move_the_body();
+	void	throw_accurate_response(std::string uri);
 };
 
 std::ostream &operator<<(std::ostream &out, const Response &obj); //! here

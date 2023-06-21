@@ -1,9 +1,23 @@
 X-Powered-By: PHP/8.0.2
 Content-type: text/html; charset=UTF-8
 
-Hi <br />
-<b>Warning</b>:  Undefined array key "name" in <b>/Users/nel-brig/Desktop/webserv/folder/action.php</b> on line <b>1</b><br />
-.
-You are <br />
-<b>Warning</b>:  Undefined array key "age" in <b>/Users/nel-brig/Desktop/webserv/folder/action.php</b> on line <b>2</b><br />
-0 years old.
+<br />
+<b>Warning</b>:  move_uploaded_file(folder/6491e587c6b0b6.49068147.jpeg): Failed to open stream: No such file or directory in <b>/Users/nel-brig/Desktop/webserv/folder/file1.php</b> on line <b>21</b><br />
+<br />
+<b>Warning</b>:  move_uploaded_file(): Unable to move &quot;/private/var/tmp/phpuc4ygD&quot; to &quot;folder/6491e587c6b0b6.49068147.jpeg&quot; in <b>/Users/nel-brig/Desktop/webserv/folder/file1.php</b> on line <b>21</b><br />
+<br />
+<b>Warning</b>:  Cannot modify header information - headers already sent by (output started at /Users/nel-brig/Desktop/webserv/folder/file1.php:21) in <b>/Users/nel-brig/Desktop/webserv/folder/file1.php</b> on line <b>25</b><br />
+<br />
+<b>Warning</b>:  Cannot modify header information - headers already sent by (output started at /Users/nel-brig/Desktop/webserv/folder/file1.php:21) in <b>/Users/nel-brig/Desktop/webserv/folder/file1.php</b> on line <b>26</b><br />
+<br />
+<b>Warning</b>:  Cannot modify header information - headers already sent by (output started at /Users/nel-brig/Desktop/webserv/folder/file1.php:21) in <b>/Users/nel-brig/Desktop/webserv/folder/file1.php</b> on line <b>27</b><br />
+<!DOCTYPE html>
+<div>
+            <p>
+            <center><h1>Hello, z§x§zx!</h1></center><hr>
+            <center><img src="folder/6491e587c6b0b6.49068147.jpeg" alt="avatar" width="300" height="300" style="object-fit: cover;"></center><hr><br/>
+            <center>z§x§zx</center>
+            <center>§zxz§x</center><br/><br/>
+            <center><a href="?logout">Logout</a></center>
+        </p>
+    </div>

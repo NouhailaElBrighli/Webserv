@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Cgi.cpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hsaidi <hsaidi@student.42.fr>              +#+  +:+       +#+        */
+/*   By: nel-brig <nel-brig@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:38:43 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/06/19 19:15:58 by hsaidi           ###   ########.fr       */
+/*   Updated: 2023/06/20 11:53:22 by nel-brig         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -157,29 +157,32 @@ void Cgi::set_cgi_env()
 	cgi_env["CONTENT_TYPE="] =this->main_client->get_request("Content-Type");
 	cgi_env["CONTENT_LENGTH="] = this->main_client->get_request("Content-Length");
 	cgi_env["REQUEST_METHOD="] = this->main_client->get_request("Request-Type");
-	cgi_env["PATH_INFO="] = this->main_client->get_new_url();
+	// cgi_env["PATH_INFO="] = "folder/action.php";
 	cgi_env["QUERY_STRING="] = this->main_client->get_request("Query-String");
 	cgi_env["HTTP_COOKIE="] = this->main_client->get_request("Cookie");
 	cgi_env["SCRIPT_FILENAME="] = this->filename;
 	cgi_env["GATEWAY_INTERFACE="] = "CGI/1.1";
 	cgi_env["REDIRECT_STATUS="] = "200";
-	cgi_env["SERVER_PORT="] ="8888";
-	cgi_env["REQUEST_URI="] = this->main_client->get_new_url();
-	cgi_env["HTTP_HOST="] = "127.0.0.1";
+	// cgi_env["SERVER_PORT="] ="8888";
+	cgi_env["REQUEST_URI="] = "folder/action.php";
+	// cgi_env["HTTP_HOST="] = "127.0.0.1";
 	cout << "------------------- Printing the env variables ------------------------------------\n";
 	char  *av[] = {(char *)script.c_str(), (char *)this->filename.c_str(), NULL};
 
-	std::cout << "av[0]----------->" << av[0] << std::endl;
-	std::cout << "av[1]----------->" << av[1] << std::endl;
-	std::cout << "av[1]----------->" << av[1] << std::endl;
+	// std::cout << "av[0]----------->" << av[0] << std::endl;
+	// std::cout << "av[1]----------->" << av[1] << std::endl;
+	// std::cout << "av[1]----------->" << av[1] << std::endl;
 	this->env = mapToCharConstArray(cgi_env);
-	
-	for (size_t i = 0; cgi_env.size() > i; i++)
+	size_t i;
+	for ( i = 0; cgi_env.size() > i; i++)
+	{
 		cout <<"|"<< this->env[i] <<"|"<< endl;
+	}
+	printf("** %s\n", env[i]);
 	cout << "-----------------------------------------------------------------------------------\n";
 	outfile = "./folder/outfile.txt";
 	output_file = open(outfile.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0777);
-	input_file = open(this->main_client->get_body_file_name().c_str(), O_RDONLY);
+	input_file = open(this->main_client->get_body_file_name().c_str(), O_RDONLY,0777);
 	std::cout << "body file: " << this->main_client->get_body_file_name() << std::endl;
 	// std::fstream infile(this->main_client->get_body_file_name().c_str(), std::ios::in);
 	// input_file = infile.rdbuf()->native_handle();
@@ -202,10 +205,16 @@ void Cgi::set_cgi_env()
 		close(output_file);
 		dup2(input_file, 0);
 		close(input_file);
-		execve(av[0], av, this->env);
+		if (execve(av[0], av, this->env) < 0)
+			exit(1);
 	}
 	// waitpid(pid, NULL,WNOHANG);
-	waitpid(pid, NULL, 0);
+	else
+	{
+		waitpid(pid, NULL, 0);
+		close(output_file);
+		close(input_file);	
+	}
 
 	PRINT_LONG_LINE("finish cgi");
 		// execve(av[0], av2, const_cast<char *const *>(&cgi_env[0]));

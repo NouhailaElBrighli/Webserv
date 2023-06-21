@@ -92,27 +92,19 @@ void Response::SetVars() {
 void Response::check_request_uri() {
 	std::string root = Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_root();
 	std::string uri	 = Client->get_new_url();
-	if (uri[uri.size() - 1] == '/')
-		uri.erase(uri.size() - 1, 1);
-	if (root == uri) {
+	if (root == uri)
+	{
+		if (access(root.c_str(), R_OK) < 0)
+			throw Error::Forbidden403();
 		this->type = "directory";
 		return;
 	}
-	if (root == "/") {
-		if (Client->get_new_url() == "/") {
-			this->type = "directory";
-			return;
-		}
-		std::ifstream check(uri);
-		if (check.is_open()) {
-			DIR *dir = opendir(uri.c_str());
-			if (dir == NULL)
-				this->type = "file";
-			else
-				this->type = "directory";
-			return;
-		} else
-			throw Error::NotFound404();
+	if (uri[uri.size() - 1] == '/')
+		uri.erase(uri.size() - 1, 1);
+	if (root == "/")
+	{
+		throw_accurate_response(uri);
+		return;
 	}
 	this->check_inside_root(root, uri);
 	if (this->type.size() == 0) {
@@ -123,14 +115,14 @@ void Response::check_request_uri() {
 void Response::check_inside_root(std::string &root, std::string uri) {
 	DIR *directory = opendir(root.c_str());
 	if (!directory) {
-		return;
+		return ;
 	}
 	dirent *list;
 	while ((list = readdir(directory))) {
 		std::string name = list->d_name;
 		if (list->d_type == DT_DIR) {
 			if (name != "." && name != "..") {
-				std::string new_path = root + '/' + list->d_name;
+				std::string	new_path = root + '/' + list->d_name;
 				if (new_path == uri) {
 					this->type = "directory";
 					break;
@@ -321,4 +313,32 @@ void Response::move_the_body() {
 	if (std::rename(Client->get_body_file_name().c_str(), this->new_path.c_str()) != 0)
 		throw Error::InternalServerError500();
 	Client->reset_body_file_name(this->new_path);
+}
+
+void	Response::throw_accurate_response(std::string uri)
+{
+	DIR *dir = opendir(uri.c_str());
+	if (dir == NULL)
+	{	
+		if (errno == ENOTDIR)
+		{
+			std::ifstream file(uri.c_str());
+			if (!file)
+			{
+				if (errno == EACCES)
+					throw Error::Forbidden403();
+				else
+					throw Error::NotFound404(); //!any other cases should be handled
+			}
+			this->type = "file";
+			return;
+		}
+		if (errno == ENOENT)
+			throw Error::NotFound404();
+		if (errno == EACCES)
+			throw Error::Forbidden403();
+		else
+			throw Error::NotFound404();// !any other cases should be handled
+	}
+	this->type = "directory";
 }
