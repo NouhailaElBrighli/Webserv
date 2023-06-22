@@ -62,45 +62,16 @@ void RequestParser::is_head_valid() {
 		throw Error::BadRequest400();
 }
 
-// Function to URL-decode a string
-string RequestParser::urlDecode() {
-	std::stringstream decoded;
-	string			  str = this->request["Request-URI"];
-	size_t			  len = str.length();
-	size_t			  i	  = 0;
-
-	while (i < len) {
-		if (str[i] == '%' && i + 2 < len && std::isxdigit(str[i + 1]) && std::isxdigit(str[i + 2])) {
-			char hex[3]		 = {str[i + 1], str[i + 2], '\0'};
-			char decodedChar = static_cast<char>(std::strtol(hex, NULL, 16));
-			decoded << decodedChar;
-			i += 3;
-		} else if (str[i] == '+') {
-			decoded << ' ';
-			i++;
-		} else {
-			decoded << str[i];
-			i++;
-		}
-	}
-
-	return decoded.str();
-}
-
 void RequestParser::is_first_line_valid() {
-	string allowed_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxy"
-						   "z0123456789-._~:/?#[]@!$&'()*+,;=%";
+	string allowed_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;=%";
 
 	if (this->request.size() != 3)
 		throw Error::NotImplemented501();
 
-	// URL-decode the Request-URI
-	string decodedURI = urlDecode();
-
-	if (decodedURI.find_first_not_of(allowed_chars) != string::npos)
+	if (this->request["Request-URI"].find_first_not_of(allowed_chars) != string::npos)
 		throw Error::BadRequest400();
 
-	if (decodedURI.length() > 2048)
+	if (this->request["Request-URI"].length() > 2048)
 		throw Error::RequestURITooLong414();
 }
 
