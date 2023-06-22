@@ -21,24 +21,15 @@ HeaderBodyReader::HeaderBodyReader(MainClient *main_client) : main_client(main_c
 HeaderBodyReader::~HeaderBodyReader() {}
 
 // Methods
-void HeaderBodyReader::throw_still_running() {
-	this->outFile.eof();
-	this->outFile.close();
-	throw std::runtime_error("Still running");
-}
-
 void HeaderBodyReader::header_reading() {
 	int bytes;
 
 	if (this->head_status)
 		return;
 
-	// int flags = fcntl(this->client_socket, F_GETFL, 0);
-	// fcntl(this->client_socket, F_SETFL, flags | O_NONBLOCK);
-	
 	std::memset(buffer, 0, MAXLINE);
 	bytes = recv(this->client_socket, buffer, MAXLINE, 0);
-	SHOW_INFO(bytes);
+
 	if (bytes == 0)
 		return;
 	if (bytes < 0)
@@ -60,6 +51,11 @@ void HeaderBodyReader::header_reading() {
 	} else {
 		throw std::runtime_error("Still running");
 	}
+}
+
+void HeaderBodyReader::throw_still_running() {
+	this->close_body_file();
+	throw std::runtime_error("Still running");
 }
 
 string HeaderBodyReader::generate_random_file_name() {
@@ -90,6 +86,13 @@ void HeaderBodyReader::open_body_file() {
 	}
 }
 
+void HeaderBodyReader::close_body_file() {
+	if (this->outFile.is_open()) {
+		this->outFile.eof();
+		this->outFile.close();
+	}
+}
+
 int HeaderBodyReader::receive_data(int size) {
 	int len = MAXLINE;
 	if (size < MAXLINE)
@@ -104,9 +107,7 @@ int HeaderBodyReader::receive_data(int size) {
 	this->outFile.write(buffer, bytes);
 	this->outFile.flush();
 
-	this->outFile.eof();
-	this->outFile.close(); // Close the file
-
+	this->close_body_file();
 	return bytes;
 }
 
@@ -126,12 +127,15 @@ void HeaderBodyReader::body_reading() {
 
 	if (this->length == 0) {
 		this->length = ConfigServerParser::stringToInt(main_client->get_request("Content-Length"));
-		if (static_cast<size_t>(this->length) > this->main_client->get_config_server()->get_client_max_body_size())
+		if (static_cast<size_t>(this->length) > this->main_client->get_config_server()->get_client_max_body_size()) {
+			this->close_body_file();
 			throw Error::RequestEntityTooLarge413();
+		}
 	}
 	if (this->length == 0 || this->length == this->count) {
 		this->body_status = true;
 		this->count		  = 0;
+		this->close_body_file();
 		return;
 	}
 
@@ -142,10 +146,10 @@ void HeaderBodyReader::body_reading() {
 	if (this->count == this->length || bytes == 0) {
 		this->body_status = true;
 		this->count		  = 0;
+		this->close_body_file();
 		return;
-	} else {
-		throw std::runtime_error("Still running");
-	}
+	} else
+		this->throw_still_running();
 }
 
 int HeaderBodyReader::hex_to_int(string chunkSizeStr) {
@@ -173,8 +177,10 @@ int HeaderBodyReader::find_chunk_size_in_body_str() {
 
 	if (len != -1)
 		this->size += len;
-	if (this->size > this->main_client->get_config_server()->get_client_max_body_size())
+	if (this->size > this->main_client->get_config_server()->get_client_max_body_size()) {
+		this->close_body_file();
 		throw Error::RequestEntityTooLarge413();
+	}
 	return len;
 }
 
@@ -218,8 +224,10 @@ int HeaderBodyReader::find_chunk_size_from_recv() {
 	}
 	if (len > 0)
 		this->size += len;
-	if (this->size > this->main_client->get_config_server()->get_client_max_body_size())
+	if (this->size > this->main_client->get_config_server()->get_client_max_body_size()) {
+		this->close_body_file();
 		throw Error::RequestEntityTooLarge413();
+	}
 
 	return len;
 }
@@ -239,6 +247,8 @@ void HeaderBodyReader::chunked_body_reading() {
 
 	else
 		this->chunked_body();
+
+	this->close_body_file();
 }
 
 void HeaderBodyReader::chunked_body_from_header() {
@@ -250,6 +260,7 @@ void HeaderBodyReader::chunked_body_from_header() {
 		if (this->length == 0) {
 			this->body_status = true;
 			this->length	  = 0;
+			this->close_body_file();
 			return;
 		} else if (this->length == -1) {
 			this->length = 0;
@@ -291,8 +302,8 @@ void HeaderBodyReader::chunked_body() {
 	if (bytes == 0 && this->length == 0) {
 		this->body_status = true;
 		this->length	  = 0;
+		this->close_body_file();
 		return;
-	} else {
-		throw std::runtime_error("Still running");
-	}
+	} else
+		this->throw_still_running();
 }

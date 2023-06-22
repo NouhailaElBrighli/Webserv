@@ -16,7 +16,7 @@ class ConfigLocationParser {
 	bool				root_status;
 	vector<string>		index;
 	bool				index_status;
-	string				return_;
+	vector<string>		return_;
 	bool				return_status;
 	string				upload;
 	bool				upload_status;
@@ -32,7 +32,7 @@ class ConfigLocationParser {
 	const string			  &get_root() const;
 	const vector<string>	  &get_index() const;
 	const string			  &get_index(int i) const;
-	const string			  &get_return() const;
+	const vector<string>	  &get_return() const;
 	const string			  &get_upload() const;
 	const vector<string>	  &get_methods() const;
 	const string			  &get_methods(int i) const;
