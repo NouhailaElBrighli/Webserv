@@ -66,8 +66,7 @@ void MainClient::start_handle(string task) {
 
 	} catch (const std::exception &e) {
 		PRINT_SHORT_LINE("catch something");
-		if (string(e.what()).find("can't open file") != string::npos
-			|| string(e.what()).find("Bad Input") != string::npos)
+		if (string(e.what()).find("can't open file") != string::npos || string(e.what()).find("Bad Input") != string::npos)
 			throw std::runtime_error(string(e.what()));
 
 		PRINT_ERROR(string(e.what()));
@@ -85,24 +84,19 @@ void MainClient::handle_read() {
 
 	header_body_reader->header_reading();
 	this->request_parser->run_parse(header_body_reader->get_head());
-
 	this->location = this->match_location();
 	if (this->config_server_parser->get_config_location_parser()[get_location()]->get_return().size() != 0) {
-		vector<string>::const_iterator it
-			= this->config_server_parser->get_config_location_parser()[get_location()]->get_return().end() - 1;
-		string ret	= *it;
-		redirection = ret;
+		std::string ret = this->config_server_parser->get_config_location_parser()[get_location()]->get_return();
+		redirection		= ret;
 		if (redirection[0] != '/')
 			redirection = '/' + redirection;
 		throw Accurate::MovedPermanently301();
 	}
-
-	// Check if method is allowed in location
 	is_method_allowed_in_location();
-
 	if (this->get_request("Request-Type") == "POST") {
 		check_upload_path();
-		if (this->upload_path.size() == 0) {
+		if (this->upload_path.size() == 0)
+		{
 			Response *tmp = new Response(this);
 			tmp->check_request_uri();
 			delete tmp;
@@ -124,7 +118,7 @@ void MainClient::handle_write() {
 		serve_file	 = Response.Get();
 	} else if (this->get_request("Request-Type") == "POST") {
 		write_status = true;
-		serve_file	 = Response.post();
+		serve_file = Response.post();
 	} else if (this->get_request("Request-Type") == "DELETE") {
 		// DELETE
 	}
@@ -133,8 +127,7 @@ void MainClient::handle_write() {
 void MainClient::is_method_allowed_in_location() {
 	for (vector<ConfigLocationParser *>::const_iterator it = config_server_parser->get_config_location_parser().begin();
 		 it != config_server_parser->get_config_location_parser().end(); it++) {
-		if (this->get_request("Request-URI").find((*it)->get_location()) != string::npos
-			|| this->get_request("Request-URI").find((*it)->get_root()) != string::npos) {
+		if (this->get_request("Request-URI").find((*it)->get_location()) != string::npos || this->get_request("Request-URI").find((*it)->get_root()) != string::npos) {
 			for (size_t i = 0; i < (*it)->get_methods().size(); i++) {
 				if ((*it)->get_methods(i) == this->get_request("Request-Type"))
 					return;
@@ -151,15 +144,14 @@ int MainClient::match_location() {
 	this->new_url	   = this->get_request("Request-URI");
 	while (str.size() != 0) {
 		locate = 0;
-		for (vector<ConfigLocationParser *>::const_iterator itr
-			 = config_server_parser->get_config_location_parser().begin();
+		for (vector<ConfigLocationParser *>::const_iterator itr = config_server_parser->get_config_location_parser().begin();
 			 itr != config_server_parser->get_config_location_parser().end(); itr++) {
 			if ((*itr)->get_location() == str) {
 				str				 = this->get_request("Request-URI");
 				this->new_url	 = this->get_request("Request-URI");
 				std::string root = this->config_server_parser->get_config_location_parser()[locate]->get_root();
 				this->new_url.erase(0, (*itr)->get_location().size());
-				this->new_url = root + new_url;	 // ? I shouldn't reset the uri for redirect it later
+				this->new_url = root + new_url; // ? I shouldn't reset the uri for redirect it later
 				return (locate);
 			}
 			locate++;
@@ -176,16 +168,16 @@ void MainClient::set_header_for_errors_and_redirection(const char *what) {
 	this->write_status = true;
 	if (this->status >= 400)
 		check_files_error();
-	if (this->status < 400 && this->status > 300)  // redirection
+	if (this->status < 400 && this->status > 300) // redirection
 	{
 		this->header = "HTTP/1.1 ";
 		this->header += this->msg_status;
 		this->header += "\r\nContent-Length: 0\r\n";
-		this->header += "Location: ";  //? should i use port and host or not
+		this->header += "Location: "; //? should i use port and host or not
 		this->header += redirection;
 		this->header += "\r\nConnection: Close";
 		this->header += "\r\n\r\n";
-	} else	// errors
+	} else // errors
 	{
 		Response Error;
 		this->body_file = Error.SetError(msg_status, body_file);
@@ -281,8 +273,7 @@ std::string MainClient::get_content_type(std::string extention) { return (this->
 
 int MainClient::check_for_root_directory() {
 	int location = 0;
-	for (vector<ConfigLocationParser *>::const_iterator itr
-		 = config_server_parser->get_config_location_parser().begin();
+	for (vector<ConfigLocationParser *>::const_iterator itr = config_server_parser->get_config_location_parser().begin();
 		 itr != config_server_parser->get_config_location_parser().end(); itr++) {
 		if ((*itr)->get_location() == "/") {
 			std::string root = this->config_server_parser->get_config_location_parser()[location]->get_root();
@@ -347,7 +338,7 @@ void MainClient::send_to_socket() {
 	char buff[MAXLINE];
 
 	file.read(buff, MAXLINE);
-
+	
 	this->position = file.tellg();
 	if (send(client_socket, buff, file.gcount(), 0) < 0)
 		throw Error::BadRequest400();
@@ -381,12 +372,14 @@ void MainClient::set_extention_map() {
 	this->extention["application/x-httpd-php"]												   = ".php";
 }
 
-void MainClient::check_upload_path() {
-	if (this->get_config_server()->get_config_location_parser()[this->get_location()]->get_upload().size() != 0) {
-		this->upload_path = this->get_config_server()->get_config_location_parser()[this->get_location()]->get_root()
-							+ this->get_config_server()->get_config_location_parser()[get_location()]->get_upload();
+void		MainClient::check_upload_path()
+{
+	if (this->get_config_server()->get_config_location_parser()[this->get_location()]->get_upload().size() != 0)
+	{
+		this->upload_path = this->get_config_server()->get_config_location_parser()[this->get_location()]->get_root() + this->get_config_server()->get_config_location_parser()[get_location()]->get_upload();
 		DIR *directory = opendir(this->upload_path.c_str());
-		if (directory == NULL) {
+		if (directory == NULL)
+		{
 			std::cout << "this->upload_path" << this->upload_path << std::endl;
 			throw Error::BadRequest400();
 		}
@@ -396,4 +389,7 @@ void MainClient::check_upload_path() {
 	// throw Error::InternalServerError500();
 }
 
-std::string MainClient::get_upload_path() { return (upload_path); }
+std::string MainClient::get_upload_path()
+{
+	return(upload_path);
+}

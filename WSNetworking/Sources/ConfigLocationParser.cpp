@@ -29,11 +29,11 @@ const string &ConfigLocationParser::get_index(int i) const {
 	return this->index[i];
 }
 
-const vector<string> &ConfigLocationParser::get_return() const {
+const string &ConfigLocationParser::get_return() const {
 	if (this->return_status == false) {
-		// return an empty vector if return is not set
-		static vector<string> empty_vector;
-		return empty_vector;
+		// return an empty string if return is not set
+		static string empty_string;
+		return empty_string;
 	}
 	return this->return_;
 }
@@ -236,22 +236,13 @@ void ConfigLocationParser::set_index(string index, size_t pos) {
 }
 
 void ConfigLocationParser::set_return(string return_, size_t pos) {
-	return_ = return_.substr(0, return_.size() - 1);
-	std::stringstream ss_return(return_);
-	string			  str_return;
-
+	string return_save = return_;
+	return_			   = return_.substr(0, return_.size() - 1);
 	if (this->return_status == true || return_.empty() || this->config_location[pos - 1] != ';'
-		|| (!std::isalpha(this->config_location[pos - 2]) && this->config_location[pos - 2] != '/'))
+		|| !std::isalnum(this->config_location[pos - 2]))
 		throw std::runtime_error(STR_RED("return Error : " + return_));
 
-	while (std::getline(ss_return, str_return, ' '))
-		this->return_.push_back(str_return);
-
-	if (this->return_.size() > 2)
-		throw std::runtime_error(STR_RED("return Error : " + return_));
-	if (this->return_.size() == 2 && (this->return_[0] != "301" && this->return_[0] != "302"))
-		throw std::runtime_error(STR_RED("return Error : " + return_));
-
+	this->return_		= return_;
 	this->return_status = true;
 }
 
@@ -381,13 +372,8 @@ std::ostream &operator<<(std::ostream &os, const ConfigLocationParser &clp) {
 	os << "root : " << clp.get_root() << std::endl;
 	for (size_t i = 0; i < clp.get_index().size(); i++)
 		os << "index : " << clp.get_index()[i] << std::endl;
-
-	if (clp.get_return().size() != 0) {
-		os << "return : ";
-		for (size_t i = 0; i < clp.get_return().size(); i++)
-			os << clp.get_return()[i] << " ";
-		os << std::endl;
-	}
+	if (!clp.get_return().empty())
+		os << "return : " << clp.get_return() << std::endl;
 	if (!clp.get_upload().empty())
 		os << "upload : " << clp.get_upload() << std::endl;
 	for (size_t i = 0; i < clp.get_methods().size(); i++)

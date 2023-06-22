@@ -6,7 +6,7 @@
 /*   By: hsaidi <hsaidi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:38:43 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/06/21 17:31:09 by hsaidi           ###   ########.fr       */
+/*   Updated: 2023/06/22 18:08:03 by hsaidi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -205,21 +205,6 @@ void Cgi::set_cgi_env()
 	outfile = "./outfile.txt";
 	output_file = open(outfile.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0777);
 	input_file = open(this->main_client->get_body_file_name().c_str(), O_RDONLY);
-	/* char arr[100];
-	 read(input_file, arr, 100);
-	 cout << "arr: " << arr << endl;
-	 input_file = open("/Users/hsaidi/Desktop/teamserv/body_64922e07_390c0126.bin", O_RDONLY);*/
-	//  cout<<"------------------in child---2---------------\n";
-	//  char arr[105];
-	//  arr[read(input_file, arr, 100)] = 0;
-	//  std::cout << 
-	// std::cout << "BODY : " << arr << std::endl;
-	//  cout<<"------------------in child---3---------------\n";
-
-	std::cout << "body file: " << this->main_client->get_body_file_name() << std::endl;
-	std::cout << input_file << std::endl;
-	std::cout << "out-------->: " << output_file << std::endl;
-	std::cout << "in-------->: " << input_file << std::endl;
 	int pid = fork();
 	if(pid < 0)
 	{

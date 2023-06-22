@@ -86,7 +86,6 @@ void MainServer::print_info() {
 		cout << C_CYAN << " |" << endl;
 		cout << string(65, '-') << C_RES << endl;
 	}
-	PRINT_LONG_LINE("select wait for client");
 }
 
 // Create sockets for each port
@@ -260,14 +259,15 @@ void MainServer::destroy_client(int client_socket) {
 
 // Main routine
 void MainServer::routine() {
-	// Set timeout to 10 seconds
+	// Set timeout to 5 seconds
 	struct timeval timeout;
-	timeout.tv_sec	= 10;
+	timeout.tv_sec	= 5;
 	timeout.tv_usec = 0;
 	while (true) {
 
 		this->reset();
 
+		PRINT_LONG_LINE("select wait for client");
 		// select() will block until there is activity on one of the sockets
 		if (select(this->max_socket + 1, &this->read_sockets, &this->write_sockets, NULL, &timeout) == -1)
 			throw std::runtime_error(STR_RED("Error select : ") + strerror(errno));
@@ -297,8 +297,6 @@ void MainServer::routine() {
 					cerr << e.what() << endl;
 				}
 				this->destroy_client(i);
-
-				PRINT_LONG_LINE("select wait for client");
 			}
 		}
 	}

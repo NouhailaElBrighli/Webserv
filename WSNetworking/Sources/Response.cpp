@@ -14,7 +14,7 @@ Response::Response(MainClient *Client) { this->Client = Client; }
 
 std::string Response::SetError(const std::string msg_status, std::string body_file) {
 	this->ContentType = "text/html";
-	body_file		  = this->set_error_body(msg_status, body_file);  // set content length here
+	body_file		  = this->set_error_body(msg_status, body_file); // set content length here
 	this->header	  = "HTTP/1.1 ";
 	this->header += msg_status;
 	this->header += "\r\nContent-Type: ";
@@ -55,7 +55,7 @@ void Response::SetContentType() {
 void Response::SetContentLength(std::string RequestURI) {
 	std::ifstream RequestedFile(RequestURI.c_str(), std::ios::binary);
 	if (!RequestedFile)
-		throw Error::Forbidden403();  // ! don't check here
+		throw Error::Forbidden403(); // ! don't check here
 	RequestedFile.seekg(0, std::ios::end);
 	std::ifstream::pos_type size = RequestedFile.tellg();
 	RequestedFile.seekg(0, std::ios::beg);
@@ -104,14 +104,16 @@ void Response::check_request_uri() {
 			return;
 		}
 		std::ifstream check(uri);
-		if (check.is_open()) {
+		if(check.is_open())
+		{
 			DIR *dir = opendir(uri.c_str());
 			if (dir == NULL)
 				this->type = "file";
 			else
 				this->type = "directory";
 			return;
-		} else
+		}
+		else
 			throw Error::NotFound404();
 	}
 	this->check_inside_root(root, uri);
@@ -149,10 +151,8 @@ void Response::check_inside_root(std::string &root, std::string uri) {
 }
 
 std::string Response::check_auto_index() {
-	int autoindex
-		= this->Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_autoindex();
-	std::string root
-		= this->Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_root();
+	int			autoindex = this->Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_autoindex();
+	std::string root	  = this->Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_root();
 	if (autoindex == 0)
 		throw Error::Forbidden403();
 	else {
@@ -168,24 +168,18 @@ std::string Response::check_auto_index() {
 std::string Response::handle_directory(int flag) {
 	PRINT_SHORT_LINE("handle directory");
 	std::string uri = Client->get_new_url();
-	if (uri[uri.size() - 1] != '/'
-		&& Client->get_request("Request-URI").size() != 1)	// redirect from /folder to /folder/
+	if (uri[uri.size() - 1] != '/' && Client->get_request("Request-URI").size() != 1) // redirect from /folder to /folder/
 	{
-		std::string red = Client->get_request("Request-URI") + '/';	 // ? i should use old uri with location one
+		std::string red = Client->get_request("Request-URI") + '/'; // ? i should use old uri with location one
 		Client->set_redirection(red);
 		throw Accurate::MovedPermanently301();
 	}
-	std::cout << "location: "
-			  << Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_location()
-			  << std::endl;
-	std::vector<std::string> index_vec
-		= Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_index();
+	std::cout << "location: " << Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_location() << std::endl;
+	std::vector<std::string> index_vec = Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_index();
 	std::cout << "numbers of vectors: " << index_vec.size() << std::endl;
 	if (index_vec.size() != 0) {
-		std::string root
-			= Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_root();
-		for (std::vector<std::string>::iterator itr_index = index_vec.begin(); itr_index != index_vec.end();
-			 itr_index++) {
+		std::string root = Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_root();
+		for (std::vector<std::string>::iterator itr_index = index_vec.begin(); itr_index != index_vec.end(); itr_index++) {
 			std::string	  index_file = root + '/' + (*itr_index);
 			std::ifstream file(index_file);
 			if (!file.is_open())
@@ -217,8 +211,7 @@ std::string Response::set_error_body(std::string msg_status, std::string body_fi
 			throw Error::BadRequest400();
 		content = "<!DOCTYPE html>\r\n<html>\r\n<head>\r\n<title>";
 		content += msg_status;
-		content += "</title>\r\n<style>\r\nbody {\r\ntext-align: center;\r\npadding: 40px;\r\nfont-family: Arial, "
-				   "sans-serif;\r\n}\r\n";
+		content += "</title>\r\n<style>\r\nbody {\r\ntext-align: center;\r\npadding: 40px;\r\nfont-family: Arial, sans-serif;\r\n}\r\n";
 		content += "h1 {\r\nfont-size: 100px;\r\ncolor: red;\r\n}\r\n";
 		content += "</style>\r\n</head>\r\n<body>\r\n<h1>";
 		content += msg_status;
@@ -241,19 +234,18 @@ std::string Response::set_error_body(std::string msg_status, std::string body_fi
 }
 
 void Response::check_cgi_location() {
-	if (!Client->get_config_server()
-			 ->get_config_location_parser()[Client->get_location()]
-			 ->get_cgi_ext_path(this->extention)
-			 .size())
+	if (!Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_cgi_ext_path(this->extention).size())
 		throw Error::InternalServerError500();
 }
 
-void Response::set_outfile_cgi(std::string outfile) { this->cgi_outfile = outfile; }
+void Response::set_outfile_cgi(std::string outfile) {
+	this->cgi_outfile = outfile;
+}
 
 std::string Response::Get() {
 	PRINT_LONG_LINE("Handle GET");
 	if (Client->get_serve_file().size() == 0) {
-		this->check_request_uri();	// * check if uri exist in the root
+		this->check_request_uri(); // * check if uri exist in the root
 		if (this->type == "directory")
 			this->serve_file = handle_directory(0);
 		else if (this->type == "file")
@@ -297,7 +289,8 @@ void Response::handle_php() {
 
 std::string Response::post() {
 	PRINT_LONG_LINE("handle post");
-	if (Client->get_upload_path().size() != 0) {
+	if (Client->get_upload_path().size() != 0)
+	{
 		move_the_body();
 		throw Accurate::Created201();
 	}
@@ -308,7 +301,7 @@ std::string Response::post() {
 	} else
 		this->serve_file = handle_file();
 	this->SetVars();
-	return (serve_file);
+	return(serve_file);
 }
 
 void Response::move_the_body() {
