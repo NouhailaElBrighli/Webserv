@@ -169,12 +169,12 @@ std::string Response::handle_directory(int flag) {
 		Client->set_redirection(red);
 		throw Accurate::MovedPermanently301();
 	}
-	std::cout << "location: "
-			  << Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_location()
-			  << std::endl;
+	// std::cout << "location: "
+	// << Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_location() <<
+	// std::endl;
 	std::vector<std::string> index_vec
 		= Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_index();
-	std::cout << "numbers of vectors: " << index_vec.size() << std::endl;
+	// std::cout << "numbers of vectors: " << index_vec.size() << std::endl;
 	if (index_vec.size() != 0) {
 		std::string root
 			= Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_root();

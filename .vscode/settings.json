@@ -84,4 +84,7 @@
 	},
 	"C_Cpp.default.configurationProvider": "ms-vscode.makefile-tools",
 	"C_Cpp.errorSquiggles": "disabled",
+	"cSpell.words": [
+		"sscs"
+	],
 }
