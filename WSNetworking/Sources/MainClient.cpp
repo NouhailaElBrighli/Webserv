@@ -91,7 +91,7 @@ void MainClient::handle_read() {
 		vector<string>::const_iterator it = this->config_server_parser->get_config_location_parser()[get_location()]->get_return().begin();
 		if (*it == "301")
 		{
-			it++;
+			it++; //?
 		    redirection = *it;
 			throw Accurate::MovedPermanently301();
 		}
@@ -161,8 +161,8 @@ int MainClient::match_location() {
 		for (vector<ConfigLocationParser *>::const_iterator itr
 			 = config_server_parser->get_config_location_parser().begin();
 			 itr != config_server_parser->get_config_location_parser().end(); itr++) {
-			PRINT_ERROR("location :");
-			PRINT_ERROR((*itr)->get_location());
+			// PRINT_ERROR("location :");
+			// PRINT_ERROR((*itr)->get_location());
 			if ((*itr)->get_location() == str) {
 				str				 = this->get_request("Request-URI");
 				this->new_url	 = this->get_request("Request-URI");
