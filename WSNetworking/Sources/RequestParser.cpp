@@ -89,7 +89,7 @@ string RequestParser::urlDecode() {
 
 void RequestParser::is_first_line_valid() {
 	string allowed_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxy"
-						   "z0123456789-._~:/?#[]@!$&'()*+,;=% ";
+						   "z0123456789-._~:/?#[]@!$&'()*+,;=%";
 
 	if (this->request.size() != 3)
 		throw Error::NotImplemented501();
