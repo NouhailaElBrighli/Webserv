@@ -89,24 +89,20 @@ void MainClient::handle_read() {
 	this->location = this->match_location();
 
 	if (this->config_server_parser->get_config_location_parser()[get_location()]->get_return().size() != 0) {
-		vector<string>::const_iterator it = this->config_server_parser->get_config_location_parser()[get_location()]->get_return().begin();
-		if (*it == "301")
-		{
-			it++; //?
-		    redirection = *it;
+		vector<string>::const_iterator it
+			= this->config_server_parser->get_config_location_parser()[get_location()]->get_return().begin();
+		if (*it == "301") {
+			it++;  //?
+			redirection = *it;
 			throw Accurate::MovedPermanently301();
-		}
-		else if (*it == "302")
-		{
+		} else if (*it == "302") {
 			it++;
 			redirection = *it;
 
 			throw Accurate::TemporaryRedirect302();
-		}
-		else
-		{
+		} else {
 			redirection = *it;
-			
+
 			std::cout << "redirect it=>" << *it << std::endl;
 			throw Accurate::TemporaryRedirect302();
 		}
@@ -197,7 +193,7 @@ void MainClient::set_header_for_errors_and_redirection(const char *what) {
 		this->header += "\r\nConnection: Close";
 		this->header += "\r\n\r\n";
 		SHOW_INFO(this->header);
-	} else // errors
+	} else	// errors
 	{
 		Response Error;
 		this->body_file = Error.SetError(msg_status, body_file);
@@ -215,7 +211,7 @@ std::string MainClient::get_serve_file() { return (serve_file); }
 void MainClient::check_files_error() {
 	std::map<int, std::string> error_map = this->config_server_parser->get_error_page();
 	if (error_map[this->status].size() != 0) {
-		std::ifstream error_page(error_map[this->status]);
+		std::ifstream error_page(error_map[this->status].c_str());
 		if (!error_page.is_open())
 			throw Error::Forbidden403();
 		body_file = error_map[this->status];
@@ -335,7 +331,7 @@ void MainClient::send_to_socket() {
 		write_header = true;
 		return;
 	}
-	std::ifstream file(serve_file, std::ios::binary);
+	std::ifstream file(serve_file.c_str(), std::ios::binary);
 
 	if (file_open == false) {
 		PRINT_SHORT_LINE("open the file");
@@ -405,7 +401,7 @@ void MainClient::check_upload_path() {
 		DIR *directory = opendir(this->upload_path.c_str());
 		if (directory == NULL) {
 			std::cout << "this->upload_path" << this->upload_path << std::endl;
-			throw Error::BadRequest400();//!500
+			throw Error::BadRequest400();  //! 500
 		}
 		closedir(directory);
 		return;
