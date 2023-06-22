@@ -77,7 +77,7 @@ MKDIR	= mkdir -p $(DIRS)
 CPP			= c++
 CPPFLAGS	= -Wall -Wextra -Werror -g
 CPPFLAGS	+= -std=c++98
-CPPFLAGS	+= # -fsanitize=address -g3
+CPPFLAGS	+= -fsanitize=address -g3
 
 COMPILE		= $(CPP) $(CPPFLAGS) $(DEPFLAGS) $(INCLUDE)
 

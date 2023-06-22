@@ -95,48 +95,15 @@ void Response::check_request_uri() {
 	if (uri[uri.size() - 1] == '/')
 		uri.erase(uri.size() - 1, 1);
 	if (root == uri) {
+		if (access(root.c_str(), R_OK) < 0)
+			throw Error::Forbidden403();
 		this->type = "directory";
 		return;
 	}
 	if (root == "/") {
-		DIR *dir = opendir(uri.c_str());
-		if (dir == NULL) {
-			if (errno == ENOENT) {
-				// PRINT_ERROR("not found");
-				throw Error::NotFound404();
-			}
-			if (errno == ENOTDIR) {
-				// printf("Not a directory: %s\n", uri.c_str());
-				throw Error::NotFound404();
-			}
-			if (errno == EACCES) {
-				// PRINT_ERROR("forbidden access");
-				throw Error::Forbidden403();
-			} else {
-				// PRINT_ERROR("i dont't know why");
-				// printf("Failed to open directory: %s\n", strerror(errno));
-				throw Error::NotFound404();
-			}
-		}
-		this->type = "directory";
+		throw_accurate_response(uri);
 		return;
 	}
-	// if (root == "/") {
-	// 	if (Client->get_new_url() == "/") {
-	// 		this->type = "directory";
-	// 		return;
-	// 	}
-	// 	std::ifstream check(uri);
-	// 	if (check.is_open()) {
-	// 		DIR *dir = opendir(uri.c_str());
-	// 		if (dir == NULL)
-	// 			this->type = "file";
-	// 		else
-	// 			this->type = "directory";
-	// 		return;
-	// 	} else
-	// 		throw Error::NotFound404();
-	// }
 	this->check_inside_root(root, uri);
 	if (this->type.size() == 0) {
 		throw Error::NotFound404();
@@ -189,7 +156,10 @@ std::string Response::check_auto_index() {
 std::string Response::handle_directory(int flag) {
 	PRINT_SHORT_LINE("handle directory");
 	std::string uri = Client->get_new_url();
-	if (uri[uri.size() - 1] != '/' && Client->get_request("Request-URI").size() != 1) // redirect from /folder to /folder/
+	std::cout << "check_folder here new :" << uri << std::endl;
+	std::cout << "check folder here old :" << Client->get_request("Request-URI") << std::endl;
+	if (uri[uri.size() - 1] != '/'
+		&& Client->get_request("Request-URI").size() != 1)	// redirect from /folder to /folder/
 	{
 		std::string red = Client->get_request("Request-URI") + '/'; // ? i should use old uri with location one
 		Client->set_redirection(red);
@@ -205,7 +175,7 @@ std::string Response::handle_directory(int flag) {
 		std::string root = Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_root();
 		for (std::vector<std::string>::iterator itr_index = index_vec.begin(); itr_index != index_vec.end(); itr_index++) {
 			std::string	  index_file = root + '/' + (*itr_index);
-			std::ifstream file(index_file);
+			std::ifstream file(index_file.c_str());
 			if (!file.is_open())
 				continue;
 			else {
@@ -220,7 +190,7 @@ std::string Response::handle_directory(int flag) {
 }
 
 std::string Response::handle_file() {
-	std::ifstream file(Client->get_new_url());
+	std::ifstream file(Client->get_new_url().c_str());
 	if (!file)
 		throw Error::Forbidden403();
 	return (Client->get_new_url());
@@ -245,7 +215,7 @@ std::string Response::set_error_body(std::string msg_status, std::string body_fi
 		num >> this->ContentLength;
 		return ("error/dynamic_error.html");
 	} else {
-		std::ifstream file(body_file, std::ios::binary);
+		std::ifstream file(body_file.c_str(), std::ios::binary);
 		file.seekg(0, std::ios::end);
 		std::ifstream::pos_type size = file.tellg();
 		file.seekg(0, std::ios::beg);
@@ -269,10 +239,11 @@ void Response::set_outfile_cgi(std::string outfile) {
 std::string Response::Get() {
 	PRINT_LONG_LINE("Handle GET");
 	if (Client->get_serve_file().size() == 0) {
-		this->check_request_uri(); // * check if uri exist in the root
-		if (this->type == "directory")
+		this->check_request_uri();	// * check if uri exist in the root
+		if (this->type == "directory") {
+			PRINT_ERROR("should be here");
 			this->serve_file = handle_directory(0);
-		else if (this->type == "file")
+		} else if (this->type == "file")
 			this->serve_file = handle_file();
 	} else
 		serve_file = Client->get_serve_file();
@@ -287,12 +258,11 @@ void Response::handle_php() {
 	std::ifstream::pos_type size = php_file.tellg();
 	php_file.seekg(0, std::ios::beg);
 	PRINT_ERROR(size);
-	char buffer[MAXLINE];
-	php_file.read(buffer, MAXLINE);
-	std::string content(buffer, php_file.gcount());
-	std::cout << "content:" << content << std::endl;
+	char buff[MAXLINE];
+
+	php_file.read(buff, MAXLINE);
+	std::string content(buff, php_file.gcount());
 	size_t		found = content.find("\r\n\r\n");
-	std::cout << "found" << found << std::endl;
 	if (found != std::string::npos) {
 		PRINT_ERROR(serve_file);
 		this->header = "HTTP/1.1 200 ok\r\n";
@@ -307,7 +277,7 @@ void Response::handle_php() {
 		this->header += "\r\n\r\n";
 		Client->set_start_php(found + 4);
 		php_file.close();
-	// 	//! cgi = 1 here please
+		// 	//! cgi = 1 here please
 	}
 }
 
@@ -339,4 +309,28 @@ void Response::move_the_body() {
 	if (std::rename(Client->get_body_file_name().c_str(), this->new_path.c_str()) != 0)
 		throw Error::InternalServerError500();
 	Client->reset_body_file_name(this->new_path);
+}
+
+void Response::throw_accurate_response(std::string uri) {
+	DIR *dir = opendir(uri.c_str());
+	if (dir == NULL) {
+		if (errno == ENOTDIR) {
+			std::ifstream file(uri.c_str());
+			if (!file) {
+				if (errno == EACCES)
+					throw Error::Forbidden403();
+				else
+					throw Error::NotFound404();	 //! any other cases should be handled
+			}
+			this->type = "file";
+			return;
+		}
+		if (errno == ENOENT)
+			throw Error::NotFound404();
+		if (errno == EACCES)
+			throw Error::Forbidden403();
+		else
+			throw Error::NotFound404();	 // !any other cases should be handled
+	}
+	this->type = "directory";
 }

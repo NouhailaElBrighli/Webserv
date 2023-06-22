@@ -1,0 +1,20 @@
+// NOT ALLOWED CHARACTERS
+
+// Less than ("<")
+// Greater than (">")
+// Double quote (")
+// Pipe ("|")
+// Backslash ("")
+// Caret ("^")
+// Left and right curly braces ("{" and "}")
+// Tilde ("~")
+// Grave accent or backtick ("`")
+// add root directory if not found
+// upload in location
+
+"http://localhost:8888/test/files/file1.php?name=hajar%20saidi&age=21&occupation=student"
+
+return 302 main/index2.html; ==> maxredirections
+
+//!you should remove files
+//! why it fail to return 405 in head method

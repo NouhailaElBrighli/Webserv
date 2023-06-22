@@ -6,7 +6,7 @@
 /*   By: hsaidi <hsaidi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:38:43 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/06/22 21:18:35 by hsaidi           ###   ########.fr       */
+/*   Updated: 2023/06/22 21:24:59 by hsaidi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -195,9 +195,11 @@ void Cgi::set_cgi_env()
 	std::cout << "av[0]----------->" << av[0] << std::endl;
 	std::cout << "av[1]----------->" << av[1] << std::endl;
 	this->env = mapToCharConstArray(cgi_env);
-
-	for (size_t i = 0; cgi_env.size() > i; i++)
+	size_t i;
+	for (i = 0; cgi_env.size() > i; i++) {
 		cout << "|" << this->env[i] << "|" << endl;
+	}
+	printf("** %s\n", env[i]);
 	cout << "-----------------------------------------------------------------------------------\n";
 	outfile = "./outfile.txt";
 	output_file = open(outfile.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0777);
@@ -212,7 +214,8 @@ void Cgi::set_cgi_env()
 		dup2(input_file, 0);
 		close(output_file);
 		close(input_file);
-		execve(av[0], av, this->env);
+		if (execve(av[0], av, this->env) < 0)
+			exit(1);
 	}
 	// sleep(2);
 	// wait(pid);
