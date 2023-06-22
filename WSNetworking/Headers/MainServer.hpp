@@ -12,7 +12,7 @@ class MainServer {
   private:
 	vector<ListenSocket>   listen_socket;
 	map<int, MainClient *> clients;
-	map<int, int>		   socket_server, socket_client;
+	vector<int>			   socket_server, socket_client;
 	int					   accept_socket, max_socket;
 	fd_set				   read_sockets, write_sockets;
 	bool				   launch_status;

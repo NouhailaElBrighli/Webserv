@@ -99,21 +99,44 @@ void Response::check_request_uri() {
 		return;
 	}
 	if (root == "/") {
-		if (Client->get_new_url() == "/") {
-			this->type = "directory";
-			return;
+		DIR *dir = opendir(uri.c_str());
+		if (dir == NULL) {
+			if (errno == ENOENT) {
+				// PRINT_ERROR("not found");
+				throw Error::NotFound404();
+			}
+			if (errno == ENOTDIR) {
+				// printf("Not a directory: %s\n", uri.c_str());
+				throw Error::NotFound404();
+			}
+			if (errno == EACCES) {
+				// PRINT_ERROR("forbidden access");
+				throw Error::Forbidden403();
+			} else {
+				// PRINT_ERROR("i dont't know why");
+				// printf("Failed to open directory: %s\n", strerror(errno));
+				throw Error::NotFound404();
+			}
 		}
-		std::ifstream check(uri);
-		if (check.is_open()) {
-			DIR *dir = opendir(uri.c_str());
-			if (dir == NULL)
-				this->type = "file";
-			else
-				this->type = "directory";
-			return;
-		} else
-			throw Error::NotFound404();
+		this->type = "directory";
+		return;
 	}
+	// if (root == "/") {
+	// 	if (Client->get_new_url() == "/") {
+	// 		this->type = "directory";
+	// 		return;
+	// 	}
+	// 	std::ifstream check(uri);
+	// 	if (check.is_open()) {
+	// 		DIR *dir = opendir(uri.c_str());
+	// 		if (dir == NULL)
+	// 			this->type = "file";
+	// 		else
+	// 			this->type = "directory";
+	// 		return;
+	// 	} else
+	// 		throw Error::NotFound404();
+	// }
 	this->check_inside_root(root, uri);
 	if (this->type.size() == 0) {
 		throw Error::NotFound404();
@@ -175,12 +198,12 @@ std::string Response::handle_directory(int flag) {
 		Client->set_redirection(red);
 		throw Accurate::MovedPermanently301();
 	}
-	std::cout << "location: "
-			  << Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_location()
-			  << std::endl;
+	// std::cout << "location: "
+	// << Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_location() <<
+	// std::endl;
 	std::vector<std::string> index_vec
 		= Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_index();
-	std::cout << "numbers of vectors: " << index_vec.size() << std::endl;
+	// std::cout << "numbers of vectors: " << index_vec.size() << std::endl;
 	if (index_vec.size() != 0) {
 		std::string root
 			= Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_root();
