@@ -6,26 +6,25 @@
 /*   By: hsaidi <hsaidi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:38:43 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/06/22 18:08:03 by hsaidi           ###   ########.fr       */
+/*   Updated: 2023/06/22 18:14:28 by hsaidi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Cgi.hpp"
 #include "MainClient.hpp"
 
-Cgi::Cgi(MainClient *main_client, vector<ConfigLocationParser *>config_location_parser, std::string filename){
-	this->main_client = main_client;
+Cgi::Cgi(MainClient *main_client, vector<ConfigLocationParser *> config_location_parser, std::string filename) {
+	this->main_client			 = main_client;
 	this->config_location_parser = config_location_parser;
-	this->filename = filename;
+	this->filename				 = filename;
 }
-Cgi::~Cgi(){}
+Cgi::~Cgi() {}
 
-void Cgi::readFileContents() 
-{
-    std::ifstream fileStream(this->filename.c_str());
-    if (fileStream.is_open())
-        getFileType(this->filename);
-    else
+void Cgi::readFileContents() {
+	std::ifstream fileStream(this->filename.c_str());
+	if (fileStream.is_open())
+		getFileType(this->filename);
+	else
 		throw Error::BadRequest400();
 }
 
@@ -59,49 +58,47 @@ int Cgi::getFileType(const std::string& filename)
     if (dotPos != std::string::npos) {
         std::string extension = filename.substr(dotPos + 1);
 
-        if (extension == "php")
-			this->script = main_client->get_config_server()->get_config_location_parser()[main_client->get_location()]->get_cgi_ext_path(".php");
+		if (extension == "php")
+			this->script = main_client->get_config_server()
+							   ->get_config_location_parser()[main_client->get_location()]
+							   ->get_cgi_ext_path(".php");
 		else if (extension == "py")
-			this->script = main_client->get_config_server()->get_config_location_parser()[main_client->get_location()]->get_cgi_ext_path(".py");
+			this->script = main_client->get_config_server()
+							   ->get_config_location_parser()[main_client->get_location()]
+							   ->get_cgi_ext_path(".py");
 		else
 			throw Error::NotImplemented501();
-		}
-	std::ifstream checl_script(this->script.c_str());
-	if (checl_script.is_open())
-	{
-		set_cgi_env();
 	}
-	else
-	{
+	std::ifstream checl_script(this->script.c_str());
+	if (checl_script.is_open()) {
+		set_cgi_env();
+	} else {
 		cout << "---- can't open the script ----" << std::endl;
 		throw Error::NotFound404();
 	}
 	return -1;
 }
 
-char* const* Cgi::mapToCharConstArray(const std::map<std::string, std::string>& cgi_env) 
-{
-    char** envp = new char*[cgi_env.size() + 1];
-    int i = 0;
+char *const *Cgi::mapToCharConstArray(const std::map<std::string, std::string> &cgi_env) {
+	char **envp = new char *[cgi_env.size() + 1];
+	int	   i	= 0;
 	string envVar;
 
-	for (std::map<std::string, std::string>::const_iterator it = cgi_env.begin(); it != cgi_env.end(); ++it) 
-	{
-	    envVar = it->first + it->second;
-        envp[i] = strdup(envVar.c_str());
-        ++i;
-    }
-    envp[i] = NULL;
-    return const_cast<char* const*>(envp);
+	for (std::map<std::string, std::string>::const_iterator it = cgi_env.begin(); it != cgi_env.end(); ++it) {
+		envVar	= it->first + it->second;
+		envp[i] = strdup(envVar.c_str());
+		++i;
+	}
+	envp[i] = NULL;
+	return const_cast<char *const *>(envp);
 }
 
-void Cgi::check_extention()
-{
-	cout<<"*****in just_print***\n";
+void Cgi::check_extention() {
+	cout << "*****in just_print***\n";
 	std::cout << "hello from cgi" << std::endl;
-	for(map<string, string>::const_iterator it = this->main_client->get_request().begin(); it != this->main_client->get_request().end(); it++)
-	{
-		cout << it->first << " : " << it->second << endl;          
+	for (map<string, string>::const_iterator it = this->main_client->get_request().begin();
+		 it != this->main_client->get_request().end(); it++) {
+		cout << it->first << " : " << it->second << endl;
 	}
 	readFileContents();
 }
@@ -193,26 +190,23 @@ void Cgi::set_cgi_env()
 	// cgi_env["HTTP_HOST="] = "127.0.0.1";
 	cgi_env["HTTP_HOST="] = this->main_client->get_request("Host");
 	cout << "------------------- Printing the env variables ------------------------------------\n";
-	char  *av[] = {(char *)script.c_str(), (char *)this->filename.c_str(), NULL};
+	char *av[] = {(char *)script.c_str(), (char *)this->filename.c_str(), NULL};
 
 	std::cout << "av[0]----------->" << av[0] << std::endl;
 	std::cout << "av[1]----------->" << av[1] << std::endl;
 	this->env = mapToCharConstArray(cgi_env);
-	
+
 	for (size_t i = 0; cgi_env.size() > i; i++)
-		cout <<"|"<< this->env[i] <<"|"<< endl;
+		cout << "|" << this->env[i] << "|" << endl;
 	cout << "-----------------------------------------------------------------------------------\n";
 	outfile = "./outfile.txt";
 	output_file = open(outfile.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0777);
 	input_file = open(this->main_client->get_body_file_name().c_str(), O_RDONLY);
 	int pid = fork();
-	if(pid < 0)
-	{
+	if (pid < 0) {
 		cout << "fork failed" << endl;
-		return ;
-	}
-	else if (pid == 0)
-	{
+		return;
+	} else if (pid == 0) {
 		dup2(output_file, 2);
 		dup2(output_file, 1);
 		dup2(input_file, 0);
@@ -226,7 +220,4 @@ void Cgi::set_cgi_env()
 	// execve(av[0], av2, const_cast<char *const *>(&cgi_env[0]));
 }
 
-std::string Cgi::get_outfile()
-{
-	return (outfile);
-}
+std::string Cgi::get_outfile() { return (outfile); }

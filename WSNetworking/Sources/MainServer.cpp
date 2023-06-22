@@ -106,8 +106,7 @@ void MainServer::run_sockets() {
 
 		// fill the address and socket maps
 		for (size_t i = 0; i < this->get_listen_socket().size(); i++)
-			this->socket_server[this->get_listen_socket(i).get_socket_listen()]
-				= this->get_listen_socket(i).get_socket_listen();
+			this->socket_server.push_back(this->get_listen_socket(i).get_socket_listen());
 	}
 }
 
@@ -147,11 +146,14 @@ void MainServer::init_server_sockets() {
 	FD_ZERO(&this->write_sockets);
 	std::memset(&this->write_sockets, 0, sizeof(this->write_sockets));
 
-	for (map<int, int>::iterator it = this->socket_server.begin(); it != this->socket_server.end(); it++)
-		FD_SET((*it).second, &this->read_sockets);
+	for (vector<int>::iterator it = this->socket_server.begin(); it != this->socket_server.end(); it++)
+		FD_SET(static_cast<size_t>(*it), &this->read_sockets);
 
-	// max element of the socket map
-	this->max_socket = this->socket_server.rbegin()->second;
+	// max element of the socket vector
+	if (this->socket_server.size() > 0)
+		this->max_socket = *std::max_element(this->socket_server.begin(), this->socket_server.end());
+	else
+		this->max_socket = 0;
 }
 
 // Reset read sockets
@@ -162,14 +164,16 @@ void MainServer::reset() {
 	FD_ZERO(&this->write_sockets);
 	std::memset(&this->write_sockets, 0, sizeof(this->write_sockets));
 
-	for (map<int, int>::iterator it = this->socket_server.begin(); it != this->socket_server.end(); it++)
-		FD_SET((*it).second, &this->read_sockets);
+	for (vector<int>::iterator it = this->socket_server.begin(); it != this->socket_server.end(); it++)
+		FD_SET(static_cast<size_t>(*it), &this->read_sockets);
 
-	for (map<int, int>::iterator it = this->socket_client.begin(); it != this->socket_client.end(); it++) {
-		if (this->clients[(*it).second]->get_phase() == READ_PHASE)
-			FD_SET((*it).second, &this->read_sockets);
-		else if (this->clients[(*it).second]->get_phase() == WRITE_PHASE)
-			FD_SET((*it).second, &this->write_sockets);
+	if (this->socket_client.size() > 0) {
+		for (vector<int>::iterator it = this->socket_client.begin(); it != this->socket_client.end(); it++) {
+			if (this->clients[*it]->get_phase() == READ_PHASE)
+				FD_SET(static_cast<size_t>(*it), &this->read_sockets);
+			else if (this->clients[*it]->get_phase() == WRITE_PHASE)
+				FD_SET(static_cast<size_t>(*it), &this->write_sockets);
+		}
 	}
 }
 
@@ -185,9 +189,9 @@ void MainServer::accepter(int fd_socket) {
 	if (this->accept_socket > this->max_socket)
 		this->max_socket = this->accept_socket;
 
-	this->socket_client[this->accept_socket] = this->accept_socket;
+	this->socket_client.push_back(this->accept_socket);
 
-	FD_SET(this->accept_socket, &this->read_sockets);
+	FD_SET(static_cast<size_t>(this->accept_socket), &this->read_sockets);
 }
 
 void MainServer::create_client(int client_socket) {
@@ -240,18 +244,25 @@ void MainServer::destroy_client(int client_socket) {
 		SHOW_INFO(show);
 		return;
 	}
+
 	// Check if the client is a main socket
-	if (this->socket_server.find(client_socket) != this->socket_server.end()) {
+	std::vector<int>::iterator server_it
+		= std::find(this->socket_server.begin(), this->socket_server.end(), client_socket);
+	if (server_it != this->socket_server.end()) {
 		show = string(C_PURPLE) + "client with socket '" + sscs.str()
 			   + "' mustn't be close, because it's a MAIN socket.";
 		return;
 	}
+
 	// Destroy the client
 	if (this->clients.find(client_socket) != this->clients.end())
 		delete this->clients[client_socket];
 
 	this->clients.erase(client_socket);
-	this->socket_client.erase(client_socket);
+	std::vector<int>::iterator client_it
+		= std::find(this->socket_client.begin(), this->socket_client.end(), client_socket);
+	if (client_it != this->socket_client.end())
+		this->socket_client.erase(client_it);
 	close(client_socket);
 	show = string(C_RED) + "client with socket '" + sscs.str() + "' closed.";
 	SHOW_INFO(show);
@@ -275,7 +286,8 @@ void MainServer::routine() {
 		for (int i = 3; i <= this->max_socket; i++) {
 			if (FD_ISSET(i, &this->read_sockets) || FD_ISSET(i, &this->write_sockets)) {
 				// check if the socket is a master socket
-				if (this->socket_server.find(i) != this->socket_server.end()) {
+				vector<int>::iterator server_it = std::find(this->socket_server.begin(), this->socket_server.end(), i);
+				if (server_it != this->socket_server.end()) {
 					try {
 						this->accepter(i);
 					} catch (const std::exception &e) {
