@@ -92,7 +92,7 @@ void MainClient::handle_read() {
 		if (*it == "301")
 		{
 			it++;
-			redirection = *it;
+		    redirection = *it;
 			throw Accurate::MovedPermanently301();
 		}
 		else if (*it == "302")
@@ -161,6 +161,8 @@ int MainClient::match_location() {
 		for (vector<ConfigLocationParser *>::const_iterator itr
 			 = config_server_parser->get_config_location_parser().begin();
 			 itr != config_server_parser->get_config_location_parser().end(); itr++) {
+			PRINT_ERROR("location :");
+			PRINT_ERROR((*itr)->get_location());
 			if ((*itr)->get_location() == str) {
 				str				 = this->get_request("Request-URI");
 				this->new_url	 = this->get_request("Request-URI");
@@ -192,7 +194,7 @@ void MainClient::set_header_for_errors_and_redirection(const char *what) {
 		this->header += redirection;
 		this->header += "\r\nConnection: Close";
 		this->header += "\r\n\r\n";
-		PRINT_ERROR(this->header);
+		SHOW_INFO(this->header);
 	} else // errors
 	{
 		Response Error;
@@ -323,7 +325,7 @@ void MainClient::send_to_socket() {
 		PRINT_SHORT_LINE("send header");
 		SHOW_INFO(this->header);
 		send(client_socket, this->header.c_str(), header.size(), 0);
-		if (this->status == 301) {
+		if (this->status == 301 || this->status == 302) {
 			PRINT_ERROR("close the socket now");
 			this->send_receive_status = false;
 			return;
