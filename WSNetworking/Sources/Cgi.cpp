@@ -6,7 +6,7 @@
 /*   By: hsaidi <hsaidi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:38:43 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/06/22 21:24:59 by hsaidi           ###   ########.fr       */
+/*   Updated: 2023/06/22 22:09:05 by hsaidi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,13 @@ Cgi::Cgi(MainClient *main_client, vector<ConfigLocationParser *> config_location
 	this->config_location_parser = config_location_parser;
 	this->filename				 = filename;
 }
-Cgi::~Cgi() {}
+Cgi::~Cgi() {
+	  for (size_t i = 0; this->cgi_env.size() > i; i++)
+    {
+        delete[] this->env[i];
+    }
+    delete[] this->env;
+}
 
 void Cgi::readFileContents() {
 	std::ifstream fileStream(this->filename.c_str());
