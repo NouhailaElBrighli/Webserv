@@ -1,15 +1,5 @@
 X-Powered-By: PHP/8.0.2
-Set-Cookie: name=deleted; expires=Thu, 01-Jan-1970 00:00:01 GMT; Max-Age=0
-Set-Cookie: email=deleted; expires=Thu, 01-Jan-1970 00:00:01 GMT; Max-Age=0
-Set-Cookie: avatar=deleted; expires=Thu, 01-Jan-1970 00:00:01 GMT; Max-Age=0
 Content-type: text/html; charset=UTF-8
 
-<!DOCTYPE html>
-<div>
-            <form method="post" enctype="multipart/form-data">
-            <input type="text" name="name" placeholder="Name" />
-            <input type="text" name="email" placeholder="Email" />
-            <input type="file" id="avatar" name="avatar" accept="image/png, image/jpeg" />
-            <input type="submit" value="Submit" />
-        </form>
-    </div>
+<br />
+<b>Fatal error</b>:  Maximum execution time of 30 seconds exceeded in <b>/Users/hsaidi/Desktop/teamserv/file3.php</b> on line <b>3</b><br />

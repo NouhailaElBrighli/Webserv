@@ -6,7 +6,7 @@
 /*   By: hsaidi <hsaidi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:38:43 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/06/22 18:14:28 by hsaidi           ###   ########.fr       */
+/*   Updated: 2023/06/22 21:18:35 by hsaidi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,6 @@ void Cgi::readFileContents() {
 
 void Cgi::wait(const pid_t pid)
 {
-    sleep(3);
 
     // Gets the script's termination status
     int status;
@@ -45,10 +44,11 @@ void Cgi::wait(const pid_t pid)
     }
     else if (result == 0)
     {
+    sleep(3);
         // Script is still running
         kill(pid, SIGKILL);
         // const std::string errorMsg = std::string("CGI::waitForScript(): Script with PID ") + std::to_string(pid) + " timed out";
-        // throw std::runtime_error("TIMEOUT");
+        throw std::runtime_error("TIMEOUT");
     }
 }
 
@@ -214,6 +214,7 @@ void Cgi::set_cgi_env()
 		close(input_file);
 		execve(av[0], av, this->env);
 	}
+	// sleep(2);
 	// wait(pid);
 	waitpid(pid, NULL, 0);
 	PRINT_LONG_LINE("finish cgi");
