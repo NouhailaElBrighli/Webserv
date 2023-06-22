@@ -92,6 +92,8 @@ void Response::SetVars() {
 void Response::check_request_uri() {
 	std::string root = Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_root();
 	std::string uri	 = Client->get_new_url();
+	if (uri[uri.size() - 1] == '/')
+		uri.erase(uri.size() - 1, 1);
 	if (root == uri)
 	{
 		if (access(root.c_str(), R_OK) < 0)
@@ -99,8 +101,6 @@ void Response::check_request_uri() {
 		this->type = "directory";
 		return;
 	}
-	if (uri[uri.size() - 1] == '/')
-		uri.erase(uri.size() - 1, 1);
 	if (root == "/")
 	{
 		throw_accurate_response(uri);
@@ -160,6 +160,8 @@ std::string Response::check_auto_index() {
 std::string Response::handle_directory(int flag) {
 	PRINT_SHORT_LINE("handle directory");
 	std::string uri = Client->get_new_url();
+	std::cout << "check_folder here new :" << uri << std::endl;
+	std::cout << "check folder here old :" << Client->get_request("Request-URI") << std::endl;
 	if (uri[uri.size() - 1] != '/'
 		&& Client->get_request("Request-URI").size() != 1)	// redirect from /folder to /folder/
 	{
@@ -247,7 +249,10 @@ std::string Response::Get() {
 	if (Client->get_serve_file().size() == 0) {
 		this->check_request_uri();	// * check if uri exist in the root
 		if (this->type == "directory")
+		{
+			PRINT_ERROR("should be here");
 			this->serve_file = handle_directory(0);
+		}
 		else if (this->type == "file")
 			this->serve_file = handle_file();
 	} else

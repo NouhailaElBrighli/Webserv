@@ -87,6 +87,7 @@ void MainClient::handle_read() {
 	this->request_parser->run_parse(header_body_reader->get_head());
 
 	this->location = this->match_location();
+
 	if (this->config_server_parser->get_config_location_parser()[get_location()]->get_return().size() != 0) {
 		vector<string>::const_iterator it = this->config_server_parser->get_config_location_parser()[get_location()]->get_return().begin();
 		if (*it == "301")
@@ -99,11 +100,14 @@ void MainClient::handle_read() {
 		{
 			it++;
 			redirection = *it;
+
 			throw Accurate::TemporaryRedirect302();
 		}
 		else
 		{
 			redirection = *it;
+			
+			std::cout << "redirect it=>" << *it << std::endl;
 			throw Accurate::TemporaryRedirect302();
 		}
 	}
@@ -161,8 +165,6 @@ int MainClient::match_location() {
 		for (vector<ConfigLocationParser *>::const_iterator itr
 			 = config_server_parser->get_config_location_parser().begin();
 			 itr != config_server_parser->get_config_location_parser().end(); itr++) {
-			// PRINT_ERROR("location :");
-			// PRINT_ERROR((*itr)->get_location());
 			if ((*itr)->get_location() == str) {
 				str				 = this->get_request("Request-URI");
 				this->new_url	 = this->get_request("Request-URI");
