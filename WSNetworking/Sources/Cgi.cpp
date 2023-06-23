@@ -6,7 +6,7 @@
 /*   By: nel-brig <nel-brig@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:38:43 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/06/23 18:00:32 by nel-brig         ###   ########.fr       */
+/*   Updated: 2023/06/23 18:43:15 by nel-brig         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,13 @@ Cgi::Cgi(MainClient *main_client, vector<ConfigLocationParser *> config_location
 	this->filename				 = filename;
 	this->status = false;
 }
-Cgi::~Cgi() {}
+Cgi::~Cgi() {
+	  for (size_t i = 0; this->cgi_env.size() > i; i++)
+    {
+        delete[] this->env[i];
+    }
+    delete[] this->env;
+}
 
 void Cgi::readFileContents() {
 	std::ifstream fileStream(this->filename.c_str());
@@ -30,10 +36,21 @@ void Cgi::readFileContents() {
 		throw Error::BadRequest400();
 }
 
-int Cgi::getFileType(const std::string &filename) {
-	std::size_t dotPos = filename.rfind('.');
-	if (dotPos != std::string::npos) {
-		std::string extension = filename.substr(dotPos + 1);
+string Cgi::generate_random_name()
+{
+	std::stringstream ss;
+	std::time_t		  now		   = std::time(0);
+
+	// Seed the random number generator
+	ss << "./outfile_" << std::hex << now << "_" << std::rand() << ".txt";
+	return ss.str();
+}
+
+int Cgi::getFileType(const std::string& filename) 
+{
+    std::size_t dotPos = filename.rfind('.');
+    if (dotPos != std::string::npos) {
+        std::string extension = filename.substr(dotPos + 1);
 
 		if (extension == "php")
 			this->script = main_client->get_config_server()
@@ -83,87 +100,97 @@ void Cgi::check_extention() {
 	readFileContents();
 }
 
-std::string Cgi::urlDecode(const std::string &encoded) {
-	std::ostringstream decoded;
+std::string Cgi::urlDecode(const std::string& encoded) {
+  std::ostringstream decoded;
 
-	for (std::size_t i = 0; i < encoded.length(); ++i) {
-		if (encoded[i] == '%') {
-			if (i + 2 < encoded.length() && isxdigit(encoded[i + 1]) && isxdigit(encoded[i + 2])) {
-				// Decode the URL-encoded sequence
-				std::string hexStr = encoded.substr(i + 1, 2);
-				int			hexValue;
-				std::istringstream(hexStr) >> std::hex >> hexValue;
-				decoded << static_cast<char>(hexValue);
-				i += 2;
-			} else {
-				// Invalid encoding, treat '%' as a regular character
-				decoded << encoded[i];
-			}
-		} else if (encoded[i] == '+') {
-			// Replace '+' with space character
-			decoded << ' ';
-		} else {
-			// Copy the character as is
-			decoded << encoded[i];
-		}
-	}
+for (std::size_t i = 0; i < encoded.length(); ++i) {
+    if (encoded[i] == '%') {
+      if (i + 2 < encoded.length() && isxdigit(encoded[i + 1]) && isxdigit(encoded[i + 2])) {
+        // Decode the URL-encoded sequence
+        std::string hexStr = encoded.substr(i + 1, 2);
+        int hexValue;
+        std::istringstream(hexStr) >> std::hex >> hexValue;
+        decoded << static_cast<char>(hexValue); 
+        i += 2;
+      } else {
+        // Invalid encoding, treat '%' as a regular character
+        decoded << encoded[i];
+      }
+    } else if (encoded[i] == '+') {
+      // Replace '+' with space character
+      decoded << ' ';
+    } else {
+      // Copy the character as is
+      decoded << encoded[i];
+    }
+  }
 
-	return decoded.str();
+  return decoded.str();
 }
 
 void Cgi::query_string() {
-	std::string queryString	  = this->main_client->get_request("Query-String");
-	std::string delimiter	  = "&";
-	std::string pairDelimiter = "=";
+  std::string queryString = this->main_client->get_request("Query-String");
+  std::string delimiter = "&";
+  std::string pairDelimiter = "=";
 
-	size_t		pos = 0;
-	std::string token;
+  size_t pos = 0;
+  std::string token;
 
-	while ((pos = queryString.find(delimiter)) != std::string::npos) {
-		token		   = queryString.substr(0, pos);
-		size_t pairPos = token.find(pairDelimiter);
-		if (pairPos != std::string::npos) {
-			std::string key	  = token.substr(0, pairPos);
-			std::string value = token.substr(pairPos + 1);
+  	while ((pos = queryString.find(delimiter)) != std::string::npos) {
+    token = queryString.substr(0, pos);
+    size_t pairPos = token.find(pairDelimiter);
+    if (pairPos != std::string::npos) {
+      std::string key = token.substr(0, pairPos);
+      std::string value = token.substr(pairPos + 1);
 
-			// URL decode the key and value
-			key	  = urlDecode(key);
-			value = urlDecode(value);
+      // URL decode the key and value
+      key = urlDecode(key);
+      value = urlDecode(value);
 
-			// Store key-value pair in cgi_env
-			cgi_env[key] = value;
-		}
+      // Store key-value pair in cgi_env
+      cgi_env[key] = value;
+    }
 
-		queryString.erase(0, pos + delimiter.length());
-	}
+    queryString.erase(0, pos + delimiter.length());
+  }
 
-	// Process the last key-value pair
-	size_t pairPos = queryString.find(pairDelimiter);
-	if (pairPos != std::string::npos) {
-		std::string key	  = queryString.substr(0, pairPos);
-		std::string value = queryString.substr(pairPos + 1);
-	}
+  // Process the last key-value pair
+  size_t pairPos = queryString.find(pairDelimiter);
+  if (pairPos != std::string::npos) {
+    std::string key = queryString.substr(0, pairPos);
+    std::string value = queryString.substr(pairPos + 1);
+
+    // URL decode the key and value
+    key = urlDecode(key);
+    value = urlDecode(value);
+
+    // Store key-value pair in cgi_env
+    cgi_env[key] = value;
+  }
+	// }
 }
-void Cgi::set_cgi_env() {
+
+void Cgi::set_cgi_env()
+{
 	query_string();
-	cgi_env["CONTENT_TYPE="]   = this->main_client->get_request("Content-Type");
+	cgi_env["CONTENT_TYPE="] =this->main_client->get_request("Content-Type");
 	cgi_env["CONTENT_LENGTH="] = this->main_client->get_request("Content-Length");
 	cgi_env["REQUEST_METHOD="] = this->main_client->get_request("Request-Type");
-	// cgi_env["PATH_INFO="] = "folder/action.php";
-	cgi_env["QUERY_STRING="]	  = this->main_client->get_request("Query-String");
-	cgi_env["HTTP_COOKIE="]		  = this->main_client->get_request("Cookie");
-	cgi_env["SCRIPT_FILENAME="]	  = this->filename;
+	cgi_env["PATH_INFO="] = this->filename;
+	cgi_env["QUERY_STRING="] = this->main_client->get_request("Query-String");
+	cgi_env["HTTP_COOKIE="] = this->main_client->get_request("Cookie");
+	cgi_env["SCRIPT_FILENAME="] = this->filename;
 	cgi_env["GATEWAY_INTERFACE="] = "CGI/1.1";
-	cgi_env["REDIRECT_STATUS="]	  = "200";
+	cgi_env["REDIRECT_STATUS="] = "200";
 	// cgi_env["SERVER_PORT="] ="8888";
-	cgi_env["REQUEST_URI="] = "folder/action.php";
+	cgi_env["REQUEST_URI="] = this->main_client->get_request("Request-URI");
 	// cgi_env["HTTP_HOST="] = "127.0.0.1";
+	cgi_env["HTTP_HOST="] = this->main_client->get_request("Host");
 	cout << "------------------- Printing the env variables ------------------------------------\n";
 	char *av[] = {(char *)script.c_str(), (char *)this->filename.c_str(), NULL};
 
-	// std::cout << "av[0]----------->" << av[0] << std::endl;
-	// std::cout << "av[1]----------->" << av[1] << std::endl;
-	// std::cout << "av[1]----------->" << av[1] << std::endl;
+	std::cout << "av[0]----------->" << av[0] << std::endl;
+	std::cout << "av[1]----------->" << av[1] << std::endl;
 	this->env = mapToCharConstArray(cgi_env);
 	size_t i;
 	for (i = 0; cgi_env.size() > i; i++) {
@@ -171,28 +198,18 @@ void Cgi::set_cgi_env() {
 	}
 	printf("** %s\n", env[i]);
 	cout << "-----------------------------------------------------------------------------------\n";
-	outfile		= "./folder/outfile.txt";
+	outfile = this->generate_random_name();
 	output_file = open(outfile.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0777);
-	input_file	= open(this->main_client->get_body_file_name().c_str(), O_RDONLY, 0777);
-	std::cout << "body file: " << this->main_client->get_body_file_name() << std::endl;
-	// std::fstream infile(this->main_client->get_body_file_name().c_str(), std::ios::in);
-	// input_file = infile.rdbuf()->native_handle();
-	// while (true);
-
-	std::cout << input_file << std::endl;
-	std::cout << "out-------->: " << output_file << std::endl;
-	std::cout << "in-------->: " << input_file << std::endl;
-	
-	pid = fork();
+	input_file = open(this->main_client->get_body_file_name().c_str(), O_RDONLY);
+	int pid = fork();
 	if (pid < 0) {
 		cout << "fork failed" << endl;
-
 		return;
 	} else if (pid == 0) {
 		dup2(output_file, 2);
 		dup2(output_file, 1);
-		close(output_file);
 		dup2(input_file, 0);
+		close(output_file);
 		close(input_file);
 		if (execve(av[0], av, this->env) < 0)
 			exit(1);

@@ -198,7 +198,9 @@ void MainClient::set_header_for_errors_and_redirection(const char *what) {
 		this->header += "\r\nConnection: Close";
 		this->header += "\r\n\r\n";
 		std::cout << "redirection header:" << this->header << std::endl;
-	} else // errors
+	} 
+	
+	else	// errors
 	{
 		Response Error;
 		this->body_file = Error.SetError(msg_status, body_file);
@@ -217,7 +219,7 @@ std::string MainClient::get_serve_file() { return (serve_file); }
 void MainClient::check_files_error() {
 	std::map<int, std::string> error_map = this->config_server_parser->get_error_page();
 	if (error_map[this->status].size() != 0) {
-		std::ifstream error_page(error_map[this->status]);
+		std::ifstream error_page(error_map[this->status].c_str());
 		if (!error_page.is_open())
 			throw Error::Forbidden403();
 		body_file = error_map[this->status];
@@ -336,7 +338,7 @@ void MainClient::send_to_socket() {
 		write_header = true;
 		return;
 	}
-	std::ifstream file(serve_file, std::ios::binary);
+	std::ifstream file(serve_file.c_str(), std::ios::binary);
 
 	if (file_open == false) {
 		PRINT_SHORT_LINE("open the file");
@@ -407,7 +409,7 @@ void MainClient::check_upload_path() {
 		DIR *directory = opendir(this->upload_path.c_str());
 		if (directory == NULL) {
 			std::cout << "this->upload_path" << this->upload_path << std::endl;
-			throw Error::BadRequest400();//!500
+			throw Error::BadRequest400();  //! 500
 		}
 		closedir(directory);
 		return;

@@ -36,13 +36,12 @@ class RequestParser {
 
   private:
 	// Methods
-	void   parse_head();
-	void   is_head_valid();
-	string urlDecode();
-	void   is_first_line_valid();
-	void   parse_first_line();
-	void   parse_rest_lines();
-	void   last_check();
+	void parse_head();
+	void is_head_valid();
+	void is_first_line_valid();
+	void parse_first_line();
+	void parse_rest_lines();
+	void last_check();
 };
 
 // Operator <<
