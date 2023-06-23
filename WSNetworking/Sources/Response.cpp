@@ -39,12 +39,14 @@ void Response::SetContentType() {
 	size_t start = this->filename.find('.');
 	if (start != string::npos) {
 		this->extention = filename.substr(start, filename.size() - 1);
-		if (this->extention == ".py" || this->extention == ".php") {
-			check_cgi_location();
+		if (this->extention == ".py" || this->extention == ".php")
+		{
+			Client->set_is_cgi(true);
 			PRINT_LONG_LINE("handle cgi");
-			Cgi cgi(this->Client, Client->get_config_server()->get_config_location_parser(), Client->get_new_url());
-			cgi.check_extention();
-			this->serve_file = cgi.get_outfile();
+			check_cgi_location();
+			// Cgi cgi(this->Client, Client->get_config_server()->get_config_location_parser(), Client->get_new_url());
+			Client->get_cgi()->check_extention();
+			this->serve_file = Client->get_cgi()->get_outfile();
 			return;
 		}
 		this->ContentType = Client->get_content_type(this->extention);
@@ -160,21 +162,15 @@ std::string Response::check_auto_index() {
 std::string Response::handle_directory(int flag) {
 	PRINT_SHORT_LINE("handle directory");
 	std::string uri = Client->get_new_url();
-	std::cout << "check_folder here new :" << uri << std::endl;
-	std::cout << "check folder here old :" << Client->get_request("Request-URI") << std::endl;
-	if (uri[uri.size() - 1] != '/'
-		&& Client->get_request("Request-URI").size() != 1)	// redirect from /folder to /folder/
+	if (uri[uri.size() - 1] != '/' && Client->get_request("Request-URI").size() != 1)	// redirect from /folder to /folder/
 	{
-		std::string red = Client->get_request("Request-URI") + '/';	 // ? i should use old uri with location one
+		std::string red = Client->get_request("Request-URI") + '/'; // ? i should use old uri with location one
 		Client->set_redirection(red);
 		throw Accurate::MovedPermanently301();
 	}
-	// std::cout << "location: "
-	// << Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_location() <<
-	// std::endl;
+	// std::cout << "location: " << Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_location() << std::endl;
 	std::vector<std::string> index_vec
 		= Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_index();
-	// std::cout << "numbers of vectors: " << index_vec.size() << std::endl;
 	if (index_vec.size() != 0) {
 		std::string root
 			= Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_root();
@@ -347,3 +343,4 @@ void	Response::throw_accurate_response(std::string uri)
 	}
 	this->type = "directory";
 }
+

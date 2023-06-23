@@ -84,6 +84,11 @@ class Error {
 	  public:
 		virtual const char *what() const throw() { return "503 Service unavailable"; }
 	};
+
+	class LoopDetected508 : public std::exception {
+	  public:
+		virtual const char *what() const throw() { return "508 Loop Detected"; }
+	};
 };
 
 #endif	// ERROR_HPP

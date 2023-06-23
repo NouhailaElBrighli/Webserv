@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Cgi.hpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hsaidi <hsaidi@student.42.fr>              +#+  +:+       +#+        */
+/*   By: nel-brig <nel-brig@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:33:49 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/06/18 21:02:56 by hsaidi           ###   ########.fr       */
+/*   Updated: 2023/06/23 16:33:15 by nel-brig         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,9 @@ class Cgi
         vector<ConfigLocationParser *> config_location_parser;
         map<string, string> cgi_env;
 		std::string outfile;
+		bool	status;
+		int test;
+		int pid;
 
     public:
         Cgi(MainClient *main_client, vector<ConfigLocationParser *>config_location_parser, std::string filename);
@@ -40,6 +43,7 @@ class Cgi
         int             getFileType(const std::string& filename);
         char* const*    mapToCharConstArray(const std::map<std::string, std::string>& envMap);
 		std::string     get_outfile();
+		void			wait_for_child();
 }; 
 
 #endif // CGI_HPP

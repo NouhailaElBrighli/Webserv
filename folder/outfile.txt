@@ -1,4 +1,10 @@
 X-Powered-By: PHP/8.0.2
 Content-type: text/html; charset=UTF-8
 
-Name: John Doe<br>Age: 25<br>Occupation: Engineer<br>
+<br />
+<b>Warning</b>:  Undefined array key "name" in <b>/Users/nel-brig/Desktop/webserv/test.php</b> on line <b>3</b><br />
+<br />
+<b>Warning</b>:  Undefined array key "age" in <b>/Users/nel-brig/Desktop/webserv/test.php</b> on line <b>4</b><br />
+<br />
+<b>Warning</b>:  Undefined array key "occupation" in <b>/Users/nel-brig/Desktop/webserv/test.php</b> on line <b>5</b><br />
+Name: <br>Age: <br>Occupation: <br>

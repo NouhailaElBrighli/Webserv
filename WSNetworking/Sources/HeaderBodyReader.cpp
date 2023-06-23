@@ -36,7 +36,6 @@ void HeaderBodyReader::header_reading() {
 		throw Error::BadRequest400();
 
 	this->head.append(buffer, bytes);
-
 	if (this->head.find("\r\n\r\n") != string::npos) {
 		this->head_status = true;
 		size_t bodyStart  = this->head.find("\r\n\r\n") + 4;

@@ -34,7 +34,7 @@ MainClient::MainClient(int client_socket, ConfigServerParser *config_server_pars
 	: config_server_parser(config_server_parser), request_parser(new RequestParser()), send_receive_status(true),
 	  msg_status(Accurate::OK200().what()), client_socket(client_socket), status(200), phase(READ_PHASE), php_status(0),
 	  write_header(false), write_body(false), write_status(false), file_open(false),
-	  header_body_reader(new HeaderBodyReader(this)) {
+	  header_body_reader(new HeaderBodyReader(this)), cgi_status(false), cgi_counter(0), is_cgi(false) {
 
 	set_content_type_map();
 	set_extention_map();
@@ -59,9 +59,27 @@ void MainClient::start_handle(string task) {
 			this->handle_read();
 			this->phase = WRITE_PHASE;
 		} else if (task == "write") {
-			if (this->write_status == false && this->status != 301)
-				this->handle_write();
-			send_to_socket();
+			// Cgi cgi(this, this->get_config_server()->get_config_location_parser(), this->get_new_url());
+			if (cgi_status == false)
+			{
+				if (this->write_status == false && this->status != 301)
+					this->handle_write();
+				send_to_socket();
+			}
+			else
+			{
+				if (is_cgi == true && cgi_counter == 0)
+				{
+					sleep(3);
+					cgi_counter++;
+					this->cgi->wait_for_child();
+				}
+				// int i = 0;
+				// while (i < 100000000)
+				// 	i++;
+				// sleep(3);
+				// cgi_status = true;
+			}
 		}
 
 	} catch (const std::exception &e) {
@@ -85,31 +103,11 @@ void MainClient::handle_read() {
 
 	header_body_reader->header_reading();
 	this->request_parser->run_parse(header_body_reader->get_head());
-
 	this->location = this->match_location();
 
 	if (this->config_server_parser->get_config_location_parser()[get_location()]->get_return().size() != 0) {
-		vector<string>::const_iterator it = this->config_server_parser->get_config_location_parser()[get_location()]->get_return().begin();
-		if (*it == "301")
-		{
-			it++; //?
-		    redirection = *it;
-			throw Accurate::MovedPermanently301();
-		}
-		else if (*it == "302")
-		{
-			it++;
-			redirection = *it;
-
-			throw Accurate::TemporaryRedirect302();
-		}
-		else
-		{
-			redirection = *it;
-			
-			std::cout << "redirect it=>" << *it << std::endl;
-			throw Accurate::TemporaryRedirect302();
-		}
+		// vector<string>::const_iterator it = this->config_server_parser->get_config_location_parser()[get_location()]->get_return().begin();
+		throw_accurate_redirection();
 	}
 	is_method_allowed_in_location();
 	if (this->get_request("Request-Type") == "POST") {
@@ -125,6 +123,8 @@ void MainClient::handle_read() {
 		else
 			throw Error::BadRequest400();
 	}
+	cgi = new Cgi(this, this->get_config_server()->get_config_location_parser(), this->get_new_url());
+
 }
 
 void MainClient::handle_write() {
@@ -189,6 +189,7 @@ void MainClient::set_header_for_errors_and_redirection(const char *what) {
 		check_files_error();
 	if (this->status < 400 && this->status > 300)  // redirection
 	{
+		// redirection = "/" + redirection;
 		this->header = "HTTP/1.1 ";
 		this->header += this->msg_status;
 		this->header += "\r\nContent-Length: 0\r\n";
@@ -196,7 +197,7 @@ void MainClient::set_header_for_errors_and_redirection(const char *what) {
 		this->header += redirection;
 		this->header += "\r\nConnection: Close";
 		this->header += "\r\n\r\n";
-		SHOW_INFO(this->header);
+		std::cout << "redirection header:" << this->header << std::endl;
 	} else // errors
 	{
 		Response Error;
@@ -204,6 +205,7 @@ void MainClient::set_header_for_errors_and_redirection(const char *what) {
 		this->header	= Error.GetHeader();
 	}
 	serve_file = body_file;
+	std::cout << "serve_file:" << body_file << std::endl;
 }
 
 void MainClient::set_redirection(std::string &redirection) { this->redirection = redirection; }
@@ -321,7 +323,6 @@ void MainClient::set_start_php(int start) {
 }
 
 void MainClient::send_to_socket() {
-
 	PRINT_LINE("sending");
 	if (write_header == false) {
 		PRINT_SHORT_LINE("send header");
@@ -359,6 +360,7 @@ void MainClient::send_to_socket() {
 		file.close();
 		PRINT_ERROR("close the socket now");
 		this->send_receive_status = false;
+		remove_files();
 		return;
 	}
 	char buff[MAXLINE];
@@ -414,3 +416,60 @@ void MainClient::check_upload_path() {
 }
 
 std::string MainClient::get_upload_path() { return (upload_path); }
+
+void	MainClient::throw_accurate_redirection()
+{
+	vector<string>::const_iterator it = this->config_server_parser->get_config_location_parser()[get_location()]->get_return().begin();
+	if (*it == "301")
+	{
+		it++;
+	    redirection = *it;
+		throw Accurate::MovedPermanently301();
+	}
+	else if (*it == "302")
+	{
+		it++;
+		redirection = *it;
+		throw Accurate::TemporaryRedirect302();
+	}
+	else
+	{
+		redirection = *it;
+		throw Accurate::TemporaryRedirect302();
+	}
+}
+
+void	MainClient::remove_files()
+{
+	std::remove("folder/s/rve_file.html");
+}
+
+void	MainClient::set_write_status(bool status)
+{
+	this->write_status = status;
+}
+
+void	MainClient::set_cgi_status(bool status)
+{
+	cgi_status = status;
+}
+
+bool MainClient::get_cgi_status()
+{
+	return(cgi_status);
+}
+
+int	MainClient::get_cgi_counter()
+{
+	return(cgi_counter);
+}
+
+Cgi *MainClient::get_cgi()
+{
+	return(cgi);
+}
+
+void	MainClient::set_is_cgi(bool status)
+{
+	this->is_cgi = status;
+}

@@ -8,6 +8,7 @@ class MainClient {
   private:
 	ConfigServerParser *config_server_parser;
 	RequestParser	   *request_parser;
+	Cgi					*cgi;
 	bool				send_receive_status;
 	string				msg_status;
 	int					client_socket, status, phase;
@@ -15,6 +16,9 @@ class MainClient {
 	bool				write_header, write_body, write_status;
 	bool				file_open;
 	HeaderBodyReader   *header_body_reader;
+	bool				cgi_status;
+	int					cgi_counter;
+	bool				is_cgi;
 
   private:
 	std::map<std::string, std::string> content_type;
@@ -49,7 +53,8 @@ class MainClient {
 	std::string				   get_content_type(std::string extention);
 	const map<string, string> &get_mime_type() const;
 	const string			  &get_mime_type(const string &type) const;
-
+	Cgi 					*get_cgi();
+	bool					get_cgi_status();
 	// Setters
 	void set_send_receive_status(bool send_receive_status);
 	void set_location(int location);
@@ -69,6 +74,7 @@ class MainClient {
 	void		set_start_php(int start);
 	std::string get_extention(std::string content);
 	std::string get_upload_path();
+	int	get_cgi_counter();
 
 	std::string get_serve_file();
 	std::string write_into_file(DIR *directory, std::string root);
@@ -77,8 +83,10 @@ class MainClient {
 	void		send_to_socket();
 	void		set_content_type_map();
 	void		check_upload_path();
-
-	void start(string task);
+	void		set_write_status(bool status);
+	void		set_cgi_status(bool status);
+	void		start(string task);
+	void		set_is_cgi(bool status);
 
   private:
 	// Methods
@@ -91,6 +99,8 @@ class MainClient {
 	void	is_method_allowed_in_location();
 	void	check_files_error();
 	int		check_for_root_directory();
+	void	throw_accurate_redirection();
+	void	remove_files();
 };
 
 #endif	// MAINCLIENT_HPP

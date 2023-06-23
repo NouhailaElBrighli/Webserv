@@ -6,17 +6,19 @@
 /*   By: nel-brig <nel-brig@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:38:43 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/06/22 19:26:46 by nel-brig         ###   ########.fr       */
+/*   Updated: 2023/06/23 18:00:32 by nel-brig         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Cgi.hpp"
 #include "MainClient.hpp"
+#include <signal.h>
 
 Cgi::Cgi(MainClient *main_client, vector<ConfigLocationParser *> config_location_parser, std::string filename) {
 	this->main_client			 = main_client;
 	this->config_location_parser = config_location_parser;
 	this->filename				 = filename;
+	this->status = false;
 }
 Cgi::~Cgi() {}
 
@@ -69,11 +71,14 @@ char *const *Cgi::mapToCharConstArray(const std::map<std::string, std::string> &
 }
 
 void Cgi::check_extention() {
-	cout << "*****in just_print***\n";
-	std::cout << "hello from cgi" << std::endl;
-	for (map<string, string>::const_iterator it = this->main_client->get_request().begin();
-		 it != this->main_client->get_request().end(); it++) {
-		cout << it->first << " : " << it->second << endl;
+	if (status == false)
+	{
+		cout << "*****in just_print***\n";
+		std::cout << "hello from cgi" << std::endl;
+		for (map<string, string>::const_iterator it = this->main_client->get_request().begin();
+			 it != this->main_client->get_request().end(); it++) {
+			cout << it->first << " : " << it->second << endl;
+		}
 	}
 	readFileContents();
 }
@@ -139,7 +144,6 @@ void Cgi::query_string() {
 		std::string value = queryString.substr(pairPos + 1);
 	}
 }
-
 void Cgi::set_cgi_env() {
 	query_string();
 	cgi_env["CONTENT_TYPE="]   = this->main_client->get_request("Content-Type");
@@ -178,7 +182,8 @@ void Cgi::set_cgi_env() {
 	std::cout << input_file << std::endl;
 	std::cout << "out-------->: " << output_file << std::endl;
 	std::cout << "in-------->: " << input_file << std::endl;
-	int pid = fork();
+	
+	pid = fork();
 	if (pid < 0) {
 		cout << "fork failed" << endl;
 
@@ -192,15 +197,40 @@ void Cgi::set_cgi_env() {
 		if (execve(av[0], av, this->env) < 0)
 			exit(1);
 	}
-	// waitpid(pid, NULL,WNOHANG);
-	else {
-		waitpid(pid, NULL, 0);
-		close(output_file);
-		close(input_file);
-	}
-
-	PRINT_LONG_LINE("finish cgi");
+	wait_for_child();
+	
+	// aitpid(pid, NULL, 0);
 	// execve(av[0], av2, const_cast<char *const *>(&cgi_env[0]));
 }
 
 std::string Cgi::get_outfile() { return (outfile); }
+
+void	Cgi::wait_for_child()
+{
+	sleep(1);
+	while (1)
+	{
+		test = waitpid(pid, NULL, WNOHANG);
+		if (test == 0 && main_client->get_cgi_counter() == 0)
+		{
+			PRINT_ERROR("first move");
+			main_client->set_cgi_status(true);//!
+			throw std::runtime_error("Still running");
+		}
+		else if (test == 0 && main_client->get_cgi_status() == 1)
+		{
+			PRINT_ERROR("SECOND MOVE");
+			// kill(pid, SIGKILL);
+			main_client->set_cgi_status(false);
+			main_client->set_write_status(true);
+			throw Error::LoopDetected508();
+		}
+		else
+		{
+			std::cout << "-----------send directly-----------" << std::endl;
+			main_client->set_cgi_status(false);//!
+			main_client->set_write_status(false);
+			break;
+		}
+	}
+}
