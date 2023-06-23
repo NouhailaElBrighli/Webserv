@@ -43,6 +43,7 @@ MainClient::MainClient(int client_socket, ConfigServerParser *config_server_pars
 MainClient::~MainClient() {
 	delete request_parser;
 	delete header_body_reader;
+	// delete cgi;
 }
 
 // Methods
@@ -68,17 +69,13 @@ void MainClient::start_handle(string task) {
 			}
 			else
 			{
-				if (is_cgi == true && cgi_counter == 0)
+				if (is_cgi == true)
 				{
-					sleep(3);
-					cgi_counter++;
+					// sleep(3);
+					std::cout << "HHHHH" << std::endl;
+					//cgi_counter++;
 					this->cgi->wait_for_child();
 				}
-				// int i = 0;
-				// while (i < 100000000)
-				// 	i++;
-				// sleep(3);
-				// cgi_status = true;
 			}
 		}
 
