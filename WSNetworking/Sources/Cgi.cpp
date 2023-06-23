@@ -6,7 +6,7 @@
 /*   By: nel-brig <nel-brig@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:38:43 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/06/23 22:13:41 by nel-brig         ###   ########.fr       */
+/*   Updated: 2023/06/23 22:16:44 by nel-brig         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -242,12 +242,6 @@ void Cgi::wait_for_child() {
 		std::cout << "RRR" << std::endl;
 		std::exit(0);
 	}
-	// } else if (test != 0) {
-	// 	std::cout << "-----------send directly-----------" << std::endl;
-	// 	main_client->set_cgi_status(false); //!
-	// 	main_client->set_write_status(false);
-	// }
-	
 	else if (get_time() - _time > 1000 * 3) {
 		std::cout << ">> " << test << "ddd " <<  _time << std::endl;
 		PRINT_ERROR("KILL CHILD");
@@ -260,18 +254,4 @@ void Cgi::wait_for_child() {
 		std::cout << get_time() - _time << std::endl;
 		std::cerr << ">>>>> " << pid << std::endl;
 	}
-
-	/*else if (test == 0 && main_client->get_cgi_status() == 1) {
-	   PRINT_ERROR("SECOND MOVE");
-	   main_client->set_cgi_status(false);
-	   main_client->set_write_status(true);
-	   std::cout << "-----------------pid :" << pid << std::endl;
-	   // kill(pid, SIGKILL);
-	   throw Error::LoopDetected508();
-   } else {
-	   std::cout << "-----------send directly-----------" << std::endl;
-	   main_client->set_cgi_status(false); //!
-	   main_client->set_write_status(false);
-	   break;
-   }*/
 }
