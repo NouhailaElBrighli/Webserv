@@ -40,13 +40,17 @@ void ConfigFileParser::open_config_file() {
 void ConfigFileParser::read_config_file() {
 	string line;
 	while (std::getline(this->config_file, line)) {
-		if (line.empty() || line[0] == '#') {
-			continue;  // skip empty lines and comments
+		if (line.empty()) {
+			continue;  // skip empty lines
 		}
 
 		size_t pos = line.find_first_not_of(' ');
 		if (pos == string::npos) {
 			continue;  // skip lines with only whitespace
+		}
+
+		if (line[0] == '#' || line[pos] == '#') {
+			continue;  // skip comments
 		}
 
 		line = line.substr(pos);
