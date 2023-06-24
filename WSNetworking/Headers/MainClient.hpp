@@ -22,6 +22,7 @@ class MainClient {
 	bool				is_cgi;
 	bool				access;
 	bool				alloc;
+	std::vector<std::string> files_to_remove;
 
   private:
 	std::map<std::string, std::string> content_type;
@@ -63,6 +64,7 @@ class MainClient {
 	void set_location(int location);
 	void set_header(std::string header);
 	void reset_body_file_name(std::string new_name);
+	void	set_files_to_remove(std::string file);
 
 	// Constructors and destructor
 	MainClient(int client_socket, ConfigServerParser *config_server_parser);
@@ -93,6 +95,7 @@ class MainClient {
 	bool		get_access();
 	void		set_access(bool status);
 
+
   private:
 	// Methods
 	void start_handle(string task);
@@ -106,6 +109,7 @@ class MainClient {
 	int		check_for_root_directory();
 	void	throw_accurate_redirection();
 	void	remove_files();
+	std::string generate_random_name();
 };
 
 #endif	// MAINCLIENT_HPP

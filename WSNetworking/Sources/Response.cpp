@@ -38,6 +38,7 @@ void Response::SetContentType() {
 	PRINT_ERROR("set content type");
 	PRINT_ERROR(this->filename);
 	size_t start = this->filename.find('.');
+	std::cout << "start:" << start  << std::endl;
 	if (start != string::npos) {
 		this->extention = filename.substr(start, filename.size() - 1);
 		if (this->extention == ".py" || this->extention == ".php")
@@ -52,14 +53,22 @@ void Response::SetContentType() {
 			}
 			PRINT_ERROR("wait for cgi");
 			Client->get_cgi()->wait_for_child();
-			this->serve_file = Client->get_cgi()->get_outfile();
+			if (Client->get_access() == false)
+				this->serve_file = Client->get_cgi()->get_outfile();
 			return;
 		}
 		this->ContentType = Client->get_content_type(this->extention);
+		if (this->ContentType.size() == 0)
+			this->ContentType = "application/octetstream";
 	} else
+	{
+		PRINT_ERROR("here");
 		this->ContentType = "application/octetstream";
+	}
+	PRINT_ERROR("content type");
+	PRINT_ERROR(ContentType);
 }
-
+ 
 void Response::SetContentLength(std::string RequestURI) {
 	std::ifstream RequestedFile(RequestURI.c_str(), std::ios::binary);
 	if (!RequestedFile)
@@ -82,6 +91,7 @@ void Response::SetVars() {
 		}
 	}
 	this->SetContentType();
+	PRINT_ERROR(this->ContentType);
 	if (this->extention == ".php") {
 		PRINT_ERROR("handle php");
 		handle_php();
@@ -151,6 +161,7 @@ void Response::check_inside_root(std::string &root, std::string uri) {
 }
 
 std::string Response::check_auto_index() {
+	std::string filename;
 	int autoindex
 		= this->Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_autoindex();
 	std::string root
@@ -161,10 +172,11 @@ std::string Response::check_auto_index() {
 		DIR *directory = opendir(Client->get_new_url().c_str());
 		if (!directory)
 			throw Error::Forbidden403();
-		Client->write_into_file(directory, root);
+		filename= Client->write_into_file(directory, root);
 		closedir(directory);
 	}
-	return ("folder/serve_file.html");
+	std::cout << "--------filename :" << filename << std::endl;   
+	return (filename);
 }
 
 std::string Response::handle_directory(int flag) {
@@ -310,6 +322,7 @@ std::string Response::post() {
 	} else
 		this->serve_file = handle_file();
 	this->SetVars();
+	Client->set_files_to_remove(Client->get_body_file_name());
 	return (serve_file);
 }
 
