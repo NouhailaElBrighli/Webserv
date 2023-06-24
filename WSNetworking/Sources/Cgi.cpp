@@ -6,7 +6,7 @@
 /*   By: nel-brig <nel-brig@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:38:43 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/06/24 13:41:56 by nel-brig         ###   ########.fr       */
+/*   Updated: 2023/06/24 20:07:18 by nel-brig         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,19 +14,19 @@
 #include "MainClient.hpp"
 #include <signal.h>
 
-Cgi::Cgi(MainClient *main_client, vector<ConfigLocationParser *> config_location_parser, std::string filename) {
+Cgi::Cgi(MainClient *main_client, vector<ConfigLocationParser *> config_location_parser) {
 	this->main_client			 = main_client;
 	this->config_location_parser = config_location_parser;
-	this->filename				 = filename;
+	this->filename = main_client->get_new_url();
 	this->status				 = false;
 	this->_time					 = 0;
 	this->_phase					 = 0;
 }
 Cgi::~Cgi() {
-	// for (size_t i = 0; this->cgi_env.size() > i; i++) {
-	// 	delete[] this->env[i];
-	// }
-	// delete[] this->env;
+	for (size_t i = 0; this->cgi_env.size() > i; i++) {
+		delete[] this->env[i];
+	}
+	delete[] this->env;
 }
 
 void Cgi::readFileContents() {
@@ -48,17 +48,15 @@ string Cgi::generate_random_name() {
 
 int Cgi::getFileType(const std::string &filename) {
 	std::size_t dotPos = filename.rfind('.');
+	std::cout << "filename ======>" << filename << std::endl;
+	std::cout << "new_url =======>" << main_client->get_new_url() << std::endl;
 	if (dotPos != std::string::npos) {
 		std::string extension = filename.substr(dotPos + 1);
-
 		if (extension == "php")
-			this->script = main_client->get_config_server()
-							   ->get_config_location_parser()[main_client->get_location()]
-							   ->get_cgi_ext_path(".php");
+			this->script = main_client->get_config_server()->get_config_location_parser()[main_client->get_location()]->get_cgi_ext_path(".php");
+					
 		else if (extension == "py")
-			this->script = main_client->get_config_server()
-							   ->get_config_location_parser()[main_client->get_location()]
-							   ->get_cgi_ext_path(".py");
+			this->script = main_client->get_config_server()->get_config_location_parser()[main_client->get_location()]->get_cgi_ext_path(".py");
 		else
 			throw Error::NotImplemented501();
 	}
@@ -66,7 +64,6 @@ int Cgi::getFileType(const std::string &filename) {
 	if (checl_script.is_open()) {
 		set_cgi_env();
 	} else {
-		cout << "---- can't open the script ----" << std::endl;
 		throw Error::NotFound404();
 	}
 	return -1;
@@ -87,6 +84,7 @@ char *const *Cgi::mapToCharConstArray(const std::map<std::string, std::string> &
 }
 
 void Cgi::check_extention() {
+	this->filename = main_client->get_new_url();
 	if (status == false) {
 		cout << "*****in just_print***\n";
 		std::cout << "hello from cgi" << std::endl;

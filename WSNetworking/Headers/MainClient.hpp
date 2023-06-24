@@ -95,6 +95,8 @@ class MainClient {
 	void		set_is_cgi(bool status);
 	bool		get_access();
 	void		set_access(bool status);
+	std::string	generate_random_name();
+	void	set_new_url(std::string new_url);
 
   private:
 	// Methods
@@ -113,7 +115,6 @@ class MainClient {
 	int			check_for_root_directory();
 	void		throw_accurate_redirection();
 	void		remove_files();
-	std::string generate_random_name();
 };
 
 #endif	// MAINCLIENT_HPP

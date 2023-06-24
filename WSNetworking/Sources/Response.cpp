@@ -114,9 +114,17 @@ void Response::SetVars() {
 void Response::check_request_uri() {
 	std::string root = Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_root();
 	std::string uri	 = Client->get_new_url();
+	PRINT_ERROR(root);
+	PRINT_ERROR(uri);
+	// if (root == Client->get_new_url()) {
+	// 	if (access(root.c_str(), R_OK) < 0)
+	// 		throw Error::Forbidden403();
+	// 	this->type = "directory";
+	// 	return;
+	// }
 	if (uri[uri.size() - 1] == '/')
 		uri.erase(uri.size() - 1, 1);
-	if (root == uri) {
+	if (root == Client->get_new_url()) {
 		if (access(root.c_str(), R_OK) < 0)
 			throw Error::Forbidden403();
 		this->type = "directory";
@@ -188,7 +196,6 @@ std::string Response::handle_directory(int flag) {
 		Client->set_redirection(red);
 		throw Accurate::MovedPermanently301();
 	}
-	// std::cout << "location: " << Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_location() << std::endl;
 	std::vector<std::string> index_vec
 		= Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_index();
 	if (index_vec.size() != 0) {
@@ -202,6 +209,7 @@ std::string Response::handle_directory(int flag) {
 				continue;
 			else {
 				file.close();
+				std::cout << "index_file :" << index_file << std::endl;
 				return (index_file);
 			}
 		}
@@ -222,9 +230,10 @@ std::string Response::set_error_body(std::string msg_status, std::string body_fi
 	std::string		  content;
 	std::stringstream num;
 	if (body_file.size() == 0) {
-		std::ofstream file("error/dynamic_error.html");
+		std::string error_file = Client->generate_random_name();
+		std::ofstream file(error_file.c_str());
 		if (!file.is_open())
-			throw Error::BadRequest400();
+			throw Error::InternalServerError500();
 		content = "<!DOCTYPE html>\r\n<html>\r\n<head>\r\n<title>";
 		content += msg_status;
 		content += "</title>\r\n<style>\r\nbody {\r\ntext-align: center;\r\npadding: 40px;\r\nfont-family: Arial, "
@@ -236,7 +245,7 @@ std::string Response::set_error_body(std::string msg_status, std::string body_fi
 		file << content;
 		num << content.size();
 		num >> this->ContentLength;
-		return ("error/dynamic_error.html");
+		return (error_file);
 	} else {
 		std::ifstream file(body_file.c_str(), std::ios::binary);
 		file.seekg(0, std::ios::end);
@@ -265,10 +274,12 @@ std::string Response::Get() {
 	if (Client->get_access() == false)
 	{
 		if (Client->get_serve_file().size() == 0) {
+			PRINT_ERROR("check_request_uri");
 			this->check_request_uri();	// * check if uri exist in the root
 			if (this->type == "directory") {
 				PRINT_ERROR("should be here");
 				this->serve_file = handle_directory(0);
+				Client->set_new_url(this->serve_file);
 			} else if (this->type == "file")
 				this->serve_file = handle_file();
 		} else
@@ -318,6 +329,7 @@ std::string Response::post() {
 	check_request_uri();
 	if (this->type == "directory") {
 		this->serve_file = handle_directory(1);
+		Client->set_new_url(this->serve_file);
 		std::cout << "serve_file in handle directory: " << serve_file << std::endl;
 	} else
 		this->serve_file = handle_file();

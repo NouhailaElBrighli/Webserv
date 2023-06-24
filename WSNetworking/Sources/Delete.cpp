@@ -6,7 +6,7 @@
 /*   By: nel-brig <nel-brig@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/27 11:30:30 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/06/24 16:51:06 by nel-brig         ###   ########.fr       */
+/*   Updated: 2023/06/24 19:01:04 by nel-brig         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,6 +51,8 @@ bool Delete::delete_path(const std::string& path)
                     success = true;
             }
         }
+		if(!success)
+			throw Error::Forbidden403();
     }
     return success;
 }

@@ -112,7 +112,7 @@ void MainClient::handle_read() {
 			throw Error::BadRequest400();
 	}
 	if (this->alloc == false) {
-		cgi			= new Cgi(this, this->get_config_server()->get_config_location_parser(), this->get_new_url());
+		cgi			= new Cgi(this, this->get_config_server()->get_config_location_parser());
 		Res			= new Response(this);
 		this->alloc = true;
 	}
@@ -127,7 +127,7 @@ void MainClient::handle_write() {
 		write_status = true;
 		serve_file	 = Res->post();
 	} else if (this->get_request("Request-Type") == "DELETE") {
-		// DELETE
+		//*Delete
 	}
 }
 
@@ -498,3 +498,9 @@ bool MainClient::get_access() { return (this->access); }
 void MainClient::set_access(bool status) { this->access = status; }
 
 void MainClient::set_files_to_remove(std::string file) { files_to_remove.push_back(file); }
+
+
+void	MainClient::set_new_url(std::string new_url)
+{
+	this->new_url = new_url;
+}
