@@ -11,76 +11,49 @@ const bool &ConfigLocationParser::get_autoindex() const {
 
 const string &ConfigLocationParser::get_root() const { return this->root; }
 
-const vector<string> &ConfigLocationParser::get_index() const {
-	if (this->index_status == false) {
-		// return an empty vector if index is not set
-		static vector<string> empty_vector;
-		return empty_vector;
-	}
-	return this->index;
-}
+const vector<string> &ConfigLocationParser::get_index() const { return this->index; }
 
 const string &ConfigLocationParser::get_index(int i) const {
 	if (this->index_status == false) {
 		// return an empty string if index is not set
-		static string empty_string;
 		return empty_string;
 	}
 	return this->index[i];
 }
 
-const vector<string> &ConfigLocationParser::get_return() const {
-	if (this->return_status == false) {
-		// return an empty vector if return is not set
-		static vector<string> empty_vector;
-		return empty_vector;
-	}
-	return this->return_;
-}
+const vector<string> &ConfigLocationParser::get_return() const { return this->return_; }
 
 const string &ConfigLocationParser::get_upload() const {
 	if (this->upload_status == false) {
 		// upload an empty string if upload is not set
-		static string empty_string;
 		return empty_string;
 	}
 	return this->upload;
 }
 
-const vector<string> &ConfigLocationParser::get_methods() const {
-	if (this->methods_status == false) {
-		// return an empty vector if methods is not set
-		static vector<string> empty_vector;
-		return empty_vector;
-	}
-	return this->methods;
-}
+const vector<string> &ConfigLocationParser::get_methods() const { return this->methods; }
 
 const string &ConfigLocationParser::get_methods(int i) const {
 	if (this->methods_status == false) {
 		// return an empty string if methods is not set
-		static string empty_string;
 		return empty_string;
 	}
 	return this->methods[i];
 }
 
-const map<string, string> &ConfigLocationParser::get_cgi_ext_path() const {
-	if (this->cgi_ext_path_status == false) {
-		// return an empty map if cgi_ext_path is not set
-		static map<string, string> empty_map;
-		return empty_map;
-	}
-	return this->cgi_ext_path;
-}
+const map<string, string> &ConfigLocationParser::get_cgi_ext_path() const { return this->cgi_ext_path; }
 
 const string &ConfigLocationParser::get_cgi_ext_path(string key) const {
 	if (this->cgi_ext_path_status == false) {
 		// return an empty string if cgi_ext_path is not set
-		static string empty_string;
 		return empty_string;
 	}
-	return this->cgi_ext_path.at(key);
+	try {
+		this->cgi_ext_path.at(key);
+		return this->cgi_ext_path.at(key);
+	} catch (const std::out_of_range &e) {
+		return empty_string;
+	}
 }
 
 // Constructors and copy constructor and copy assignment operator and destructor

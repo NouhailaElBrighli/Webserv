@@ -13,14 +13,7 @@ const string &ConfigServerParser::get_server_name() const { return this->server_
 
 const size_t &ConfigServerParser::get_client_max_body_size() const { return this->client_max_body_size; }
 
-const map<int, string> &ConfigServerParser::get_error_page() const {
-	if (this->error_page_status) {
-		return this->error_page;
-	}
-	// return an empty map if error_page_status is false
-	static std::map<int, std::string> empty_map;
-	return empty_map;
-}
+const map<int, string> &ConfigServerParser::get_error_page() const { return this->error_page; }
 
 const bool &ConfigServerParser::get_error_page_status() const { return this->error_page_status; }
 
