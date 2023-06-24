@@ -127,7 +127,8 @@ void MainClient::handle_write() {
 		write_status = true;
 		serve_file	 = Res->post();
 	} else if (this->get_request("Request-Type") == "DELETE") {
-		//*Delete
+		Delete Delete(this, this->config_server_parser->get_config_location_parser());
+		Delete.deleted();
 	}
 }
 
@@ -264,7 +265,6 @@ std::string MainClient::generate_random_name() {
 
 std::string MainClient::write_into_file(DIR *directory, std::string root) {
 	std::string filename = generate_random_name();
-	set_files_to_remove(filename);
 	std::ofstream file(filename.c_str());
 	if (!file.is_open())
 		throw Error::BadRequest400();
@@ -292,6 +292,7 @@ std::string MainClient::write_into_file(DIR *directory, std::string root) {
 		file << "</a></li>";
 	}
 	file.close();
+	set_files_to_remove(filename);
 	return (filename.c_str());
 }
 
@@ -333,7 +334,7 @@ void MainClient::set_content_type_map() {
 	this->content_type[".docs"] = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 	this->content_type[".xls"]	= "application/vnd.ms-excel";
 	this->content_type[".xlsx"] = "application/vnd.ms-excel";
-	this->content_type[".cpp"]	= "text/x-c++src";
+	this->content_type[".cpp"]	= "text/plain";
 }
 
 std::string MainClient::get_content_type(std::string extention) { return (this->content_type[extention]); }
@@ -401,7 +402,7 @@ void MainClient::send_to_socket() {
 		PRINT_ERROR("close the socket now");
 		this->send_receive_status = false;
 		PRINT_ERROR("remove files");
-		remove_files();
+		// remove_files();
 		return;
 	}
 	char buff[MAXLINE];
@@ -448,7 +449,7 @@ void MainClient::check_upload_path() {
 		DIR *directory = opendir(this->upload_path.c_str());
 		if (directory == NULL) {
 			std::cout << "this->upload_path" << this->upload_path << std::endl;
-			throw Error::BadRequest400();  //! 500
+			throw Error::InternalServerError500();
 		}
 		closedir(directory);
 		return;
@@ -475,6 +476,8 @@ void MainClient::throw_accurate_redirection() {
 }
 
 void MainClient::remove_files() {
+	if (files_to_remove.size() == 0)
+		return;
 	for (std::vector<std::string>::iterator files_itr = files_to_remove.begin(); files_itr != files_to_remove.end();
 		 files_itr++) {
 		std::remove((*files_itr).c_str());
@@ -497,8 +500,9 @@ bool MainClient::get_access() { return (this->access); }
 
 void MainClient::set_access(bool status) { this->access = status; }
 
-void MainClient::set_files_to_remove(std::string file) { files_to_remove.push_back(file); }
-
+void MainClient::set_files_to_remove(const std::string file) {
+	files_to_remove.push_back(file);
+}
 
 void	MainClient::set_new_url(std::string new_url)
 {

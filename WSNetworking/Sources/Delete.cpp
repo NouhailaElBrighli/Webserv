@@ -6,7 +6,7 @@
 /*   By: nel-brig <nel-brig@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/27 11:30:30 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/06/24 19:01:04 by nel-brig         ###   ########.fr       */
+/*   Updated: 2023/06/24 21:10:21 by nel-brig         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@ Delete::Delete(MainClient *main_client, vector<ConfigLocationParser *>config_loc
 Delete::~Delete(){}
 
 
-void Delete::delete_file()
+void Delete::deleted()
 {
     std::string file_name = this->main_client->get_new_url();
     if (delete_path(file_name))

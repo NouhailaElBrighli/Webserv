@@ -116,15 +116,9 @@ void Response::check_request_uri() {
 	std::string uri	 = Client->get_new_url();
 	PRINT_ERROR(root);
 	PRINT_ERROR(uri);
-	// if (root == Client->get_new_url()) {
-	// 	if (access(root.c_str(), R_OK) < 0)
-	// 		throw Error::Forbidden403();
-	// 	this->type = "directory";
-	// 	return;
-	// }
 	if (uri[uri.size() - 1] == '/')
 		uri.erase(uri.size() - 1, 1);
-	if (root == Client->get_new_url()) {
+	if (root == Client->get_new_url() || root == uri) {
 		if (access(root.c_str(), R_OK) < 0)
 			throw Error::Forbidden403();
 		this->type = "directory";
@@ -227,10 +221,12 @@ std::string Response::handle_file() {
 }
 
 std::string Response::set_error_body(std::string msg_status, std::string body_file) {
-	std::string		  content;
-	std::stringstream num;
+	std::string		  	content;
+	std::stringstream	num;
+	std::string			error_file;
+
 	if (body_file.size() == 0) {
-		std::string error_file = Client->generate_random_name();
+		error_file = Client->generate_random_name();
 		std::ofstream file(error_file.c_str());
 		if (!file.is_open())
 			throw Error::InternalServerError500();
@@ -245,6 +241,10 @@ std::string Response::set_error_body(std::string msg_status, std::string body_fi
 		file << content;
 		num << content.size();
 		num >> this->ContentLength;
+		PRINT_ERROR("*************");
+		PRINT_ERROR(error_file);
+		Client->set_files_to_remove(error_file);
+		file.close();
 		return (error_file);
 	} else {
 		std::ifstream file(body_file.c_str(), std::ios::binary);

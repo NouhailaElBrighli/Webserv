@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Delete.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hsaidi <hsaidi@student.42.fr>              +#+  +:+       +#+        */
+/*   By: nel-brig <nel-brig@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/27 16:12:00 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/06/14 14:50:26 by hsaidi           ###   ########.fr       */
+/*   Updated: 2023/06/24 21:10:31 by nel-brig         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ class Delete
     
         Delete(MainClient *main_client, vector<ConfigLocationParser *>config_location_parser);
         ~Delete();
-        void delete_file();
+        void deleted();
         void empty_file(const std::string& path);
         void del(const std::string &path);
         bool delete_path(const std::string& path);
