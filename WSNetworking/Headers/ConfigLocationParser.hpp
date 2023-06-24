@@ -7,6 +7,7 @@ class ConfigLocationParser {
 
   private:
 	// Attributes
+	string				empty_string;
 	string				config_location;
 	string				location;
 	bool				location_status;

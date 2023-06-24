@@ -11,5 +11,6 @@
 folder/serve_file*
 **/body_*
 **/outfile_*
+**/autoindex_*
 **/*.jpeg
 **/*.jpg

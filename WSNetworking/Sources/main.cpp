@@ -20,10 +20,10 @@ int main(int ac, char **av) {
 
 		cout << STR_CYAN("Run Main Server ...") << endl;
 
-		// Calculate the backlog limit by subtracting the number of reserved ports from 65535.
-		int backlog_limit = 65535 - (config_file_parser->get_config_server_parser().size() + 4);
+		// set the backlog limit to minimum possible value
+		int backlog = 128;
 
-		MainServer main_server(config_file_parser, backlog_limit);
+		MainServer main_server(config_file_parser, backlog);
 
 		try {
 

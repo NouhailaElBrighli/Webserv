@@ -240,10 +240,6 @@ std::string MainClient::get_new_url() { return (this->new_url); }
 std::string MainClient::get_serve_file() { return (serve_file); }
 
 void MainClient::check_files_error() {
-	if (this->config_server_parser->get_error_page().size() == 0) {
-		SHOW_INFO("no error page");
-		return;
-	}
 	std::map<int, std::string> error_map = this->config_server_parser->get_error_page();
 	if (error_map[this->status].size() != 0) {
 		std::ifstream error_page(error_map[this->status].c_str());
@@ -264,7 +260,7 @@ std::string MainClient::generate_random_name() {
 }
 
 std::string MainClient::write_into_file(DIR *directory, std::string root) {
-	std::string filename = generate_random_name();
+	std::string	  filename = generate_random_name();
 	std::ofstream file(filename.c_str());
 	if (!file.is_open())
 		throw Error::BadRequest400();
@@ -500,11 +496,6 @@ bool MainClient::get_access() { return (this->access); }
 
 void MainClient::set_access(bool status) { this->access = status; }
 
-void MainClient::set_files_to_remove(const std::string file) {
-	files_to_remove.push_back(file);
-}
+void MainClient::set_files_to_remove(const std::string file) { files_to_remove.push_back(file); }
 
-void	MainClient::set_new_url(std::string new_url)
-{
-	this->new_url = new_url;
-}
+void MainClient::set_new_url(std::string new_url) { this->new_url = new_url; }
