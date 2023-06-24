@@ -31,11 +31,11 @@ void MainClient::reset_body_file_name(std::string new_name) { this->header_body_
 
 // Constructors and destructor
 MainClient::MainClient(int client_socket, const vector<ConfigServerParser *> servers, int port)
-	: servers(servers), request_parser(new RequestParser()), send_receive_status(true),
-	  msg_status(Accurate::OK200().what()), port(port), client_socket(client_socket), status(200), phase(READ_PHASE),
-	  php_status(0), write_header(false), write_body(false), write_status(false), file_open(false),
-	  header_body_reader(new HeaderBodyReader(this)), cgi_status(false), cgi_counter(0), is_cgi(false), access(false),
-	  alloc(false) {
+	: servers(servers), request_parser(new RequestParser()), config_server_parser(NULL), Res(NULL), cgi(NULL),
+	  send_receive_status(true), msg_status(Accurate::OK200().what()), port(port), client_socket(client_socket),
+	  status(200), phase(READ_PHASE), php_status(0), write_header(false), write_body(false), write_status(false),
+	  file_open(false), header_body_reader(new HeaderBodyReader(this)), cgi_status(false), cgi_counter(0),
+	  is_cgi(false), access(false), alloc(false) {
 
 	set_content_type_map();
 	set_extention_map();
@@ -44,8 +44,10 @@ MainClient::MainClient(int client_socket, const vector<ConfigServerParser *> ser
 MainClient::~MainClient() {
 	delete request_parser;
 	delete header_body_reader;
-	// delete cgi;
-	// delete Res;
+	if (cgi != NULL)
+		delete cgi;
+	if (Res != NULL)
+		delete Res;
 }
 
 // Methods
@@ -237,6 +239,10 @@ std::string MainClient::get_new_url() { return (this->new_url); }
 std::string MainClient::get_serve_file() { return (serve_file); }
 
 void MainClient::check_files_error() {
+	if (this->config_server_parser->get_error_page().size() == 0) {
+		SHOW_INFO("no error page");
+		return;
+	}
 	std::map<int, std::string> error_map = this->config_server_parser->get_error_page();
 	if (error_map[this->status].size() != 0) {
 		std::ifstream error_page(error_map[this->status].c_str());

@@ -8,11 +8,12 @@ class MainClient {
   private:
 	const vector<ConfigServerParser *> servers;
 	RequestParser					  *request_parser;
-	Cgi								  *cgi;
+	ConfigServerParser				  *config_server_parser;
 	Response						  *Res;
+	Cgi								  *cgi;
 	bool							   send_receive_status;
 	string							   msg_status;
-	int								   client_socket, status, phase;
+	int								   port, client_socket, status, phase;
 	int								   php_status;
 	bool							   write_header, write_body, write_status;
 	bool							   file_open;
@@ -25,7 +26,6 @@ class MainClient {
 	std::vector<std::string>		   files_to_remove;
 
   private:
-	ConfigServerParser				  *config_server_parser;
 	std::map<std::string, std::string> content_type;
 	std::map<std::string, std::string> extention;
 	map<string, string>				   type_mime;

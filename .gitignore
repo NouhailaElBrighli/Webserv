@@ -11,3 +11,5 @@
 folder/serve_file*
 **/body_*
 **/outfile_*
+**/*.jpeg
+**/*.jpg
