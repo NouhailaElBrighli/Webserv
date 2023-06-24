@@ -14,7 +14,6 @@
 #define DELETE_HPP
 
 #include "WSNetworking.hpp"
-#include <dirent.h>
 
 class Delete
 {

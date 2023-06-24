@@ -11,8 +11,6 @@
 /* ************************************************************************** */
 
 #include "Cgi.hpp"
-#include "MainClient.hpp"
-#include <signal.h>
 
 Cgi::Cgi(MainClient *main_client, vector<ConfigLocationParser *> config_location_parser) {
 	this->main_client			 = main_client;
