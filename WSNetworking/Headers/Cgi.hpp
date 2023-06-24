@@ -6,7 +6,7 @@
 /*   By: nel-brig <nel-brig@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:33:49 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/06/23 18:42:48 by nel-brig         ###   ########.fr       */
+/*   Updated: 2023/06/23 22:00:13 by nel-brig         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <stdexcept>
+# include <sys/time.h>
 
 class Cgi
 {
@@ -27,10 +28,11 @@ class Cgi
         vector<ConfigLocationParser *> config_location_parser;
         map<string, string> cgi_env;
 		std::string outfile;
-		bool	status;
+		int	status;
 		int test;
 		int pid;
-
+		size_t	_time;
+		size_t _phase;
     public:
         Cgi(MainClient *main_client, vector<ConfigLocationParser *>config_location_parser, std::string filename);
         ~Cgi();
@@ -49,6 +51,17 @@ class Cgi
         char* const*    mapToCharConstArray(const std::map<std::string, std::string>& envMap);
 		std::string     get_outfile();
 		void			wait_for_child();
+
+
+
+	size_t	get_time(void)
+	{
+		struct timeval	t;
+
+		gettimeofday(&t, NULL);
+		return (t.tv_sec * 1000 + t.tv_usec / 1000);
+	}
+
 }; 
 
 #endif // CGI_HPP

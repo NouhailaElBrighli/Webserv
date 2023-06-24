@@ -9,9 +9,10 @@ class MainClient {
 	const vector<ConfigServerParser *> servers;
 	RequestParser					  *request_parser;
 	Cgi								  *cgi;
+	Response						  *Res;
 	bool							   send_receive_status;
 	string							   msg_status;
-	int								   port, client_socket, status, phase;
+	int								   client_socket, status, phase;
 	int								   php_status;
 	bool							   write_header, write_body, write_status;
 	bool							   file_open;
@@ -19,6 +20,9 @@ class MainClient {
 	bool							   cgi_status;
 	int								   cgi_counter;
 	bool							   is_cgi;
+	bool							   access;
+	bool							   alloc;
+	std::vector<std::string>		   files_to_remove;
 
   private:
 	ConfigServerParser				  *config_server_parser;
@@ -61,6 +65,7 @@ class MainClient {
 	void set_location(int location);
 	void set_header(std::string header);
 	void reset_body_file_name(std::string new_name);
+	void set_files_to_remove(std::string file);
 
 	// Constructors and destructor
 	MainClient(int client_socket, const vector<ConfigServerParser *> servers, int port);
@@ -88,6 +93,8 @@ class MainClient {
 	void		set_cgi_status(bool status);
 	void		start(string task);
 	void		set_is_cgi(bool status);
+	bool		get_access();
+	void		set_access(bool status);
 
   private:
 	// Methods
@@ -99,13 +106,14 @@ class MainClient {
 	int	 get_right_config_server_parser_from_name_sever(string name_server);
 	void match_right_server();
 
-	void set_header_for_errors_and_redirection();
-	int	 match_location();
-	void is_method_allowed_in_location();
-	void check_files_error();
-	int	 check_for_root_directory();
-	void throw_accurate_redirection();
-	void remove_files();
+	void		set_header_for_errors_and_redirection();
+	int			match_location();
+	void		is_method_allowed_in_location();
+	void		check_files_error();
+	int			check_for_root_directory();
+	void		throw_accurate_redirection();
+	void		remove_files();
+	std::string generate_random_name();
 };
 
 #endif	// MAINCLIENT_HPP

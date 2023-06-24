@@ -34,7 +34,8 @@ MainClient::MainClient(int client_socket, const vector<ConfigServerParser *> ser
 	: servers(servers), request_parser(new RequestParser()), send_receive_status(true),
 	  msg_status(Accurate::OK200().what()), port(port), client_socket(client_socket), status(200), phase(READ_PHASE),
 	  php_status(0), write_header(false), write_body(false), write_status(false), file_open(false),
-	  header_body_reader(new HeaderBodyReader(this)), cgi_status(false), cgi_counter(0), is_cgi(false) {
+	  header_body_reader(new HeaderBodyReader(this)), cgi_status(false), cgi_counter(0), is_cgi(false), access(false),
+	  alloc(false) {
 
 	set_content_type_map();
 	set_extention_map();
@@ -43,6 +44,8 @@ MainClient::MainClient(int client_socket, const vector<ConfigServerParser *> ser
 MainClient::~MainClient() {
 	delete request_parser;
 	delete header_body_reader;
+	// delete cgi;
+	// delete Res;
 }
 
 // Methods
@@ -59,23 +62,11 @@ void MainClient::start_handle(string task) {
 			this->handle_read();
 			this->phase = WRITE_PHASE;
 		} else if (task == "write") {
-			// Cgi cgi(this, this->get_config_server()->get_config_location_parser(), this->get_new_url());
-			if (cgi_status == false) {
-				if (this->write_status == false && this->status != 301)
-					this->handle_write();
-				send_to_socket();
-			} else {
-				if (is_cgi == true && cgi_counter == 0) {
-					sleep(3);
-					cgi_counter++;
-					this->cgi->wait_for_child();
-				}
-				// int i = 0;
-				// while (i < 100000000)
-				// 	i++;
-				// sleep(3);
-				// cgi_status = true;
+			if (this->write_status == false && this->status != 301) {
+				PRINT_ERROR("handle write");
+				this->handle_write();
 			}
+			send_to_socket();
 		}
 
 	} catch (const std::exception &e) {
@@ -101,10 +92,7 @@ void MainClient::handle_read() {
 	this->request_parser->run_parse(header_body_reader->get_head());
 	this->match_right_server();
 	this->location = this->match_location();
-
 	if (this->config_server_parser->get_config_location_parser()[get_location()]->get_return().size() != 0) {
-		// vector<string>::const_iterator it =
-		// this->config_server_parser->get_config_location_parser()[get_location()]->get_return().begin();
 		throw_accurate_redirection();
 	}
 	is_method_allowed_in_location();
@@ -121,18 +109,21 @@ void MainClient::handle_read() {
 		else
 			throw Error::BadRequest400();
 	}
-	cgi = new Cgi(this, this->get_config_server()->get_config_location_parser(), this->get_new_url());
+	if (this->alloc == false) {
+		cgi			= new Cgi(this, this->get_config_server()->get_config_location_parser(), this->get_new_url());
+		Res			= new Response(this);
+		this->alloc = true;
+	}
 }
 
 void MainClient::handle_write() {
 	PRINT_LINE("Server Response (write)");
-	Response Response(this);
 	if (this->get_request("Request-Type") == "GET") {
 		write_status = true;
-		serve_file	 = Response.Get();
+		serve_file	 = Res->Get();
 	} else if (this->get_request("Request-Type") == "POST") {
 		write_status = true;
-		serve_file	 = Response.post();
+		serve_file	 = Res->post();
 	} else if (this->get_request("Request-Type") == "DELETE") {
 		// DELETE
 	}
@@ -220,7 +211,6 @@ void MainClient::set_header_for_errors_and_redirection(const char *what) {
 		check_files_error();
 	if (this->status < 400 && this->status > 300)  // redirection
 	{
-		// redirection = "/" + redirection;
 		this->header = "HTTP/1.1 ";
 		this->header += this->msg_status;
 		this->header += "\r\nContent-Length: 0\r\n";
@@ -233,12 +223,11 @@ void MainClient::set_header_for_errors_and_redirection(const char *what) {
 
 	else  // errors
 	{
-		Response Error;
+		class Response Error;
 		this->body_file = Error.SetError(msg_status, body_file);
 		this->header	= Error.GetHeader();
 	}
 	serve_file = body_file;
-	std::cout << "serve_file:" << body_file << std::endl;
 }
 
 void MainClient::set_redirection(std::string &redirection) { this->redirection = redirection; }
@@ -258,8 +247,19 @@ void MainClient::check_files_error() {
 	}
 }
 
+std::string MainClient::generate_random_name() {
+	std::stringstream ss;
+	std::time_t		  now = std::time(0);
+
+	// Seed the random number generator
+	ss << "./autoindex_" << std::hex << now << "_" << std::rand() << ".html";
+	return ss.str();
+}
+
 std::string MainClient::write_into_file(DIR *directory, std::string root) {
-	std::ofstream file("folder/serve_file.html");
+	std::string filename = generate_random_name();
+	set_files_to_remove(filename);
+	std::ofstream file(filename.c_str());
 	if (!file.is_open())
 		throw Error::BadRequest400();
 	file << "<!DOCTYPE html>\n<html>\n<head>\n<title>index of";
@@ -286,7 +286,7 @@ std::string MainClient::write_into_file(DIR *directory, std::string root) {
 		file << "</a></li>";
 	}
 	file.close();
-	return ("folder/serve_file.html");
+	return (filename.c_str());
 }
 
 int MainClient::convert_to_int(const std::string &str) {
@@ -325,8 +325,9 @@ void MainClient::set_content_type_map() {
 	this->content_type[".xls"]	= "application/vnd.ms-excel";
 	this->content_type[".doc"]	= "application/msword";
 	this->content_type[".docs"] = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-	this->content_type["xls"]	= "application/vnd.ms-excel";
-	this->content_type["xlsx"]	= "application/vnd.ms-excel";
+	this->content_type[".xls"]	= "application/vnd.ms-excel";
+	this->content_type[".xlsx"] = "application/vnd.ms-excel";
+	this->content_type[".cpp"]	= "text/x-c++src";
 }
 
 std::string MainClient::get_content_type(std::string extention) { return (this->content_type[extention]); }
@@ -393,6 +394,7 @@ void MainClient::send_to_socket() {
 		file.close();
 		PRINT_ERROR("close the socket now");
 		this->send_receive_status = false;
+		PRINT_ERROR("remove files");
 		remove_files();
 		return;
 	}
@@ -445,7 +447,6 @@ void MainClient::check_upload_path() {
 		closedir(directory);
 		return;
 	}
-	// throw Error::InternalServerError500();
 }
 
 std::string MainClient::get_upload_path() { return (upload_path); }
@@ -467,7 +468,12 @@ void MainClient::throw_accurate_redirection() {
 	}
 }
 
-void MainClient::remove_files() { std::remove("folder/s/rve_file.html"); }
+void MainClient::remove_files() {
+	for (std::vector<std::string>::iterator files_itr = files_to_remove.begin(); files_itr != files_to_remove.end();
+		 files_itr++) {
+		std::remove((*files_itr).c_str());
+	}
+}
 
 void MainClient::set_write_status(bool status) { this->write_status = status; }
 
@@ -480,3 +486,9 @@ int MainClient::get_cgi_counter() { return (cgi_counter); }
 Cgi *MainClient::get_cgi() { return (cgi); }
 
 void MainClient::set_is_cgi(bool status) { this->is_cgi = status; }
+
+bool MainClient::get_access() { return (this->access); }
+
+void MainClient::set_access(bool status) { this->access = status; }
+
+void MainClient::set_files_to_remove(std::string file) { files_to_remove.push_back(file); }
