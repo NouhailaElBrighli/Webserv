@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Delete.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hsaidi <hsaidi@student.42.fr>              +#+  +:+       +#+        */
+/*   By: nel-brig <nel-brig@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/27 11:30:30 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/06/14 14:54:44 by hsaidi           ###   ########.fr       */
+/*   Updated: 2023/06/24 16:51:06 by nel-brig         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,28 +23,8 @@ Delete::~Delete(){}
 
 void Delete::delete_file()
 {
-    std::string file_name = this->main_client->get_request("Request-URI");
-
-    for (std::vector<ConfigLocationParser*>::const_iterator it = this->config_location_parser.begin();
-         it != this->config_location_parser.end(); it++) {
-
-        if ((*it)->get_location().find("cgi") != std::string::npos)
-            continue;
-
-        if (file_name.find((*it)->get_location()) != std::string::npos) {
-            file_name.erase(0, (*it)->get_location().length());
-            file_name = (*it)->get_root() + file_name; // Concatenate root and remaining path segments
-            break; // Exit the loop once the correct root is found
-        } else if (file_name.find((*it)->get_root()) != std::string::npos) {
-            file_name.erase(0, (*it)->get_root().length());
-            file_name = (*it)->get_root() + file_name; // Concatenate root and remaining path segments
-            break; // Exit the loop once the correct root is found
-        }
-    }
-
+    std::string file_name = this->main_client->get_new_url();
     if (delete_path(file_name))
-        throw Accurate::OK200();
-    else
         throw Accurate::NoContent204();
 }
 
