@@ -53,8 +53,8 @@ void Response::SetContentType() {
 			}
 			PRINT_ERROR("wait for cgi");
 			Client->get_cgi()->wait_for_child();
-			if (Client->get_access() == false)
-				this->serve_file = Client->get_cgi()->get_outfile();
+			// if (Client->get_access() == false)
+			this->serve_file = Client->get_cgi()->get_outfile();
 			return;
 		}
 		this->ContentType = Client->get_content_type(this->extention);
