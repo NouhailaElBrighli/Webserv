@@ -6,21 +6,22 @@
 class MainClient {
 
   private:
-	ConfigServerParser *config_server_parser;
-	RequestParser	   *request_parser;
-	Cgi					*cgi;
-	bool				send_receive_status;
-	string				msg_status;
-	int					client_socket, status, phase;
-	int					php_status;
-	bool				write_header, write_body, write_status;
-	bool				file_open;
-	HeaderBodyReader   *header_body_reader;
-	bool				cgi_status;
-	int					cgi_counter;
-	bool				is_cgi;
+	const vector<ConfigServerParser *> servers;
+	RequestParser					  *request_parser;
+	Cgi								  *cgi;
+	bool							   send_receive_status;
+	string							   msg_status;
+	int								   port, client_socket, status, phase;
+	int								   php_status;
+	bool							   write_header, write_body, write_status;
+	bool							   file_open;
+	HeaderBodyReader				  *header_body_reader;
+	bool							   cgi_status;
+	int								   cgi_counter;
+	bool							   is_cgi;
 
   private:
+	ConfigServerParser				  *config_server_parser;
 	std::map<std::string, std::string> content_type;
 	std::map<std::string, std::string> extention;
 	map<string, string>				   type_mime;
@@ -32,7 +33,7 @@ class MainClient {
 	std::string						   serve_file;
 	std::string						   body_file;
 	int								   start_php;
-	std::string							upload_path;
+	std::string						   upload_path;
 
   private:
 	// Copy constructor and assignation operator
@@ -53,8 +54,8 @@ class MainClient {
 	std::string				   get_content_type(std::string extention);
 	const map<string, string> &get_mime_type() const;
 	const string			  &get_mime_type(const string &type) const;
-	Cgi 					*get_cgi();
-	bool					get_cgi_status();
+	Cgi						  *get_cgi();
+	bool					   get_cgi_status();
 	// Setters
 	void set_send_receive_status(bool send_receive_status);
 	void set_location(int location);
@@ -62,7 +63,7 @@ class MainClient {
 	void reset_body_file_name(std::string new_name);
 
 	// Constructors and destructor
-	MainClient(int client_socket, ConfigServerParser *config_server_parser);
+	MainClient(int client_socket, const vector<ConfigServerParser *> servers, int port);
 	~MainClient();
 
 	// Methods
@@ -74,7 +75,7 @@ class MainClient {
 	void		set_start_php(int start);
 	std::string get_extention(std::string content);
 	std::string get_upload_path();
-	int	get_cgi_counter();
+	int			get_cgi_counter();
 
 	std::string get_serve_file();
 	std::string write_into_file(DIR *directory, std::string root);
@@ -94,13 +95,17 @@ class MainClient {
 	void handle_read();
 	void handle_write();
 
+	// Tools for matching socket with server of config file
+	int	 get_right_config_server_parser_from_name_sever(string name_server);
+	void match_right_server();
+
 	void set_header_for_errors_and_redirection();
-	int		match_location();
-	void	is_method_allowed_in_location();
-	void	check_files_error();
-	int		check_for_root_directory();
-	void	throw_accurate_redirection();
-	void	remove_files();
+	int	 match_location();
+	void is_method_allowed_in_location();
+	void check_files_error();
+	int	 check_for_root_directory();
+	void throw_accurate_redirection();
+	void remove_files();
 };
 
 #endif	// MAINCLIENT_HPP

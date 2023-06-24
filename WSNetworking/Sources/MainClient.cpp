@@ -30,10 +30,10 @@ void MainClient::set_header(std::string header) { this->header = header; }
 void MainClient::reset_body_file_name(std::string new_name) { this->header_body_reader->set_body_file_name(new_name); }
 
 // Constructors and destructor
-MainClient::MainClient(int client_socket, ConfigServerParser *config_server_parser)
-	: config_server_parser(config_server_parser), request_parser(new RequestParser()), send_receive_status(true),
-	  msg_status(Accurate::OK200().what()), client_socket(client_socket), status(200), phase(READ_PHASE), php_status(0),
-	  write_header(false), write_body(false), write_status(false), file_open(false),
+MainClient::MainClient(int client_socket, const vector<ConfigServerParser *> servers, int port)
+	: servers(servers), request_parser(new RequestParser()), send_receive_status(true),
+	  msg_status(Accurate::OK200().what()), port(port), client_socket(client_socket), status(200), phase(READ_PHASE),
+	  php_status(0), write_header(false), write_body(false), write_status(false), file_open(false),
 	  header_body_reader(new HeaderBodyReader(this)), cgi_status(false), cgi_counter(0), is_cgi(false) {
 
 	set_content_type_map();
@@ -60,16 +60,12 @@ void MainClient::start_handle(string task) {
 			this->phase = WRITE_PHASE;
 		} else if (task == "write") {
 			// Cgi cgi(this, this->get_config_server()->get_config_location_parser(), this->get_new_url());
-			if (cgi_status == false)
-			{
+			if (cgi_status == false) {
 				if (this->write_status == false && this->status != 301)
 					this->handle_write();
 				send_to_socket();
-			}
-			else
-			{
-				if (is_cgi == true && cgi_counter == 0)
-				{
+			} else {
+				if (is_cgi == true && cgi_counter == 0) {
 					sleep(3);
 					cgi_counter++;
 					this->cgi->wait_for_child();
@@ -103,10 +99,12 @@ void MainClient::handle_read() {
 
 	header_body_reader->header_reading();
 	this->request_parser->run_parse(header_body_reader->get_head());
+	this->match_right_server();
 	this->location = this->match_location();
 
 	if (this->config_server_parser->get_config_location_parser()[get_location()]->get_return().size() != 0) {
-		// vector<string>::const_iterator it = this->config_server_parser->get_config_location_parser()[get_location()]->get_return().begin();
+		// vector<string>::const_iterator it =
+		// this->config_server_parser->get_config_location_parser()[get_location()]->get_return().begin();
 		throw_accurate_redirection();
 	}
 	is_method_allowed_in_location();
@@ -124,7 +122,6 @@ void MainClient::handle_read() {
 			throw Error::BadRequest400();
 	}
 	cgi = new Cgi(this, this->get_config_server()->get_config_location_parser(), this->get_new_url());
-
 }
 
 void MainClient::handle_write() {
@@ -181,6 +178,40 @@ int MainClient::match_location() {
 	return (check_for_root_directory());
 }
 
+// Tools for matching socket with server of config file
+int MainClient::get_right_config_server_parser_from_name_sever(string name_server) {
+	int i = 0;
+
+	string port = name_server.substr(name_server.find(":") + 1);
+	name_server = name_server.substr(0, name_server.find(":"));
+	SHOW_INFO("name_server: " + name_server);
+	SHOW_INFO("port: " + port);
+	if (name_server == "localhost" || name_server == "127.0.0.1") {
+		for (size_t i = 0; i < this->servers.size(); i++) {
+			if (this->servers[i]->get_port_str() == port)
+				return i;
+		}
+	} else {
+		for (vector<ConfigServerParser *>::const_iterator it = this->servers.begin(); it != this->servers.end(); it++) {
+			if ((*it)->get_server_name() == name_server && (*it)->get_port_str() == port)
+				return i;
+			i++;
+		}
+	}
+	return 0;
+}
+
+void MainClient::match_right_server() {
+	// get the right config server parser if not set in constructor
+	if (this->port != -1) {
+		int right_server = get_right_config_server_parser_from_name_sever(this->get_request("Host"));
+
+		cout << "right_server: " << right_server << endl;
+		this->config_server_parser = this->servers[right_server];
+		this->port				   = -1;
+	}
+}
+
 void MainClient::set_header_for_errors_and_redirection(const char *what) {
 	this->msg_status   = what;
 	this->status	   = convert_to_int(this->msg_status);
@@ -198,9 +229,9 @@ void MainClient::set_header_for_errors_and_redirection(const char *what) {
 		this->header += "\r\nConnection: Close";
 		this->header += "\r\n\r\n";
 		std::cout << "redirection header:" << this->header << std::endl;
-	} 
-	
-	else	// errors
+	}
+
+	else  // errors
 	{
 		Response Error;
 		this->body_file = Error.SetError(msg_status, body_file);
@@ -419,59 +450,33 @@ void MainClient::check_upload_path() {
 
 std::string MainClient::get_upload_path() { return (upload_path); }
 
-void	MainClient::throw_accurate_redirection()
-{
-	vector<string>::const_iterator it = this->config_server_parser->get_config_location_parser()[get_location()]->get_return().begin();
-	if (*it == "301")
-	{
+void MainClient::throw_accurate_redirection() {
+	vector<string>::const_iterator it
+		= this->config_server_parser->get_config_location_parser()[get_location()]->get_return().begin();
+	if (*it == "301") {
 		it++;
-	    redirection = *it;
+		redirection = *it;
 		throw Accurate::MovedPermanently301();
-	}
-	else if (*it == "302")
-	{
+	} else if (*it == "302") {
 		it++;
 		redirection = *it;
 		throw Accurate::TemporaryRedirect302();
-	}
-	else
-	{
+	} else {
 		redirection = *it;
 		throw Accurate::TemporaryRedirect302();
 	}
 }
 
-void	MainClient::remove_files()
-{
-	std::remove("folder/s/rve_file.html");
-}
+void MainClient::remove_files() { std::remove("folder/s/rve_file.html"); }
 
-void	MainClient::set_write_status(bool status)
-{
-	this->write_status = status;
-}
+void MainClient::set_write_status(bool status) { this->write_status = status; }
 
-void	MainClient::set_cgi_status(bool status)
-{
-	cgi_status = status;
-}
+void MainClient::set_cgi_status(bool status) { cgi_status = status; }
 
-bool MainClient::get_cgi_status()
-{
-	return(cgi_status);
-}
+bool MainClient::get_cgi_status() { return (cgi_status); }
 
-int	MainClient::get_cgi_counter()
-{
-	return(cgi_counter);
-}
+int MainClient::get_cgi_counter() { return (cgi_counter); }
 
-Cgi *MainClient::get_cgi()
-{
-	return(cgi);
-}
+Cgi *MainClient::get_cgi() { return (cgi); }
 
-void	MainClient::set_is_cgi(bool status)
-{
-	this->is_cgi = status;
-}
+void MainClient::set_is_cgi(bool status) { this->is_cgi = status; }

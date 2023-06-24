@@ -1,5 +1,5 @@
-#ifndef LSTENSOCKET_HPP
-#define LSTENSOCKET_HPP
+#ifndef LISTENSOCKET_HPP
+#define LISTENSOCKET_HPP
 
 #include "BindSocket.hpp"
 
@@ -10,8 +10,8 @@ class ListenSocket : public BindSocket {
 
   public:
 	// Constructors and destructor
-	ListenSocket(const char *host, const char *port, int backlog);
+	ListenSocket(const char *host, const char *port, const string &server_name, int backlog);
 	virtual ~ListenSocket();
 };
 
-#endif	// LSTENSOCKET_HPP
+#endif	// LISTENSOCKET_HPP

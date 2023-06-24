@@ -44,7 +44,6 @@ class MainServer {
 
 	// Tools for matching socket with server of config file
 	int right_port(int client_socket);
-	int right_server(int client_socket);
 
 	// Initialize the server sockets
 	void init_server_sockets();

@@ -193,7 +193,7 @@ void ConfigServerParser::set_server_name(string server_name, size_t pos) {
 	}
 	// check if server_name is contain only alphanumeric characters and the characters
 	for (size_t i = 0; i < server_name.length(); i++) {
-		if (!std::isalnum(server_name[i]) && server_name[i] != '_') {
+		if (!std::isalnum(server_name[i]) && server_name[i] != '_' && server_name[i] != '.') {
 			throw std::runtime_error(STR_RED("Server Name Error : " + server_name));
 		}
 	}

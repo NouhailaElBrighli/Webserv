@@ -97,7 +97,8 @@ void MainServer::run_sockets() {
 		try {
 			listen_socket.push_back(
 				ListenSocket(config_file_parser->get_config_server_parser(i)->get_host().c_str(),
-							 config_file_parser->get_config_server_parser(i)->get_port_str().c_str(), backlog));
+							 config_file_parser->get_config_server_parser(i)->get_port_str().c_str(),
+							 config_file_parser->get_config_server_parser(i)->get_server_name(), backlog));
 			this->port_socket[config_file_parser->get_config_server_parser(i)->get_port()]
 				= listen_socket[j].get_socket_listen();
 			j++;
@@ -124,19 +125,6 @@ int MainServer::right_port(int client_socket) {
 
 	// Extract the port number
 	return (ntohs(addr.sin_port));
-}
-
-int MainServer::right_server(int client_socket) {
-	int port;
-
-	// Extract the port number
-	port = right_port(client_socket);
-	// Check if the port is in the config file and get the index
-	for (size_t i = 0; i < this->config_file_parser->get_config_server_parser().size(); i++) {
-		if (this->config_file_parser->get_config_server_parser(i)->get_port() == port)
-			return i;
-	}
-	return -1;
 }
 
 // Initialize the server sockets
@@ -196,18 +184,13 @@ void MainServer::accepter(int fd_socket) {
 }
 
 void MainServer::create_client(int client_socket) {
-	int i;
+	// int i;
 
 	PRINT_LONG_LINE("create client");
-	if ((i = this->right_server(client_socket)) != -1) {
-		MainClient *mainClient = new MainClient(client_socket, this->config_file_parser->get_config_server_parser(i));
-		this->clients[client_socket] = mainClient;
-		return;
-	} else if (i == -1) {
-		MainClient *mainClient = new MainClient(client_socket, this->config_file_parser->get_config_server_parser(0));
-		this->clients[client_socket] = mainClient;
-		return;
-	}
+	MainClient *mainClient		 = new MainClient(client_socket, this->config_file_parser->get_config_server_parser(),
+												  right_port(client_socket));
+	this->clients[client_socket] = mainClient;
+	return;
 }
 
 void MainServer::handle(int client_socket, string task) {

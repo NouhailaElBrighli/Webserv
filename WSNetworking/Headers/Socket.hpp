@@ -6,7 +6,7 @@
 class Socket {
 
   protected:
-	string		port, host;
+	string		port, host, server_name;
 	t_addrinfo	hints;
 	t_addrinfo *bind_address;
 	int			socket_listen;
@@ -17,7 +17,7 @@ class Socket {
 	int			get_socket_listen() const;
 
 	// Constructors and destructor
-	Socket(const char *host, const char *port);
+	Socket(const char *host, const char *port, const string &server_name);
 	virtual ~Socket();
 };
 

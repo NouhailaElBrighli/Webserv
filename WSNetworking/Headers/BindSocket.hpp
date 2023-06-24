@@ -10,7 +10,7 @@ class BindSocket : public Socket {
 
   public:
 	// Constructors and destructor
-	BindSocket(const char *host, const char *port);
+	BindSocket(const char *host, const char *port, const string &server_name);
 	virtual ~BindSocket();
 };
 

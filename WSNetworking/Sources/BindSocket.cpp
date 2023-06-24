@@ -1,7 +1,8 @@
 #include "BindSocket.hpp"
 
 // Constructors and destructor
-BindSocket::BindSocket(const char *host, const char *port) : Socket(host, port) {
+BindSocket::BindSocket(const char *host, const char *port, const string &server_name)
+	: Socket(host, port, server_name) {
 	// Establish network connection
 	this->bind_sock = bind(this->socket_listen, this->bind_address->ai_addr, this->bind_address->ai_addrlen);
 	freeaddrinfo(this->bind_address);
