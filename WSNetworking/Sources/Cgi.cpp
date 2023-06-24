@@ -6,7 +6,7 @@
 /*   By: nel-brig <nel-brig@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:38:43 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/06/23 22:16:44 by nel-brig         ###   ########.fr       */
+/*   Updated: 2023/06/24 02:15:57 by nel-brig         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,10 +23,10 @@ Cgi::Cgi(MainClient *main_client, vector<ConfigLocationParser *> config_location
 	this->_phase					 = 0;
 }
 Cgi::~Cgi() {
-	for (size_t i = 0; this->cgi_env.size() > i; i++) {
-		delete[] this->env[i];
-	}
-	delete[] this->env;
+	// for (size_t i = 0; this->cgi_env.size() > i; i++) {
+	// 	delete[] this->env[i];
+	// }
+	// delete[] this->env;
 }
 
 void Cgi::readFileContents() {
@@ -186,14 +186,12 @@ void Cgi::set_cgi_env() {
 	cout << "------------------- Printing the env variables ------------------------------------\n";
 	char *av[] = {(char *)script.c_str(), (char *)this->filename.c_str(), NULL};
 
-	std::cout << "av[0]----------->" << av[0] << std::endl;
-	std::cout << "av[1]----------->" << av[1] << std::endl;
 	this->env = mapToCharConstArray(cgi_env);
 	size_t i;
 	for (i = 0; cgi_env.size() > i; i++) {
 		cout << "|" << this->env[i] << "|" << endl;
 	}
-	printf("** %s\n", env[i]);
+	// printf("** %s\n", env[i]);
 	cout << "-----------------------------------------------------------------------------------\n";
 	outfile		= this->generate_random_name();
 	output_file = open(outfile.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0777);
@@ -203,19 +201,15 @@ void Cgi::set_cgi_env() {
 		cout << "fork failed" << endl;
 		return;
 	} else if (pid == 0) {
-		// dup2(output_file, 2);
+		dup2(output_file, 2);
 		dup2(output_file, 1);
 		dup2(input_file, 0);
 		close(output_file);
 		close(input_file);
 		execve(av[0], av, this->env);
-		// exit(1);
 	}
 	std::cout << "pid " << pid << std::endl;
-	wait_for_child();
-
-	// aitpid(pid, NULL, 0);
-	// execve(av[0], av2, const_cast<char *const *>(&cgi_env[0]));
+	main_client->set_access(true);
 }
 
 std::string Cgi::get_outfile() { return (outfile); }
@@ -223,35 +217,25 @@ std::string Cgi::get_outfile() { return (outfile); }
 void Cgi::wait_for_child() {
 
 	test = waitpid(pid, NULL, WNOHANG);
-
-	if (test == -1) {
-		perror(">> ");
-		std::cout << pid << std::endl;
-		std::cout << "Error" << std::endl;
-		std::exit(0);
-	}
 	if (test == 0 && _phase == 0) {
 		PRINT_ERROR("first move");
-		main_client->set_cgi_status(true);
 		main_client->set_write_status(false);
 		_time = get_time();
 		_phase++;
 		throw std::runtime_error("Still running");
 	}
 	if (test > 0) {
-		std::cout << "RRR" << std::endl;
-		std::exit(0);
+		return;
 	}
-	else if (get_time() - _time > 1000 * 3) {
+	else if (get_time() - _time > 1000 * 5) {
 		std::cout << ">> " << test << "ddd " <<  _time << std::endl;
 		PRINT_ERROR("KILL CHILD");
 		PRINT_ERROR(pid);
-		main_client->set_cgi_status(false);
 		main_client->set_write_status(true);
 		kill(pid, SIGKILL);
 		throw Error::LoopDetected508();
 	} else {
-		std::cout << get_time() - _time << std::endl;
-		std::cerr << ">>>>> " << pid << std::endl;
+		main_client->set_write_status(false);
+		throw std::runtime_error("Still running");
 	}
 }

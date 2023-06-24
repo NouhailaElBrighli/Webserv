@@ -34,7 +34,7 @@ MainClient::MainClient(int client_socket, ConfigServerParser *config_server_pars
 	: config_server_parser(config_server_parser), request_parser(new RequestParser()), send_receive_status(true),
 	  msg_status(Accurate::OK200().what()), client_socket(client_socket), status(200), phase(READ_PHASE), php_status(0),
 	  write_header(false), write_body(false), write_status(false), file_open(false),
-	  header_body_reader(new HeaderBodyReader(this)), cgi_status(false), cgi_counter(0), is_cgi(false) {
+	  header_body_reader(new HeaderBodyReader(this)), cgi_status(false), cgi_counter(0), is_cgi(false), access(false), alloc(false) {
 
 	set_content_type_map();
 	set_extention_map();
@@ -43,7 +43,8 @@ MainClient::MainClient(int client_socket, ConfigServerParser *config_server_pars
 MainClient::~MainClient() {
 	delete request_parser;
 	delete header_body_reader;
-	// delete cgi;
+	delete cgi;
+	delete Res;
 }
 
 // Methods
@@ -61,22 +62,25 @@ void MainClient::start_handle(string task) {
 			this->phase = WRITE_PHASE;
 		} else if (task == "write") {
 			// Cgi cgi(this, this->get_config_server()->get_config_location_parser(), this->get_new_url());
-			if (cgi_status == false)
+			// if (cgi_status == false)
+			// {
+			if (this->write_status == false && this->status != 301)
 			{
-				if (this->write_status == false && this->status != 301)
-					this->handle_write();
-				send_to_socket();
+				PRINT_ERROR("handle write");
+				this->handle_write();
 			}
-			else
-			{
-				if (is_cgi == true)
-				{
-					// sleep(3);
-					std::cout << "HHHHH" << std::endl;
-					//cgi_counter++;
-					this->cgi->wait_for_child();
-				}
-			}
+			send_to_socket();
+			// }
+			// else
+			// {
+			// 	if (is_cgi == true)
+			// 	{
+			// 		// sleep(3);
+			// 		std::cout << "HHHHH" << std::endl;
+			// 		//cgi_counter++;
+			// 		this->cgi->wait_for_child();
+			// 	}
+			// }
 		}
 
 	} catch (const std::exception &e) {
@@ -120,19 +124,22 @@ void MainClient::handle_read() {
 		else
 			throw Error::BadRequest400();
 	}
-	cgi = new Cgi(this, this->get_config_server()->get_config_location_parser(), this->get_new_url());
-
+	if (this->alloc == false)
+	{
+		cgi = new Cgi(this, this->get_config_server()->get_config_location_parser(), this->get_new_url());
+		Res  = new Response(this);
+		this->alloc = true;
+	}
 }
 
 void MainClient::handle_write() {
 	PRINT_LINE("Server Response (write)");
-	Response Response(this);
 	if (this->get_request("Request-Type") == "GET") {
 		write_status = true;
-		serve_file	 = Response.Get();
+		serve_file	 = Res->Get();
 	} else if (this->get_request("Request-Type") == "POST") {
 		write_status = true;
-		serve_file	 = Response.post();
+		serve_file	 = Res->post();
 	} else if (this->get_request("Request-Type") == "DELETE") {
 		// DELETE
 	}
@@ -199,7 +206,7 @@ void MainClient::set_header_for_errors_and_redirection(const char *what) {
 	
 	else	// errors
 	{
-		Response Error;
+		class Response Error;
 		this->body_file = Error.SetError(msg_status, body_file);
 		this->header	= Error.GetHeader();
 	}
@@ -359,6 +366,7 @@ void MainClient::send_to_socket() {
 		file.close();
 		PRINT_ERROR("close the socket now");
 		this->send_receive_status = false;
+		// delete cgi;
 		remove_files();
 		return;
 	}
@@ -471,4 +479,14 @@ Cgi *MainClient::get_cgi()
 void	MainClient::set_is_cgi(bool status)
 {
 	this->is_cgi = status;
+}
+
+bool MainClient::get_access()
+{
+	return(this->access);
+}
+
+void	MainClient::set_access(bool status)
+{
+	this->access = status;
 }

@@ -9,6 +9,7 @@ class MainClient {
 	ConfigServerParser *config_server_parser;
 	RequestParser	   *request_parser;
 	Cgi					*cgi;
+	Response			*Res;
 	bool				send_receive_status;
 	string				msg_status;
 	int					client_socket, status, phase;
@@ -19,6 +20,8 @@ class MainClient {
 	bool				cgi_status;
 	int					cgi_counter;
 	bool				is_cgi;
+	bool				access;
+	bool				alloc;
 
   private:
 	std::map<std::string, std::string> content_type;
@@ -87,6 +90,8 @@ class MainClient {
 	void		set_cgi_status(bool status);
 	void		start(string task);
 	void		set_is_cgi(bool status);
+	bool		get_access();
+	void		set_access(bool status);
 
   private:
 	// Methods
