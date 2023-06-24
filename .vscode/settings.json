@@ -80,7 +80,8 @@
 		"climits": "cpp",
 		"filesystem": "cpp",
 		"__functional_base_03": "cpp",
-		"test": "cpp"
+		"test": "cpp",
+		"cinttypes": "cpp"
 	},
 	"C_Cpp.default.configurationProvider": "ms-vscode.makefile-tools",
 	"C_Cpp.errorSquiggles": "disabled",

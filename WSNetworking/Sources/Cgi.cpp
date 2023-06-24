@@ -17,16 +17,20 @@
 Cgi::Cgi(MainClient *main_client, vector<ConfigLocationParser *> config_location_parser) {
 	this->main_client			 = main_client;
 	this->config_location_parser = config_location_parser;
-	this->filename = main_client->get_new_url();
+	this->filename				 = main_client->get_new_url();
 	this->status				 = false;
 	this->_time					 = 0;
-	this->_phase					 = 0;
+	this->_phase				 = 0;
+	this->env					 = NULL;
 }
+
 Cgi::~Cgi() {
-	for (size_t i = 0; this->cgi_env.size() > i; i++) {
-		delete[] this->env[i];
+	if (this->env) {
+		for (size_t i = 0; this->cgi_env.size() > i; i++) {
+			delete[] this->env[i];
+		}
+		delete[] this->env;
 	}
-	delete[] this->env;
 }
 
 void Cgi::readFileContents() {
@@ -53,10 +57,14 @@ int Cgi::getFileType(const std::string &filename) {
 	if (dotPos != std::string::npos) {
 		std::string extension = filename.substr(dotPos + 1);
 		if (extension == "php")
-			this->script = main_client->get_config_server()->get_config_location_parser()[main_client->get_location()]->get_cgi_ext_path(".php");
-					
+			this->script = main_client->get_config_server()
+							   ->get_config_location_parser()[main_client->get_location()]
+							   ->get_cgi_ext_path(".php");
+
 		else if (extension == "py")
-			this->script = main_client->get_config_server()->get_config_location_parser()[main_client->get_location()]->get_cgi_ext_path(".py");
+			this->script = main_client->get_config_server()
+							   ->get_config_location_parser()[main_client->get_location()]
+							   ->get_cgi_ext_path(".py");
 		else
 			throw Error::NotImplemented501();
 	}
@@ -190,7 +198,7 @@ void Cgi::set_cgi_env() {
 		cout << "|" << this->env[i] << "|" << endl;
 	}
 	cout << "-----------------------------------------------------------------------------------\n";
-	outfile		= this->generate_random_name();
+	outfile = this->generate_random_name();
 	main_client->set_files_to_remove(outfile);
 	output_file = open(outfile.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0777);
 	input_file	= open(this->main_client->get_body_file_name().c_str(), O_RDONLY);
@@ -224,9 +232,8 @@ void Cgi::wait_for_child() {
 	}
 	if (test > 0) {
 		return;
-	}
-	else if (get_time() - _time > 1000 * 5) {
-		std::cout << ">> " << test << "ddd " <<  _time << std::endl;
+	} else if (get_time() - _time > 1000 * 5) {
+		std::cout << ">> " << test << "ddd " << _time << std::endl;
 		PRINT_ERROR("KILL CHILD");
 		PRINT_ERROR(pid);
 		main_client->set_write_status(true);
