@@ -6,7 +6,7 @@
 /*   By: nel-brig <nel-brig@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:38:43 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/06/24 23:31:23 by nel-brig         ###   ########.fr       */
+/*   Updated: 2023/06/25 01:09:50 by nel-brig         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,7 +49,7 @@ string Cgi::generate_random_name() {
 }
 
 int Cgi::getFileType(const std::string &filename) {
-	std::size_t dotPos = filename.find_last_not_of('.');
+	std::size_t dotPos = filename.find_last_of('.');
 	std::cout << "filename ======>" << filename << std::endl;
 	std::cout << "new_url =======>" << main_client->get_new_url() << std::endl;
 	if (dotPos != std::string::npos) {
@@ -197,7 +197,7 @@ void Cgi::set_cgi_env() {
 	}
 	cout << "-----------------------------------------------------------------------------------\n";
 	outfile = this->generate_random_name();
-	// main_client->set_files_to_remove(outfile);
+	main_client->set_files_to_remove(outfile);
 	output_file = open(outfile.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0777);
 	input_file	= open(this->main_client->get_body_file_name().c_str(), O_RDONLY);
 	pid			= fork();
@@ -236,7 +236,7 @@ void Cgi::wait_for_child() {
 		PRINT_ERROR(pid);
 		main_client->set_write_status(true);
 		kill(pid, SIGKILL);
-		std::remove(outfile.c_str());
+		// std::remove(outfile.c_str());
 		throw Error::LoopDetected508();
 	} else {
 		main_client->set_write_status(false);

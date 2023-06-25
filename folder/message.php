@@ -9,7 +9,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $avatar_ext = explode('.', $avatar_name);
     $avatar_actual_ext = strtolower(end($avatar_ext));
 
-    $allowed = array('jpg', 'jpeg', 'png');
+    $allowed = array('jpg', 'jpeg', 'png', 'mp4');
 
     if (in_array($avatar_actual_ext, $allowed)) {
         if ($avatar_error === 0) {
@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <form method="POST" enctype="multipart/form-data">
             <input type="text" name="name" placeholder="Name" />
             <input type="text" name="email" placeholder="Email" />
-            <input type="file" id="avatar" name="avatar" accept="image/png, image/jpeg" />
+            <input type="file" id="avatar" name="avatar" accept="image/png, image/jpeg, video/mp4" />
             <input type="submit" value="Submit" />
         </form>
     <?php endif; ?>

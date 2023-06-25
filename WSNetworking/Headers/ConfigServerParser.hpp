@@ -42,7 +42,8 @@ class ConfigServerParser {
 	~ConfigServerParser();
 
 	// Tools
-	static int stringToInt(string str);
+	static int	  stringToInt(string str);
+	static size_t stringToSize_t(string str);
 
 	// Methods
 	void parse_config_server();

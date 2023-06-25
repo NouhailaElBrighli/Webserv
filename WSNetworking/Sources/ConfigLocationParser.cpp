@@ -72,27 +72,6 @@ ConfigLocationParser::ConfigLocationParser(string config_location) : config_loca
 
 ConfigLocationParser::~ConfigLocationParser() {}
 
-// Tools
-bool ConfigLocationParser::check_file(string name, string input, string file_path) {
-	struct stat file_info;
-
-	if (stat(file_path.c_str(), &file_info) != 0)
-		// Failed to stat file
-		throw std::runtime_error(STR_RED(name + " Error : " + input + " => '" + file_path + "' does not exist"));
-
-	if (S_ISDIR(file_info.st_mode))
-		// File is a directory
-		throw std::runtime_error(STR_RED(name + " Error : " + input + " => '" + file_path + "' is a directory"));
-
-	if (S_ISREG(file_info.st_mode))
-		// File is a regular file
-		return true;
-
-	// File is not a directory or a regular file
-	throw std::runtime_error(
-		STR_RED(name + " Error : " + input + " => '" + file_path + "' is not a directory or a regular file"));
-	return false;
-}
 
 vector<string> ConfigLocationParser::split_methods(const string &str) {
 	vector<string>	  vect_mth;
@@ -213,8 +192,7 @@ void ConfigLocationParser::set_return(string return_, size_t pos) {
 	std::stringstream ss_return(return_);
 	string			  str_return;
 
-	if (this->return_status == true || return_.empty() || this->config_location[pos - 1] != ';'
-		|| (!std::isalpha(this->config_location[pos - 2]) && this->config_location[pos - 2] != '/'))
+	if (this->return_status == true || return_.empty() || this->config_location[pos - 1] != ';')
 		throw std::runtime_error(STR_RED("return Error : " + return_));
 
 	while (std::getline(ss_return, str_return, ' '))
@@ -237,11 +215,11 @@ void ConfigLocationParser::set_upload(string upload, size_t pos) {
 
 	if (upload_save[0] != '/')
 		throw std::runtime_error(STR_RED("upload Error : " + upload));
-	for (size_t i = 1; i < upload.length(); i++) {
-		if (!std::isalnum(upload[i]) && upload[i] != '_') {
-			throw std::runtime_error(STR_RED("upload Error : " + upload));
-		}
-	}
+	// for (size_t i = 1; i < upload.length(); i++) {
+	// 	if (!std::isalnum(upload[i]) && upload[i] != '_' && upload[i] != '-' && upload[i] != '/') {
+	// 		throw std::runtime_error(STR_RED("upload Error : " + upload));
+	// 	}
+	// }
 
 	this->upload		= upload;
 	this->upload_status = true;
@@ -286,10 +264,9 @@ void ConfigLocationParser::set_cgi_ext_path(string cgi_ext_path, size_t pos) {
 		throw std::runtime_error(STR_RED("Error CGI Ext Path : " + cgi_ext_path_input));
 	}
 
-	if (this->check_file("CGI Ext Path", cgi_ext_path_input, cgi_path)) {
-		this->cgi_ext_path[cgi_ext] = cgi_path;
-		this->cgi_ext_path_status	= true;
-	}
+	this->cgi_ext_path[cgi_ext] = cgi_path;
+	this->cgi_ext_path_status	= true;
+
 }
 
 // Methods

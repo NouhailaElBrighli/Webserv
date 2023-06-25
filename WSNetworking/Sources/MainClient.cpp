@@ -180,17 +180,10 @@ int MainClient::get_right_config_server_parser_from_name_sever(string name_serve
 	name_server = name_server.substr(0, name_server.find(":"));
 	SHOW_INFO("name_server: " + name_server);
 	SHOW_INFO("port: " + port);
-	if (name_server == "localhost" || name_server == "127.0.0.1") {
-		for (size_t i = 0; i < this->servers.size(); i++) {
-			if (this->servers[i]->get_port_str() == port)
-				return i;
-		}
-	} else {
-		for (vector<ConfigServerParser *>::const_iterator it = this->servers.begin(); it != this->servers.end(); it++) {
-			if ((*it)->get_server_name() == name_server && (*it)->get_port_str() == port)
-				return i;
-			i++;
-		}
+	for (vector<ConfigServerParser *>::const_iterator it = this->servers.begin(); it != this->servers.end(); it++) {
+		if (((*it)->get_server_name() == name_server || (*it)->get_host() == name_server) && (*it)->get_port_str() == port)
+			return i;
+		i++;
 	}
 	return 0;
 }
@@ -226,7 +219,7 @@ void MainClient::set_header_for_errors_and_redirection(const char *what) {
 
 	else  // errors
 	{
-		class Response Error;
+		Response Error(this);
 		this->body_file = Error.SetError(msg_status, body_file);
 		this->header	= Error.GetHeader();
 	}
@@ -240,13 +233,15 @@ std::string MainClient::get_new_url() { return (this->new_url); }
 std::string MainClient::get_serve_file() { return (serve_file); }
 
 void MainClient::check_files_error() {
-	std::map<int, std::string> error_map = this->config_server_parser->get_error_page();
-	if (error_map[this->status].size() != 0) {
-		std::ifstream error_page(error_map[this->status].c_str());
-		if (!error_page.is_open())
-			throw Error::Forbidden403();
-		body_file = error_map[this->status];
-		error_page.close();
+	if (this->config_server_parser->get_error_page().size() != 0) {
+		std::map<int, std::string> error_map = this->config_server_parser->get_error_page();
+		if (error_map[this->status].size() != 0) {
+			std::ifstream error_page(error_map[this->status].c_str());
+			if (!error_page.is_open())
+				throw Error::Forbidden403();
+			body_file = error_map[this->status];
+			error_page.close();
+		}
 	}
 }
 
@@ -398,7 +393,7 @@ void MainClient::send_to_socket() {
 		PRINT_ERROR("close the socket now");
 		this->send_receive_status = false;
 		PRINT_ERROR("remove files");
-		// remove_files();
+		remove_files();
 		return;
 	}
 	char buff[MAXLINE];

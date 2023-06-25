@@ -58,8 +58,8 @@ void Response::SetContentType() {
 			return;
 		}
 		this->ContentType = Client->get_content_type(this->extention);
-		if (this->ContentType.size() == 0)
-			this->ContentType = "application/octetstream";
+		// if (this->ContentType.size() == 0)
+		// 	this->ContentType = "application/octetstream";
 	} else
 	{
 		PRINT_ERROR("here");
@@ -229,7 +229,10 @@ std::string Response::set_error_body(std::string msg_status, std::string body_fi
 		error_file = Client->generate_random_name();
 		std::ofstream file(error_file.c_str());
 		if (!file.is_open())
+		{
+			PRINT_ERROR("HERE");
 			throw Error::InternalServerError500();
+		}
 		content = "<!DOCTYPE html>\r\n<html>\r\n<head>\r\n<title>";
 		content += msg_status;
 		content += "</title>\r\n<style>\r\nbody {\r\ntext-align: center;\r\npadding: 40px;\r\nfont-family: Arial, "
