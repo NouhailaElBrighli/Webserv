@@ -127,6 +127,19 @@ int MainServer::right_port(int client_socket) {
 	return (ntohs(addr.sin_port));
 }
 
+int MainServer::right_server(int client_socket) {
+	int port;
+
+	// Extract the port number
+	port = right_port(client_socket);
+	// Check if the port is in the config file and get the index
+	for (size_t i = 0; i < this->config_file_parser->get_config_server_parser().size(); i++) {
+		if (this->config_file_parser->get_config_server_parser(i)->get_port() == port)
+			return i;
+	}
+	return 0;
+}
+
 // Initialize the server sockets
 void MainServer::init_server_sockets() {
 	FD_ZERO(&this->read_sockets);
@@ -188,7 +201,7 @@ void MainServer::create_client(int client_socket) {
 
 	PRINT_LONG_LINE("create client");
 	MainClient *mainClient		 = new MainClient(client_socket, this->config_file_parser->get_config_server_parser(),
-												  right_port(client_socket));
+												  right_port(client_socket), right_server(client_socket));
 	this->clients[client_socket] = mainClient;
 	return;
 }

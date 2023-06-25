@@ -30,12 +30,13 @@ void MainClient::set_header(std::string header) { this->header = header; }
 void MainClient::reset_body_file_name(std::string new_name) { this->header_body_reader->set_body_file_name(new_name); }
 
 // Constructors and destructor
-MainClient::MainClient(int client_socket, const vector<ConfigServerParser *> servers, int port)
-	: servers(servers), request_parser(new RequestParser()), config_server_parser(NULL), Res(NULL), cgi(NULL),
+MainClient::MainClient(int client_socket, const vector<ConfigServerParser *> servers, int port, int idx_server)
+	: servers(servers), request_parser(new RequestParser()), config_server_parser(servers[idx_server]), Res(NULL), cgi(NULL),
 	  send_receive_status(true), msg_status(Accurate::OK200().what()), port(port), client_socket(client_socket),
 	  status(200), phase(READ_PHASE), php_status(0), write_header(false), write_body(false), write_status(false),
 	  file_open(false), header_body_reader(new HeaderBodyReader(this)), cgi_status(false), cgi_counter(0),
 	  is_cgi(false), access(false), alloc(false) {
+		cout << idx_server<<endl;
 
 	set_content_type_map();
 	set_extention_map();
@@ -94,10 +95,10 @@ void MainClient::handle_read() {
 	this->request_parser->run_parse(header_body_reader->get_head());
 	this->match_right_server();
 	this->location = this->match_location();
+	is_method_allowed_in_location();
 	if (this->config_server_parser->get_config_location_parser()[get_location()]->get_return().size() != 0) {
 		throw_accurate_redirection();
 	}
-	is_method_allowed_in_location();
 	if (this->get_request("Request-Type") == "POST") {
 		check_upload_path();
 		if (this->upload_path.size() == 0) {

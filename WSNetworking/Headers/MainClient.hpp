@@ -68,7 +68,7 @@ class MainClient {
 	void set_files_to_remove(std::string file);
 
 	// Constructors and destructor
-	MainClient(int client_socket, const vector<ConfigServerParser *> servers, int port);
+	MainClient(int client_socket, const vector<ConfigServerParser *> servers, int port, int idx_server);
 	~MainClient();
 
 	// Methods
