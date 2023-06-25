@@ -6,7 +6,7 @@
 /*   By: nel-brig <nel-brig@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:38:43 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/06/25 05:36:22 by nel-brig         ###   ########.fr       */
+/*   Updated: 2023/06/25 17:39:39 by nel-brig         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -197,7 +197,7 @@ void Cgi::set_cgi_env() {
 	}
 	cout << "-----------------------------------------------------------------------------------\n";
 	outfile = this->generate_random_name();
-	// main_client->set_files_to_remove(outfile);
+	main_client->set_files_to_remove(outfile);
 	output_file = open(outfile.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0777);
 	input_file	= open(this->main_client->get_body_file_name().c_str(), O_RDONLY);
 	pid			= fork();
@@ -237,7 +237,6 @@ void Cgi::wait_for_child() {
 		PRINT_ERROR(pid);
 		main_client->set_write_status(true);
 		kill(pid, SIGKILL);
-		// std::remove(outfile.c_str());
 		throw Error::LoopDetected508();
 	} else {
 		main_client->set_write_status(false);

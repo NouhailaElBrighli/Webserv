@@ -395,7 +395,7 @@ void MainClient::send_to_socket() {
 		PRINT_ERROR("close the socket now");
 		this->send_receive_status = false;
 		PRINT_ERROR("remove files");
-		// remove_files();
+		remove_files();
 		return;
 	}
 	char buff[MAXLINE];
