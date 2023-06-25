@@ -6,7 +6,7 @@
 /*   By: nel-brig <nel-brig@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:38:43 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/06/25 17:39:39 by nel-brig         ###   ########.fr       */
+/*   Updated: 2023/06/25 23:00:08 by nel-brig         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -200,19 +200,21 @@ void Cgi::set_cgi_env() {
 	main_client->set_files_to_remove(outfile);
 	output_file = open(outfile.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0777);
 	input_file	= open(this->main_client->get_body_file_name().c_str(), O_RDONLY);
-	pid			= fork();
-	if (pid < 0) {
+	_pid		= fork();
+	if (_pid < 0) {
 		cout << "fork failed" << endl;
 		return;
-	} else if (pid == 0) {
+	} else if (_pid == 0) {
 		dup2(output_file, 2);
 		dup2(output_file, 1);
 		dup2(input_file, 0);
 		close(output_file);
 		close(input_file);
-		execve(av[0], av, this->env);
+		if(execve(av[0], av, this->env) < 0)
+			throw Error::InternalServerError500();
+
 	}
-	std::cout << "pid " << pid << std::endl;
+	std::cout << "> pid " << _pid << std::endl;
 	main_client->set_access(true);
 }
 
@@ -220,7 +222,13 @@ std::string Cgi::get_outfile() { return (outfile); }
 
 void Cgi::wait_for_child() {
 
-	test = waitpid(pid, NULL, WNOHANG);
+	if (_phase == 2)
+		return;
+	test = waitpid(_pid, NULL, WNOHANG);
+	if (test <= -1) {
+		std::cout << "Error " << std::endl;
+		std::exit(1);
+	}
 	if (test == 0 && _phase == 0) {
 		PRINT_ERROR("first move");
 		main_client->set_write_status(false);
@@ -229,14 +237,21 @@ void Cgi::wait_for_child() {
 		PRINT_ERROR("still runnig");
 		throw std::runtime_error("Still running");
 	}
+
 	if (test > 0) {
-		return;
-	} else if (get_time() - _time > 1000 * 5) {
+		_phase++;
+	}
+
+	if (_phase == 1 && get_time() - _time > 1000 * 5) {
 		std::cout << ">> " << test << "ddd " << _time << std::endl;
 		PRINT_ERROR("KILL CHILD");
-		PRINT_ERROR(pid);
+		PRINT_ERROR(_pid);
 		main_client->set_write_status(true);
-		kill(pid, SIGKILL);
+		if (_pid == 0) {
+			std::cout << "Error " << std::endl;
+			std::exit(1);
+		}
+		kill(_pid, SIGKILL);
 		throw Error::LoopDetected508();
 	} else {
 		main_client->set_write_status(false);

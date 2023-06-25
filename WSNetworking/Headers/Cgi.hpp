@@ -6,7 +6,7 @@
 /*   By: nel-brig <nel-brig@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:33:49 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/06/24 19:57:57 by nel-brig         ###   ########.fr       */
+/*   Updated: 2023/06/25 22:38:24 by nel-brig         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@ class Cgi {
 	std::string					   outfile;
 	int							   status;
 	int							   test;
-	int							   pid;
+	int							   _pid;
 	size_t						   _time;
 	size_t						   _phase;
 
