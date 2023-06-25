@@ -6,7 +6,7 @@
 /*   By: nel-brig <nel-brig@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:38:43 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/06/25 01:09:50 by nel-brig         ###   ########.fr       */
+/*   Updated: 2023/06/25 05:36:22 by nel-brig         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -197,7 +197,7 @@ void Cgi::set_cgi_env() {
 	}
 	cout << "-----------------------------------------------------------------------------------\n";
 	outfile = this->generate_random_name();
-	main_client->set_files_to_remove(outfile);
+	// main_client->set_files_to_remove(outfile);
 	output_file = open(outfile.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0777);
 	input_file	= open(this->main_client->get_body_file_name().c_str(), O_RDONLY);
 	pid			= fork();
@@ -226,6 +226,7 @@ void Cgi::wait_for_child() {
 		main_client->set_write_status(false);
 		_time = get_time();
 		_phase++;
+		PRINT_ERROR("still runnig");
 		throw std::runtime_error("Still running");
 	}
 	if (test > 0) {

@@ -180,6 +180,8 @@ int MainClient::get_right_config_server_parser_from_name_sever(string name_serve
 	name_server = name_server.substr(0, name_server.find(":"));
 	SHOW_INFO("name_server: " + name_server);
 	SHOW_INFO("port: " + port);
+	if (name_server == "localhost")
+		name_server = "127.0.0.1";
 	for (vector<ConfigServerParser *>::const_iterator it = this->servers.begin(); it != this->servers.end(); it++) {
 		if (((*it)->get_server_name() == name_server || (*it)->get_host() == name_server) && (*it)->get_port_str() == port)
 			return i;
@@ -393,7 +395,7 @@ void MainClient::send_to_socket() {
 		PRINT_ERROR("close the socket now");
 		this->send_receive_status = false;
 		PRINT_ERROR("remove files");
-		remove_files();
+		// remove_files();
 		return;
 	}
 	char buff[MAXLINE];

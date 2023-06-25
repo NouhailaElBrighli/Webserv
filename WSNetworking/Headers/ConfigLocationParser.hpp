@@ -47,6 +47,7 @@ class ConfigLocationParser {
 
   private:
 	// Tools
+	bool		   check_file(string name, string input, string file_path);
 	vector<string> split_methods(const string &str);
 	vector<string> stringToMethods(string host);
 	bool		   find_compare(string &line, const string &str);

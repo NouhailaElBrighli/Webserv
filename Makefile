@@ -170,7 +170,7 @@ go : all
 start : all
 	$(M_START_S)
 	$(RM) **/body_* ./body_*
-	./$(NAME) default_nel-brig.conf
+	./$(NAME) default_nel-brig.conf > ko
 	$(M_RGS_E)
 
 .PHONY : all clean fclean re run go start

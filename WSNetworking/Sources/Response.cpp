@@ -50,6 +50,7 @@ void Response::SetContentType() {
 				Client->set_is_cgi(true);
 				check_cgi_location();
 				Client->get_cgi()->check_extention();
+				this->ContentType = "text/html";
 			}
 			PRINT_ERROR("wait for cgi");
 			Client->get_cgi()->wait_for_child();

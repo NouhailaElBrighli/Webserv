@@ -72,6 +72,27 @@ ConfigLocationParser::ConfigLocationParser(string config_location) : config_loca
 
 ConfigLocationParser::~ConfigLocationParser() {}
 
+// Tools
+bool ConfigLocationParser::check_file(string name, string input, string file_path) {
+	struct stat file_info;
+
+	if (stat(file_path.c_str(), &file_info) != 0)
+		// Failed to stat file
+		throw std::runtime_error(STR_RED(name + " Error : " + input + " => '" + file_path + "' does not exist"));
+
+	if (S_ISDIR(file_info.st_mode))
+		// File is a directory
+		throw std::runtime_error(STR_RED(name + " Error : " + input + " => '" + file_path + "' is a directory"));
+
+	if (S_ISREG(file_info.st_mode))
+		// File is a regular file
+		return true;
+
+	// File is not a directory or a regular file
+	throw std::runtime_error(
+		STR_RED(name + " Error : " + input + " => '" + file_path + "' is not a directory or a regular file"));
+	return false;
+}
 
 vector<string> ConfigLocationParser::split_methods(const string &str) {
 	vector<string>	  vect_mth;
@@ -264,9 +285,10 @@ void ConfigLocationParser::set_cgi_ext_path(string cgi_ext_path, size_t pos) {
 		throw std::runtime_error(STR_RED("Error CGI Ext Path : " + cgi_ext_path_input));
 	}
 
-	this->cgi_ext_path[cgi_ext] = cgi_path;
-	this->cgi_ext_path_status	= true;
-
+	if (this->check_file("CGI Ext Path", cgi_ext_path_input, cgi_path)) {
+		this->cgi_ext_path[cgi_ext] = cgi_path;
+		this->cgi_ext_path_status	= true;
+	}
 }
 
 // Methods
