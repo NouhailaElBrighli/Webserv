@@ -301,7 +301,6 @@ void MainServer::routine() {
 						this->handle(i, "write");
 
 				} catch (const std::exception &e) {
-					this->clients[i]->set_send_receive_status(false);
 					cerr << e.what() << endl;
 				}
 				this->destroy_client(i);

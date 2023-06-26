@@ -75,8 +75,10 @@ void MainClient::start_handle(string task) {
 	} catch (const std::exception &e) {
 		PRINT_SHORT_LINE("catch something");
 		if (string(e.what()).find("can't open file") != string::npos
-			|| string(e.what()).find("Bad Input") != string::npos)
-			throw std::runtime_error(string(e.what()));
+			|| string(e.what()).find("Bad Input") != string::npos) {
+				this->set_send_receive_status(false);
+				throw std::runtime_error(string(e.what()));
+			}
 
 		PRINT_ERROR(string(e.what()));
 
