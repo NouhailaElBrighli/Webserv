@@ -66,10 +66,7 @@ void RequestParser::is_first_line_valid() {
 	string allowed_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;=%";
 
 	if (this->request.size() != 3)
-	{
-		std::cout << "hhhhhhhhhh" << std::endl;
 		throw Error::NotImplemented501();
-	}
 
 	if (this->request["Request-URI"].find_first_not_of(allowed_chars) != string::npos)
 		throw Error::BadRequest400();

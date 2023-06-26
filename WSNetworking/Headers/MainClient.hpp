@@ -97,6 +97,7 @@ class MainClient {
 	void		set_access(bool status);
 	std::string	generate_random_name();
 	void	set_new_url(std::string new_url);
+	int			get_location();
 
   private:
 	// Methods

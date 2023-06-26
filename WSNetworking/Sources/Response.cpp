@@ -13,6 +13,9 @@ std::string Response::GetHeader() const { return (this->header); }
 Response::Response(MainClient *Client) { this->Client = Client; }
 
 std::string Response::SetError(const std::string msg_status, std::string body_file) {
+	std::stringstream ss(msg_status);
+	int status;
+	ss >> status;
 	this->ContentType = "text/html";
 	body_file		  = this->set_error_body(msg_status, body_file);  // set content length here
 	this->header	  = "HTTP/1.1 ";
@@ -22,6 +25,15 @@ std::string Response::SetError(const std::string msg_status, std::string body_fi
 	this->header += "\r\nContent-Length: ";
 	this->header += this->ContentLength;
 	this->header += "\r\nConnection: Close";
+	if (status == 405)
+	{
+		this->header += "\r\nAllow:";
+		for (std::vector<std::string>::const_iterator methods_itr = Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_methods().begin(); methods_itr != Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_methods().end(); methods_itr++)
+		{
+			this->header += " ";
+			this->header += *methods_itr;
+		}
+	}
 	this->header += "\r\n\r\n";
 	return (body_file);
 }
@@ -37,8 +49,7 @@ std::ostream &operator<<(std::ostream &out, const Response &obj) {
 void Response::SetContentType() {
 	PRINT_ERROR("set content type");
 	PRINT_ERROR(this->filename);
-	size_t start = this->filename.find('.');
-	// std::cout << "start:" << start  << std::endl;
+	size_t start = this->filename.find_last_of('.');
 	if (start != string::npos) {
 		this->extention = filename.substr(start, filename.size() - 1);
 		if (this->extention == ".py" || this->extention == ".php")
@@ -54,17 +65,14 @@ void Response::SetContentType() {
 			}
 			PRINT_ERROR("wait for cgi");
 			Client->get_cgi()->wait_for_child();
-			// if (Client->get_access() == false)
 			this->serve_file = Client->get_cgi()->get_outfile();
 			return;
 		}
 		this->ContentType = Client->get_content_type(this->extention);
-		// if (this->ContentType.size() == 0)
-		// 	this->ContentType = "application/octetstream";
 	} else
 	{
 		PRINT_ERROR("here");
-		this->ContentType = "application/octetstream";
+		this->ContentType = "text/html";
 	}
 	PRINT_ERROR("content type");
 	PRINT_ERROR(ContentType);
@@ -178,7 +186,6 @@ std::string Response::check_auto_index() {
 		filename= Client->write_into_file(directory, root);
 		closedir(directory);
 	}
-	std::cout << "--------filename :" << filename << std::endl;   
 	return (filename);
 }
 
@@ -204,7 +211,6 @@ std::string Response::handle_directory(int flag) {
 				continue;
 			else {
 				file.close();
-				std::cout << "index_file :" << index_file << std::endl;
 				return (index_file);
 			}
 		}
@@ -334,7 +340,6 @@ std::string Response::post() {
 	if (this->type == "directory") {
 		this->serve_file = handle_directory(1);
 		Client->set_new_url(this->serve_file);
-		std::cout << "serve_file in handle directory: " << serve_file << std::endl;
 	} else
 		this->serve_file = handle_file();
 	this->SetVars();
@@ -358,23 +363,23 @@ void Response::move_the_body() {
 void Response::throw_accurate_response(std::string uri) {
 	DIR *dir = opendir(uri.c_str());
 	if (dir == NULL) {
+		if (errno == EACCES)
+			throw Error::Forbidden403();
+		if (errno == ENOENT)
+			throw Error::NotFound404();
 		if (errno == ENOTDIR) {
 			std::ifstream file(uri.c_str());
 			if (!file) {
 				if (errno == EACCES)
 					throw Error::Forbidden403();
+				if (errno == ENOENT)
+					throw Error::NotFound404();
 				else
-					throw Error::NotFound404();	 //! any other cases should be handled
+					throw Error::InternalServerError500();
 			}
 			this->type = "file";
 			return;
 		}
-		if (errno == ENOENT)
-			throw Error::NotFound404();
-		if (errno == EACCES)
-			throw Error::Forbidden403();
-		else
-			throw Error::NotFound404();	 // !any other cases should be handled
 	}
 	this->type = "directory";
 }

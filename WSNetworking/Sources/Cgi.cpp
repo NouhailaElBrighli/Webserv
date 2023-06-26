@@ -6,7 +6,7 @@
 /*   By: nel-brig <nel-brig@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:38:43 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/06/26 00:34:54 by nel-brig         ###   ########.fr       */
+/*   Updated: 2023/06/26 03:12:55 by nel-brig         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,8 +50,6 @@ string Cgi::generate_random_name() {
 
 int Cgi::getFileType(const std::string &filename) {
 	std::size_t dotPos = filename.find_last_of('.');
-	// std::cout << "filename ======>" << filename << std::endl;
-	// std::cout << "new_url =======>" << main_client->get_new_url() << std::endl;
 	if (dotPos != std::string::npos) {
 		std::string extension = filename.substr(dotPos + 1);
 		if (extension == "php")
@@ -64,10 +62,7 @@ int Cgi::getFileType(const std::string &filename) {
 							   ->get_config_location_parser()[main_client->get_location()]
 							   ->get_cgi_ext_path(".py");
 		else
-		{
-			std::cout << "here" << std::endl;	
 			throw Error::NotImplemented501();
-		}
 	}
 	std::ifstream checl_script(this->script.c_str());
 	if (checl_script.is_open()) {
@@ -95,8 +90,6 @@ char *const *Cgi::mapToCharConstArray(const std::map<std::string, std::string> &
 void Cgi::check_extention() {
 	this->filename = main_client->get_new_url();
 	if (status == false) {
-		// cout << "*****in just_print***\n";
-		// std::cout << "hello from cgi" << std::endl;
 		for (map<string, string>::const_iterator it = this->main_client->get_request().begin();
 			 it != this->main_client->get_request().end(); it++) {
 			// cout << it->first << " : " << it->second << endl;

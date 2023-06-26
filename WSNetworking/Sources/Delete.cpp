@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Delete.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nel-brig <nel-brig@student.42.fr>          +#+  +:+       +#+        */
+/*   By: hsaidi <hsaidi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/27 11:30:30 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/06/26 00:45:13 by nel-brig         ###   ########.fr       */
+/*   Updated: 2023/06/26 03:00:59 by hsaidi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,13 +20,21 @@ Delete::Delete(MainClient *main_client, vector<ConfigLocationParser *>config_loc
 
 Delete::~Delete(){}
 
-
 void Delete::deleted()
 {
     std::string file_name = this->main_client->get_new_url();
-	std::cout << "file" << file_name << std::endl;
+
+    if (!path_exists(file_name))
+        throw Error::NotFound404();
+    
     if (delete_path(file_name))
         throw Accurate::NoContent204();
+}
+
+bool Delete::path_exists(const std::string& path)
+{
+    struct stat path_stat;
+    return (stat(path.c_str(), &path_stat) == 0);
 }
 
 bool Delete::delete_path(const std::string& path)
@@ -36,7 +44,8 @@ bool Delete::delete_path(const std::string& path)
     // Check if the path exists
     if (access(path.c_str(), F_OK) == 0)
     {
-        // Determine if the path is a file or directory
+        if (access(path.c_str(), W_OK) != 0)
+            throw Error::Forbidden403();
         struct stat path_stat;
         if (stat(path.c_str(), &path_stat) == 0)
         {
@@ -52,10 +61,10 @@ bool Delete::delete_path(const std::string& path)
                     success = true;
             }
         }
+	    if(!success)
+		    throw Error::Forbidden403();
 		std::cout << "suc" << success << std::endl;
     }
-	if(!success)
-		throw Error::Forbidden403();
     return success;
 }
 
@@ -83,6 +92,8 @@ bool Delete::delete_directory(const std::string& path)
         {
             if (remove(entry_path.c_str()) != 0)
                 success = false;
+            // if(!success)
+		    //     throw Error::Forbidden403();
         }
     }
     closedir(dir);

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Delete.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nel-brig <nel-brig@student.42.fr>          +#+  +:+       +#+        */
+/*   By: hsaidi <hsaidi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/27 16:12:00 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/06/24 21:10:31 by nel-brig         ###   ########.fr       */
+/*   Updated: 2023/06/26 02:10:03 by hsaidi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,8 @@ class Delete
         void del(const std::string &path);
         bool delete_path(const std::string& path);
         bool delete_directory(const std::string& path);
+        bool path_exists(const std::string& path);
+        
         // void remove_file_or_directory(const std::string& path);
 };
 

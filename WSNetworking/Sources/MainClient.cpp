@@ -36,7 +36,6 @@ MainClient::MainClient(int client_socket, const vector<ConfigServerParser *> ser
 	  status(200), phase(READ_PHASE), php_status(0), write_header(false), write_body(false), write_status(false),
 	  file_open(false), header_body_reader(new HeaderBodyReader(this)), cgi_status(false), cgi_counter(0),
 	  is_cgi(false), access(false), alloc(false) {
-		cout << idx_server<<endl;
 
 	set_content_type_map();
 	set_extention_map();
@@ -136,15 +135,9 @@ void MainClient::handle_write() {
 }
 
 void MainClient::is_method_allowed_in_location() {
-	for (vector<ConfigLocationParser *>::const_iterator it = config_server_parser->get_config_location_parser().begin();
-		 it != config_server_parser->get_config_location_parser().end(); it++) {
-		if (this->get_request("Request-URI").find((*it)->get_location()) != string::npos
-			|| this->get_request("Request-URI").find((*it)->get_root()) != string::npos) {
-			for (size_t i = 0; i < (*it)->get_methods().size(); i++) {
-				if ((*it)->get_methods(i) == this->get_request("Request-Type"))
-					return;
-			}
-		}
+	for (size_t i = 0; i < config_server_parser->get_config_location_parser()[this->location]->get_methods().size(); i++) {
+		if (config_server_parser->get_config_location_parser()[this->location]->get_methods(i) == this->get_request("Request-Type"))
+			return;
 	}
 	throw Error::MethodNotAllowed405();
 }
@@ -218,7 +211,6 @@ void MainClient::set_header_for_errors_and_redirection(const char *what) {
 		this->header += redirection;
 		this->header += "\r\nConnection: Close";
 		this->header += "\r\n\r\n";
-		std::cout << "redirection header:" << this->header << std::endl;
 	}
 
 	else  // errors
@@ -443,7 +435,6 @@ void MainClient::check_upload_path() {
 							+ this->get_config_server()->get_config_location_parser()[get_location()]->get_upload();
 		DIR *directory = opendir(this->upload_path.c_str());
 		if (directory == NULL) {
-			std::cout << "this->upload_path" << this->upload_path << std::endl;
 			throw Error::InternalServerError500();
 		}
 		closedir(directory);
@@ -498,3 +489,8 @@ void MainClient::set_access(bool status) { this->access = status; }
 void MainClient::set_files_to_remove(const std::string file) { files_to_remove.push_back(file); }
 
 void MainClient::set_new_url(std::string new_url) { this->new_url = new_url; }
+
+int	MainClient::get_location()
+{
+	return(location);
+}
