@@ -33,7 +33,7 @@ void HeaderBodyReader::header_reading() {
 	if (bytes == 0)
 		return;
 	if (bytes < 0)
-		throw Error::BadRequest400();
+		throw Error::InternalServerError500();
 
 	this->head.append(buffer, bytes);
 	if (this->head.find("\r\n\r\n") != string::npos) {
@@ -100,7 +100,7 @@ int HeaderBodyReader::receive_data(int size) {
 	std::memset(buffer, 0, len);
 	int bytes = recv(this->client_socket, buffer, len, 0);
 	if (bytes < 0)
-		throw Error::BadRequest400();
+		throw Error::InternalServerError500();
 
 	// Write data to the file
 	this->outFile.write(buffer, bytes);
@@ -201,7 +201,7 @@ int HeaderBodyReader::find_chunk_size_from_recv() {
 			break;
 		}
 		if (bytes < 0)
-			throw Error::BadRequest400();
+			throw Error::InternalServerError500();
 
 		tmp_body.append(num_buff, bytes);
 

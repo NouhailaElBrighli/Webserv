@@ -39,14 +39,14 @@ class Response {
 	std::string check_auto_index();
 	std::string handle_file();
 	std::string set_error_body(std::string msg_status, std::string body_file);
-	std::string	post();
+	std::string post();
 	void		check_cgi_location();
 	void		set_outfile_cgi(std::string outfile);
 	void		handle_php();
-	void	move_the_body();
-	void	throw_accurate_response(std::string uri);
+	void		move_the_body();
+	void		throw_accurate_response(std::string uri);
 };
 
-std::ostream &operator<<(std::ostream &out, const Response &obj); //! here
+std::ostream &operator<<(std::ostream &out, const Response &obj);  //! here
 
 #endif

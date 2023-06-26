@@ -31,11 +31,11 @@ void MainClient::reset_body_file_name(std::string new_name) { this->header_body_
 
 // Constructors and destructor
 MainClient::MainClient(int client_socket, const vector<ConfigServerParser *> servers, int port, int idx_server)
-	: servers(servers), request_parser(new RequestParser()), config_server_parser(servers[idx_server]), Res(NULL), cgi(NULL),
-	  send_receive_status(true), msg_status(Accurate::OK200().what()), port(port), client_socket(client_socket),
-	  status(200), phase(READ_PHASE), php_status(0), write_header(false), write_body(false), write_status(false),
-	  file_open(false), header_body_reader(new HeaderBodyReader(this)), cgi_status(false), cgi_counter(0),
-	  is_cgi(false), access(false), alloc(false) {
+	: servers(servers), request_parser(new RequestParser()), config_server_parser(servers[idx_server]), Res(NULL),
+	  cgi(NULL), send_receive_status(true), msg_status(Accurate::OK200().what()), port(port),
+	  client_socket(client_socket), status(200), phase(READ_PHASE), php_status(0), write_header(false),
+	  write_body(false), write_status(false), file_open(false), header_body_reader(new HeaderBodyReader(this)),
+	  cgi_status(false), cgi_counter(0), is_cgi(false), access(false), alloc(false) {
 
 	set_content_type_map();
 	set_extention_map();
@@ -75,9 +75,9 @@ void MainClient::start_handle(string task) {
 		PRINT_SHORT_LINE("catch something");
 		if (string(e.what()).find("can't open file") != string::npos
 			|| string(e.what()).find("Bad Input") != string::npos) {
-				this->set_send_receive_status(false);
-				throw std::runtime_error(string(e.what()));
-			}
+			this->set_send_receive_status(false);
+			throw std::runtime_error(string(e.what()));
+		}
 
 		PRINT_ERROR(string(e.what()));
 
@@ -135,8 +135,10 @@ void MainClient::handle_write() {
 }
 
 void MainClient::is_method_allowed_in_location() {
-	for (size_t i = 0; i < config_server_parser->get_config_location_parser()[this->location]->get_methods().size(); i++) {
-		if (config_server_parser->get_config_location_parser()[this->location]->get_methods(i) == this->get_request("Request-Type"))
+	for (size_t i = 0; i < config_server_parser->get_config_location_parser()[this->location]->get_methods().size();
+		 i++) {
+		if (config_server_parser->get_config_location_parser()[this->location]->get_methods(i)
+			== this->get_request("Request-Type"))
 			return;
 	}
 	throw Error::MethodNotAllowed405();
@@ -179,7 +181,8 @@ int MainClient::get_right_config_server_parser_from_name_sever(string name_serve
 	if (name_server == "localhost")
 		name_server = "127.0.0.1";
 	for (vector<ConfigServerParser *>::const_iterator it = this->servers.begin(); it != this->servers.end(); it++) {
-		if (((*it)->get_server_name() == name_server || (*it)->get_host() == name_server) && (*it)->get_port_str() == port)
+		if (((*it)->get_server_name() == name_server || (*it)->get_host() == name_server)
+			&& (*it)->get_port_str() == port)
 			return i;
 		i++;
 	}
@@ -355,7 +358,12 @@ void MainClient::send_to_socket() {
 	if (write_header == false) {
 		PRINT_SHORT_LINE("send header");
 		SHOW_INFO(this->header);
-		send(client_socket, this->header.c_str(), header.size(), 0);
+		int bytes = send(client_socket, this->header.c_str(), header.size(), 0);
+		if (bytes == 0) {
+			write_header = true;
+			return;
+		} else if (bytes < 0)
+			throw Error::InternalServerError500();
 		if (this->status == 301 || this->status == 302) {
 			PRINT_ERROR("close the socket now");
 			this->send_receive_status = false;
@@ -397,8 +405,14 @@ void MainClient::send_to_socket() {
 	file.read(buff, MAXLINE);
 
 	this->position = file.tellg();
-	if (send(client_socket, buff, file.gcount(), 0) < 0)
-		throw Error::BadRequest400();
+	int bytes	   = send(client_socket, buff, file.gcount(), 0);
+	if (bytes == 0) {
+		file.close();
+		return;
+	} else if (bytes < 0) {
+		file.close();
+		throw Error::InternalServerError500();
+	}
 	file.close();
 }
 
@@ -490,7 +504,4 @@ void MainClient::set_files_to_remove(const std::string file) { files_to_remove.p
 
 void MainClient::set_new_url(std::string new_url) { this->new_url = new_url; }
 
-int	MainClient::get_location()
-{
-	return(location);
-}
+int MainClient::get_location() { return (location); }

@@ -14,7 +14,7 @@ Response::Response(MainClient *Client) { this->Client = Client; }
 
 std::string Response::SetError(const std::string msg_status, std::string body_file) {
 	std::stringstream ss(msg_status);
-	int status;
+	int				  status;
 	ss >> status;
 	this->ContentType = "text/html";
 	body_file		  = this->set_error_body(msg_status, body_file);  // set content length here
@@ -25,11 +25,13 @@ std::string Response::SetError(const std::string msg_status, std::string body_fi
 	this->header += "\r\nContent-Length: ";
 	this->header += this->ContentLength;
 	this->header += "\r\nConnection: Close";
-	if (status == 405)
-	{
+	if (status == 405) {
 		this->header += "\r\nAllow:";
-		for (std::vector<std::string>::const_iterator methods_itr = Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_methods().begin(); methods_itr != Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_methods().end(); methods_itr++)
-		{
+		for (std::vector<std::string>::const_iterator methods_itr
+			 = Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_methods().begin();
+			 methods_itr
+			 != Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_methods().end();
+			 methods_itr++) {
 			this->header += " ";
 			this->header += *methods_itr;
 		}
@@ -52,11 +54,9 @@ void Response::SetContentType() {
 	size_t start = this->filename.find_last_of('.');
 	if (start != string::npos) {
 		this->extention = filename.substr(start, filename.size() - 1);
-		if (this->extention == ".py" || this->extention == ".php")
-		{
+		if (this->extention == ".py" || this->extention == ".php") {
 			PRINT_ERROR("check access cgi");
-			if (Client->get_access() == false)
-			{
+			if (Client->get_access() == false) {
 				PRINT_LONG_LINE("handle cgi");
 				Client->set_is_cgi(true);
 				check_cgi_location();
@@ -69,15 +69,14 @@ void Response::SetContentType() {
 			return;
 		}
 		this->ContentType = Client->get_content_type(this->extention);
-	} else
-	{
+	} else {
 		PRINT_ERROR("here");
 		this->ContentType = "text/html";
 	}
 	PRINT_ERROR("content type");
 	PRINT_ERROR(ContentType);
 }
- 
+
 void Response::SetContentLength(std::string RequestURI) {
 	std::ifstream RequestedFile(RequestURI.c_str(), std::ios::binary);
 	if (!RequestedFile)
@@ -92,8 +91,7 @@ void Response::SetContentLength(std::string RequestURI) {
 }
 
 void Response::SetVars() {
-	if (Client->get_access() == false)
-	{
+	if (Client->get_access() == false) {
 		std::stringstream ss(serve_file);
 
 		while (getline(ss, this->filename, '/')) {
@@ -173,7 +171,7 @@ void Response::check_inside_root(std::string &root, std::string uri) {
 
 std::string Response::check_auto_index() {
 	std::string filename;
-	int autoindex
+	int			autoindex
 		= this->Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_autoindex();
 	std::string root
 		= this->Client->get_config_server()->get_config_location_parser()[Client->get_location()]->get_root();
@@ -183,7 +181,7 @@ std::string Response::check_auto_index() {
 		DIR *directory = opendir(Client->get_new_url().c_str());
 		if (!directory)
 			throw Error::Forbidden403();
-		filename= Client->write_into_file(directory, root);
+		filename = Client->write_into_file(directory, root);
 		closedir(directory);
 	}
 	return (filename);
@@ -192,9 +190,10 @@ std::string Response::check_auto_index() {
 std::string Response::handle_directory(int flag) {
 	PRINT_SHORT_LINE("handle directory");
 	std::string uri = Client->get_new_url();
-	if (uri[uri.size() - 1] != '/' && Client->get_request("Request-URI").size() != 1)	// redirect from /folder to /folder/
+	if (uri[uri.size() - 1] != '/'
+		&& Client->get_request("Request-URI").size() != 1)	// redirect from /folder to /folder/
 	{
-		std::string red = Client->get_request("Request-URI") + '/'; // ? i should use old uri with location one
+		std::string red = Client->get_request("Request-URI") + '/';	 // ? i should use old uri with location one
 		Client->set_redirection(red);
 		throw Accurate::MovedPermanently301();
 	}
@@ -228,15 +227,14 @@ std::string Response::handle_file() {
 }
 
 std::string Response::set_error_body(std::string msg_status, std::string body_file) {
-	std::string		  	content;
-	std::stringstream	num;
-	std::string			error_file;
+	std::string		  content;
+	std::stringstream num;
+	std::string		  error_file;
 
 	if (body_file.size() == 0) {
 		error_file = Client->generate_random_name();
 		std::ofstream file(error_file.c_str());
-		if (!file.is_open())
-		{
+		if (!file.is_open()) {
 			PRINT_ERROR("HERE");
 			throw Error::InternalServerError500();
 		}
@@ -281,8 +279,7 @@ void Response::set_outfile_cgi(std::string outfile) { this->cgi_outfile = outfil
 
 std::string Response::Get() {
 	PRINT_LONG_LINE("Handle GET");
-	if (Client->get_access() == false)
-	{
+	if (Client->get_access() == false) {
 		if (Client->get_serve_file().size() == 0) {
 			PRINT_ERROR("check_request_uri");
 			this->check_request_uri();	// * check if uri exist in the root
@@ -383,4 +380,3 @@ void Response::throw_accurate_response(std::string uri) {
 	}
 	this->type = "directory";
 }
-

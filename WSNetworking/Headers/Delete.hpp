@@ -15,23 +15,20 @@
 
 #include "WSNetworking.hpp"
 
-class Delete
-{
-    private:
-        MainClient *main_client;
-        vector<ConfigLocationParser *> config_location_parser;
-    public:
-    
-        Delete(MainClient *main_client, vector<ConfigLocationParser *>config_location_parser);
-        ~Delete();
-        void deleted();
-        void empty_file(const std::string& path);
-        void del(const std::string &path);
-        bool delete_path(const std::string& path);
-        bool delete_directory(const std::string& path);
-        bool path_exists(const std::string& path);
-        
-        // void remove_file_or_directory(const std::string& path);
+class Delete {
+  private:
+	MainClient					  *main_client;
+	vector<ConfigLocationParser *> config_location_parser;
+
+  public:
+	Delete(MainClient *main_client, vector<ConfigLocationParser *> config_location_parser);
+	~Delete();
+	void deleted();
+	void empty_file(const std::string &path);
+	void del(const std::string &path);
+	bool delete_path(const std::string &path);
+	bool delete_directory(const std::string &path);
+	bool path_exists(const std::string &path);
 };
 
 #endif

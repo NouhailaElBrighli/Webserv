@@ -157,20 +157,7 @@ re : fclean all
 
 run : all
 	$(M_RUN_S)
-	$(RM) **/body_* ./body_*
-	./$(NAME) default_anajmi.conf
-	$(M_RGS_E)
-
-go : all
-	$(M_GO_S)
-	$(RM) **/body_* ./body_*
-	./$(NAME) default_hsaidi.conf
-	$(M_RGS_E)
-
-start : all
-	$(M_START_S)
-	$(RM) **/body_* ./body_*
-	./$(NAME) default_nel-brig.conf
+	./$(NAME) default.conf
 	$(M_RGS_E)
 
 .PHONY : all clean fclean re run go start

@@ -179,8 +179,8 @@ void Cgi::set_cgi_env() {
 	cgi_env["SCRIPT_FILENAME="]	  = this->filename;
 	cgi_env["GATEWAY_INTERFACE="] = "CGI/1.1";
 	cgi_env["REDIRECT_STATUS="]	  = "200";
-	cgi_env["REQUEST_URI="] = this->main_client->get_request("Request-URI");
-	cgi_env["HTTP_HOST="] = this->main_client->get_request("Host");
+	cgi_env["REQUEST_URI="]		  = this->main_client->get_request("Request-URI");
+	cgi_env["HTTP_HOST="]		  = this->main_client->get_request("Host");
 	// cout << "------------------- Printing the env variables ------------------------------------\n";
 	char *av[] = {(char *)script.c_str(), (char *)this->filename.c_str(), NULL};
 
@@ -204,7 +204,7 @@ void Cgi::set_cgi_env() {
 		dup2(input_file, 0);
 		close(output_file);
 		close(input_file);
-		if(execve(av[0], av, this->env) < 0)
+		if (execve(av[0], av, this->env) < 0)
 			throw Error::InternalServerError500();
 	}
 	main_client->set_access(true);
