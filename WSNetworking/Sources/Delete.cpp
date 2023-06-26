@@ -6,7 +6,7 @@
 /*   By: nel-brig <nel-brig@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/27 11:30:30 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/06/24 21:10:21 by nel-brig         ###   ########.fr       */
+/*   Updated: 2023/06/26 00:45:13 by nel-brig         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,7 @@ Delete::~Delete(){}
 void Delete::deleted()
 {
     std::string file_name = this->main_client->get_new_url();
+	std::cout << "file" << file_name << std::endl;
     if (delete_path(file_name))
         throw Accurate::NoContent204();
 }
@@ -51,9 +52,10 @@ bool Delete::delete_path(const std::string& path)
                     success = true;
             }
         }
-		if(!success)
-			throw Error::Forbidden403();
+		std::cout << "suc" << success << std::endl;
     }
+	if(!success)
+		throw Error::Forbidden403();
     return success;
 }
 

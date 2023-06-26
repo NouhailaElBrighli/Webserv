@@ -9,7 +9,7 @@ if(isset($_POST['increment'])) { // check if the increment button is clicked
         echo "Counter set to 1"; // debug statement
     }
 }
-
+// while(1);
 ?>
 
 <!DOCTYPE html>

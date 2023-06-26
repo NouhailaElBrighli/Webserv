@@ -38,7 +38,7 @@ void Response::SetContentType() {
 	PRINT_ERROR("set content type");
 	PRINT_ERROR(this->filename);
 	size_t start = this->filename.find('.');
-	std::cout << "start:" << start  << std::endl;
+	// std::cout << "start:" << start  << std::endl;
 	if (start != string::npos) {
 		this->extention = filename.substr(start, filename.size() - 1);
 		if (this->extention == ".py" || this->extention == ".php")

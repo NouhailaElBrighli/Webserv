@@ -196,7 +196,6 @@ void MainClient::match_right_server() {
 	if (this->port != -1) {
 		int right_server = get_right_config_server_parser_from_name_sever(this->get_request("Host"));
 
-		cout << "right_server: " << right_server << endl;
 		this->config_server_parser = this->servers[right_server];
 		this->port				   = -1;
 	}

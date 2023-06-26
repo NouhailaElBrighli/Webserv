@@ -6,7 +6,7 @@
 /*   By: nel-brig <nel-brig@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/14 11:38:43 by hsaidi            #+#    #+#             */
-/*   Updated: 2023/06/25 23:00:08 by nel-brig         ###   ########.fr       */
+/*   Updated: 2023/06/26 00:34:54 by nel-brig         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,8 +50,8 @@ string Cgi::generate_random_name() {
 
 int Cgi::getFileType(const std::string &filename) {
 	std::size_t dotPos = filename.find_last_of('.');
-	std::cout << "filename ======>" << filename << std::endl;
-	std::cout << "new_url =======>" << main_client->get_new_url() << std::endl;
+	// std::cout << "filename ======>" << filename << std::endl;
+	// std::cout << "new_url =======>" << main_client->get_new_url() << std::endl;
 	if (dotPos != std::string::npos) {
 		std::string extension = filename.substr(dotPos + 1);
 		if (extension == "php")
@@ -64,7 +64,10 @@ int Cgi::getFileType(const std::string &filename) {
 							   ->get_config_location_parser()[main_client->get_location()]
 							   ->get_cgi_ext_path(".py");
 		else
+		{
+			std::cout << "here" << std::endl;	
 			throw Error::NotImplemented501();
+		}
 	}
 	std::ifstream checl_script(this->script.c_str());
 	if (checl_script.is_open()) {
@@ -92,11 +95,11 @@ char *const *Cgi::mapToCharConstArray(const std::map<std::string, std::string> &
 void Cgi::check_extention() {
 	this->filename = main_client->get_new_url();
 	if (status == false) {
-		cout << "*****in just_print***\n";
-		std::cout << "hello from cgi" << std::endl;
+		// cout << "*****in just_print***\n";
+		// std::cout << "hello from cgi" << std::endl;
 		for (map<string, string>::const_iterator it = this->main_client->get_request().begin();
 			 it != this->main_client->get_request().end(); it++) {
-			cout << it->first << " : " << it->second << endl;
+			// cout << it->first << " : " << it->second << endl;
 		}
 	}
 	readFileContents();
@@ -183,19 +186,17 @@ void Cgi::set_cgi_env() {
 	cgi_env["SCRIPT_FILENAME="]	  = this->filename;
 	cgi_env["GATEWAY_INTERFACE="] = "CGI/1.1";
 	cgi_env["REDIRECT_STATUS="]	  = "200";
-	// cgi_env["SERVER_PORT="] ="8888";
 	cgi_env["REQUEST_URI="] = this->main_client->get_request("Request-URI");
-	// cgi_env["HTTP_HOST="] = "127.0.0.1";
 	cgi_env["HTTP_HOST="] = this->main_client->get_request("Host");
-	cout << "------------------- Printing the env variables ------------------------------------\n";
+	// cout << "------------------- Printing the env variables ------------------------------------\n";
 	char *av[] = {(char *)script.c_str(), (char *)this->filename.c_str(), NULL};
 
 	this->env = mapToCharConstArray(cgi_env);
-	size_t i;
-	for (i = 0; cgi_env.size() > i; i++) {
-		cout << "|" << this->env[i] << "|" << endl;
-	}
-	cout << "-----------------------------------------------------------------------------------\n";
+	// size_t i;
+	// for (i = 0; cgi_env.size() > i; i++) {
+	// 	cout << "|" << this->env[i] << "|" << endl;
+	// }
+	// cout << "-----------------------------------------------------------------------------------\n";
 	outfile = this->generate_random_name();
 	main_client->set_files_to_remove(outfile);
 	output_file = open(outfile.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0777);
@@ -212,9 +213,7 @@ void Cgi::set_cgi_env() {
 		close(input_file);
 		if(execve(av[0], av, this->env) < 0)
 			throw Error::InternalServerError500();
-
 	}
-	std::cout << "> pid " << _pid << std::endl;
 	main_client->set_access(true);
 }
 
@@ -225,10 +224,6 @@ void Cgi::wait_for_child() {
 	if (_phase == 2)
 		return;
 	test = waitpid(_pid, NULL, WNOHANG);
-	if (test <= -1) {
-		std::cout << "Error " << std::endl;
-		std::exit(1);
-	}
 	if (test == 0 && _phase == 0) {
 		PRINT_ERROR("first move");
 		main_client->set_write_status(false);
@@ -243,14 +238,9 @@ void Cgi::wait_for_child() {
 	}
 
 	if (_phase == 1 && get_time() - _time > 1000 * 5) {
-		std::cout << ">> " << test << "ddd " << _time << std::endl;
 		PRINT_ERROR("KILL CHILD");
 		PRINT_ERROR(_pid);
 		main_client->set_write_status(true);
-		if (_pid == 0) {
-			std::cout << "Error " << std::endl;
-			std::exit(1);
-		}
 		kill(_pid, SIGKILL);
 		throw Error::LoopDetected508();
 	} else {
